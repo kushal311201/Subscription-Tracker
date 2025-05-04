@@ -371,4 +371,695 @@ footer a:hover {
     .notification-banner .btn {
         margin: 10px 0 0 0;
     }
+}
+
+/* Mobile Experience Enhancements */
+:root {
+    /* Define variables for consistent spacing and sizing */
+    --touch-target-size: 48px;
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+    --spacing-xl: 32px;
+    
+    /* Colors */
+    --primary-color: #4a6bdf;
+    --primary-dark: #3a56b0;
+    --secondary-color: #f5f5f5;
+    --accent-color: #ff6b6b;
+    --text-color: #333333;
+    --text-light: #777777;
+    --border-color: #e0e0e0;
+    --success-color: #4caf50;
+    --warning-color: #ff9800;
+    --error-color: #f44336;
+    --background-color: #ffffff;
+    
+    /* Category colors */
+    --streaming-color: #e91e63;
+    --fitness-color: #4caf50;
+    --productivity-color: #ff9800;
+    --music-color: #9c27b0;
+    --cloud-color: #2196f3;
+    --other-color: #607d8b;
+}
+
+/* Enhanced typography for better mobile readability */
+body {
+    font-size: 16px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+}
+
+/* Increase base font size for better readability on mobile */
+h1 {
+    font-size: 1.8rem;
+}
+
+h2 {
+    font-size: 1.5rem;
+}
+
+h3 {
+    font-size: 1.2rem;
+}
+
+/* Touch targets - ensure all clickable elements are at least 48×48dp */
+.touch-target {
+    min-height: var(--touch-target-size);
+    min-width: var(--touch-target-size);
+    padding: var(--spacing-md);
+}
+
+/* Make form inputs more touch-friendly */
+input, select, button {
+    min-height: var(--touch-target-size);
+    font-size: 1rem;
+    border-radius: 8px;
+}
+
+.btn {
+    min-height: var(--touch-target-size);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+.btn:active {
+    transform: scale(0.98);
+}
+
+/* Enhanced search box */
+.search-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.search-icon {
+    position: absolute;
+    left: var(--spacing-md);
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-light);
+}
+
+#searchInput {
+    padding-left: 40px;
+    width: 100%;
+}
+
+.clear-search {
+    position: absolute;
+    right: var(--spacing-xs);
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    color: var(--text-light);
+    padding: var(--spacing-sm);
+    cursor: pointer;
+}
+
+/* Pull to refresh styling */
+.pull-indicator {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-md);
+    color: var(--primary-color);
+}
+
+.pull-indicator i {
+    margin-right: var(--spacing-sm);
+}
+
+/* Connection status indicator */
+.connection-status {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    text-align: center;
+    padding: var(--spacing-sm);
+    z-index: 1000;
+    opacity: 0;
+    transform: translateY(-100%);
+    transition: transform 0.3s, opacity 0.3s;
+}
+
+.connection-status.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.connection-status.online {
+    background-color: var(--success-color);
+    color: white;
+}
+
+.connection-status.offline {
+    background-color: var(--warning-color);
+    color: white;
+}
+
+/* Bottom navigation */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-around;
+    background-color: white;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    z-index: 100;
+    height: 60px;
+    padding-bottom: env(safe-area-inset-bottom);
+}
+
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    padding: var(--spacing-sm) 0;
+    color: var(--text-light);
+    text-decoration: none;
+    font-size: 0.75rem;
+    transition: color 0.3s;
+}
+
+.nav-item i {
+    font-size: 1.25rem;
+    margin-bottom: var(--spacing-xs);
+}
+
+.nav-item.active {
+    color: var(--primary-color);
+}
+
+/* Settings panel */
+.settings-panel {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: white;
+    z-index: 200;
+    transform: translateX(100%);
+    transition: transform 0.3s ease-in-out;
+    padding: var(--spacing-lg);
+    overflow-y: auto;
+}
+
+.settings-panel.open {
+    transform: translateX(0);
+}
+
+.settings-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-lg);
+    padding-bottom: var(--spacing-md);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.settings-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+}
+
+.settings-group {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Toggle switch styling */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 24px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+}
+
+input:checked + .slider {
+    background-color: var(--primary-color);
+}
+
+input:checked + .slider:before {
+    transform: translateX(26px);
+}
+
+.slider.round {
+    border-radius: 24px;
+}
+
+.slider.round:before {
+    border-radius: 50%;
+}
+
+/* App info section */
+.app-info {
+    margin-top: var(--spacing-lg);
+    text-align: center;
+    color: var(--text-light);
+    font-size: 0.8rem;
+}
+
+/* Toast notifications */
+.toast {
+    position: fixed;
+    bottom: 70px; /* Above bottom nav */
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: var(--spacing-md) var(--spacing-lg);
+    border-radius: 25px;
+    z-index: 300;
+    opacity: 0;
+    transition: transform 0.3s, opacity 0.3s;
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+/* Buttons styling */
+.primary-btn {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+}
+
+.secondary-btn {
+    background-color: var(--secondary-color);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+}
+
+.danger-btn {
+    background-color: var(--error-color);
+    color: white;
+    border: none;
+}
+
+/* Adjust main container padding for bottom nav */
+.container {
+    padding-bottom: 70px; /* Height of bottom nav + some space */
+}
+
+/* Adjust for mobile devices in portrait orientation */
+@media (max-width: 767px) {
+    .main-content {
+        padding: var(--spacing-sm);
+    }
+    
+    .subscription-card {
+        padding: var(--spacing-md);
+    }
+    
+    .filter-section {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+    }
+    
+    /* Hide footer links on mobile since we have bottom nav */
+    footer {
+        display: none;
+    }
+}
+
+/* Landscape adjustments */
+@media (orientation: landscape) and (max-height: 500px) {
+    .bottom-nav {
+        height: 45px;
+    }
+    
+    .nav-item i {
+        margin-bottom: 0;
+    }
+    
+    .nav-item span {
+        display: none;
+    }
+    
+    .container {
+        padding-bottom: 50px;
+    }
+}
+
+/* Make subscription cards swipeable on mobile */
+.subscription-card {
+    position: relative;
+    overflow: hidden;
+}
+
+.swipe-actions {
+    position: absolute;
+    right: 0;
+    top: 0;
+    height: 100%;
+    display: flex;
+    transform: translateX(100%);
+    transition: transform 0.3s;
+}
+
+.swipe-action {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 70px;
+    height: 100%;
+    color: white;
+}
+
+.swipe-edit {
+    background-color: var(--primary-color);
+}
+
+.swipe-delete {
+    background-color: var(--error-color);
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --background-color: #121212;
+        --card-color: #1e1e1e;
+        --text-color: #f5f5f5;
+        --text-light: #aaaaaa;
+        --border-color: #333333;
+    }
+    
+    body.dark-mode {
+        background-color: var(--background-color);
+        color: var(--text-color);
+    }
+    
+    body.dark-mode .subscription-card,
+    body.dark-mode .summary-box,
+    body.dark-mode .add-subscription,
+    body.dark-mode .bottom-nav,
+    body.dark-mode .settings-panel {
+        background-color: var(--card-color);
+    }
+    
+    body.dark-mode input,
+    body.dark-mode select {
+        background-color: #2d2d2d;
+        color: var(--text-color);
+        border-color: var(--border-color);
+    }
+}
+
+/* Enhanced for notification channels */
+.notification-channels {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+}
+
+.channel-options {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+    margin-top: var(--spacing-xs);
+    padding-left: var(--spacing-sm);
+}
+
+.channel-option {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.channel-option input[type="checkbox"] {
+    width: auto;
+    min-height: auto;
+}
+
+.channel-option label {
+    margin-bottom: 0;
+}
+
+/* Biometric authentication styles */
+.disabled-option {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+/* Share button styling */
+.share-btn {
+    color: var(--primary-color);
+}
+
+.share-btn:hover {
+    color: var(--primary-dark);
+}
+
+/* Authentication modal for biometrics */
+.auth-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+}
+
+.auth-modal.visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.auth-modal-content {
+    background-color: var(--background-color);
+    border-radius: 12px;
+    padding: var(--spacing-lg);
+    width: 80%;
+    max-width: 350px;
+    text-align: center;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+}
+
+.auth-modal-icon {
+    font-size: 3rem;
+    color: var(--primary-color);
+    margin-bottom: var(--spacing-md);
+}
+
+.auth-modal h3 {
+    margin-bottom: var(--spacing-md);
+}
+
+.auth-modal p {
+    margin-bottom: var(--spacing-lg);
+    color: var(--text-light);
+}
+
+.auth-buttons {
+    display: flex;
+    gap: var(--spacing-md);
+    justify-content: center;
+}
+
+/* Android-specific intent buttons */
+.intent-button {
+    display: none; /* Hidden by default, shown only on Android */
+}
+
+@media (any-pointer: coarse) {
+    .android .intent-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--spacing-sm);
+        margin-top: var(--spacing-md);
+        width: 100%;
+        padding: var(--spacing-md);
+        background-color: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: 500;
+    }
+}
+
+/* Add styles for amount input with currency symbol */
+.amount-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+#amountCurrencySymbol,
+#editAmountCurrencySymbol {
+    position: absolute;
+    left: 10px;
+    font-weight: 500;
+}
+
+.amount-input-wrapper input {
+    padding-left: 30px;
+}
+
+/* Improved offline mode indicator */
+.offline-mode .connection-status {
+    background-color: var(--warning-color) !important;
+}
+
+.connection-status.syncing {
+    background-color: var(--primary-color);
+}
+
+/* Modal styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    overflow: auto;
+}
+
+.modal-content {
+    background-color: var(--background-color);
+    margin: 10% auto;
+    padding: var(--spacing-lg);
+    width: 90%;
+    max-width: 500px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    position: relative;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-lg);
+    padding-bottom: var(--spacing-md);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--spacing-md);
+    margin-top: var(--spacing-lg);
+}
+
+/* Reminder toggle section */
+.reminder-toggle {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-sm);
+}
+
+.reminder-days {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    margin-top: var(--spacing-xs);
+}
+
+.reminder-days label {
+    flex: 0 0 auto;
+    margin-bottom: 0;
+}
+
+.reminder-days select {
+    flex: 1;
+}
+
+/* Import/Export styles */
+#importFileInput {
+    display: none;
+}
+
+/* Improved notification styles */
+.toast {
+    z-index: 10000;  /* Ensure toast is above all other elements */
+    min-width: 250px;
+    text-align: center;
+    font-size: 0.9rem;
+}
+
+/* Responsive improvements */
+@media (max-width: 480px) {
+    .modal-content {
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        max-height: 100%;
+        border-radius: 0;
+    }
+    
+    .modal-actions {
+        position: sticky;
+        bottom: 0;
+        background-color: var(--background-color);
+        padding: var(--spacing-md) 0;
+        margin-top: var(--spacing-xl);
+    }
+    
+    .reminder-days {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--spacing-xs);
+    }
 } 
