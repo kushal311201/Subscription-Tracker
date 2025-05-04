@@ -2,11 +2,18 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Subscription Manager</title>
     <!-- PWA Meta Tags -->
     <meta name="theme-color" content="#4a6bdf">
     <meta name="description" content="Track and manage your recurring subscriptions">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <!-- Android-specific meta tags -->
+    <meta name="android-package" content="com.subscriptiontracker.app">
+    <meta name="android:theme" content="@android:style/Theme.DeviceDefault">
+    <meta name="android:colorMode" content="nightAuto">
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="images/icon-192.png">
     <!-- Font Awesome for icons -->
@@ -15,27 +22,37 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Chart.js for pie chart -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Pull to refresh library -->
+    <script src="https://cdn.jsdelivr.net/npm/pulltorefreshjs@0.1.22/dist/index.umd.min.js"></script>
+    <!-- Vibration API polyfill -->
+    <script src="https://cdn.jsdelivr.net/npm/vibration-api-polyfill@1.0.0/dist/vibration-api-polyfill.min.js"></script>
+    <!-- Fingerprint.js for biometric authentication -->
+    <script src="https://cdn.jsdelivr.net/npm/@fingerprintjs/fingerprintjs@3.4.1/dist/fp.min.js"></script>
+    <!-- i18next for internationalization -->
+    <script src="https://cdn.jsdelivr.net/npm/i18next@21.8.10/i18next.min.js"></script>
+    <!-- Luxon for better date handling -->
+    <script src="https://cdn.jsdelivr.net/npm/luxon@2.4.0/build/global/luxon.min.js"></script>
     <!-- Custom CSS -->
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
     <div class="container">
         <header>
-            <h1><i class="fas fa-calendar-check"></i> Subscription Manager</h1>
+            <h1><i class="fas fa-calendar-check"></i> <span data-i18n="appTitle">Subscription Manager</span></h1>
             
             <div id="airtableNotification" class="notification-banner">
                 <div class="notification-content">
-                    <div class="notification-title">Airtable Setup Required</div>
-                    <p>Before using this app, you need to set up your Airtable database for storing subscriptions.</p>
+                    <div class="notification-title" data-i18n="setupTitle">Airtable Setup Required</div>
+                    <p data-i18n="setupDesc">Before using this app, you need to set up your Airtable database for storing subscriptions.</p>
                 </div>
-                <a href="airtable-setup.html" class="btn">Setup Guide</a>
+                <a href="airtable-setup.html" class="btn" data-i18n="setupGuide">Setup Guide</a>
                 <button class="close-btn" onclick="dismissNotification()"><i class="fas fa-times"></i></button>
             </div>
             
             <div class="summary-box">
                 <div class="total-box">
-                    <h3>Monthly Burn Rate</h3>
-                    <p class="total-amount">₹<span id="totalMonthly">0</span></p>
+                    <h3 data-i18n="monthlyBurn">Monthly Burn Rate</h3>
+                    <p class="total-amount"><span id="currencySymbol">₹</span><span id="totalMonthly">0</span></p>
                 </div>
                 <div class="chart-container">
                     <canvas id="categoryChart"></canvas>
@@ -44,65 +61,106 @@
         </header>
 
         <div class="main-content">
+            <div id="pull-to-refresh-indicator" class="pull-indicator">
+                <i class="fas fa-sync-alt fa-spin"></i>
+                <span data-i18n="pullToRefresh">Pull down to refresh</span>
+            </div>
+            
             <div class="add-subscription">
-                <h2>Add New Subscription</h2>
+                <h2 data-i18n="addNewSub">Add New Subscription</h2>
                 <form id="subscriptionForm">
                     <div class="form-group">
-                        <label for="subscriptionName">Subscription Name</label>
-                        <input type="text" id="subscriptionName" required>
+                        <label for="subscriptionName" data-i18n="subName">Subscription Name</label>
+                        <input type="text" id="subscriptionName" required autocomplete="off">
                     </div>
                     <div class="form-group">
-                        <label for="subscriptionAmount">Amount (₹)</label>
-                        <input type="number" id="subscriptionAmount" min="1" required>
+                        <label for="subscriptionAmount" data-i18n="amount">Amount</label>
+                        <div class="amount-input-wrapper">
+                            <span id="amountCurrencySymbol">₹</span>
+                            <input type="number" id="subscriptionAmount" min="1" required pattern="[0-9]*" inputmode="numeric">
+                        </div>
                     </div>
                     <div class="form-group">
-                        <label for="billingCycle">Billing Cycle</label>
+                        <label for="billingCycle" data-i18n="billingCycle">Billing Cycle</label>
                         <select id="billingCycle" required>
-                            <option value="monthly">Monthly</option>
-                            <option value="yearly">Yearly</option>
-                            <option value="quarterly">Quarterly</option>
+                            <option value="monthly" data-i18n="monthly">Monthly</option>
+                            <option value="yearly" data-i18n="yearly">Yearly</option>
+                            <option value="quarterly" data-i18n="quarterly">Quarterly</option>
+                            <option value="weekly" data-i18n="weekly">Weekly</option>
+                            <option value="biweekly" data-i18n="biweekly">Bi-weekly</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="dueDate">Next Due Date</label>
+                        <label for="dueDate" data-i18n="nextDueDate">Next Due Date</label>
                         <input type="date" id="dueDate" required>
                     </div>
                     <div class="form-group">
-                        <label for="category">Category</label>
+                        <label for="category" data-i18n="category">Category</label>
                         <select id="category" required>
-                            <option value="streaming">Streaming</option>
-                            <option value="fitness">Fitness</option>
-                            <option value="productivity">Productivity</option>
-                            <option value="music">Music</option>
-                            <option value="cloud">Cloud Storage</option>
-                            <option value="other">Other</option>
+                            <option value="streaming" data-i18n="streaming">Streaming</option>
+                            <option value="fitness" data-i18n="fitness">Fitness</option>
+                            <option value="productivity" data-i18n="productivity">Productivity</option>
+                            <option value="music" data-i18n="music">Music</option>
+                            <option value="cloud" data-i18n="cloud">Cloud Storage</option>
+                            <option value="utilities" data-i18n="utilities">Utilities</option>
+                            <option value="food" data-i18n="food">Food & Dining</option>
+                            <option value="housing" data-i18n="housing">Housing</option>
+                            <option value="education" data-i18n="education">Education</option>
+                            <option value="other" data-i18n="other">Other</option>
                         </select>
                     </div>
-                    <button type="submit" class="btn primary-btn">Add Subscription</button>
+                    <div class="form-group">
+                        <div class="reminder-toggle">
+                            <label for="enableReminder" data-i18n="enableReminder">Enable Reminder</label>
+                            <label class="switch">
+                                <input type="checkbox" id="enableReminder" checked>
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                        <div class="reminder-days" id="reminderDaysContainer">
+                            <label for="reminderDays" data-i18n="reminderDays">Remind me</label>
+                            <select id="reminderDays">
+                                <option value="0" data-i18n="onDueDate">On due date</option>
+                                <option value="1" data-i18n="oneDayBefore">1 day before</option>
+                                <option value="3" data-i18n="threeDaysBefore" selected>3 days before</option>
+                                <option value="7" data-i18n="oneWeekBefore">1 week before</option>
+                                <option value="14" data-i18n="twoWeeksBefore">2 weeks before</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn primary-btn touch-target" data-i18n="addSubscription">Add Subscription</button>
                 </form>
             </div>
 
             <div class="subscription-list">
                 <div class="list-header">
-                    <h2>Your Subscriptions</h2>
+                    <h2 data-i18n="yourSubscriptions">Your Subscriptions</h2>
                     <div class="filter-section">
-                        <select id="filterCategory">
-                            <option value="all">All Categories</option>
-                            <option value="streaming">Streaming</option>
-                            <option value="fitness">Fitness</option>
-                            <option value="productivity">Productivity</option>
-                            <option value="music">Music</option>
-                            <option value="cloud">Cloud Storage</option>
-                            <option value="other">Other</option>
+                        <select id="filterCategory" class="touch-target">
+                            <option value="all" data-i18n="allCategories">All Categories</option>
+                            <option value="streaming" data-i18n="streaming">Streaming</option>
+                            <option value="fitness" data-i18n="fitness">Fitness</option>
+                            <option value="productivity" data-i18n="productivity">Productivity</option>
+                            <option value="music" data-i18n="music">Music</option>
+                            <option value="cloud" data-i18n="cloud">Cloud Storage</option>
+                            <option value="utilities" data-i18n="utilities">Utilities</option>
+                            <option value="food" data-i18n="food">Food & Dining</option>
+                            <option value="housing" data-i18n="housing">Housing</option>
+                            <option value="education" data-i18n="education">Education</option>
+                            <option value="other" data-i18n="other">Other</option>
                         </select>
-                        <input type="text" id="searchInput" placeholder="Search...">
+                        <div class="search-wrapper">
+                            <i class="fas fa-search search-icon"></i>
+                            <input type="text" id="searchInput" placeholder="Search..." class="touch-target" data-i18n-placeholder="search">
+                            <button type="button" id="clearSearch" class="clear-search touch-target"><i class="fas fa-times"></i></button>
+                        </div>
                     </div>
                 </div>
                 <div id="subscriptionCards" class="cards-container">
                     <!-- Subscription cards will be added here dynamically -->
                     <div class="empty-state">
                         <i class="fas fa-list-ul"></i>
-                        <p>No subscriptions added yet. Add your first subscription using the form.</p>
+                        <p data-i18n="noSubscriptions">No subscriptions added yet. Add your first subscription using the form.</p>
                     </div>
                 </div>
             </div>
@@ -111,17 +169,211 @@
         <div class="ad-container">
             <!-- Ad Banner Space -->
             <div class="ad-banner">
-                <p>Advertisement Space</p>
+                <p data-i18n="adSpace">Advertisement Space</p>
             </div>
         </div>
 
-        <footer>
-            <p>&copy; 2023 Subscription Manager | <a href="#" id="resetDataLink">Reset Data</a> | <a href="help.html">Help</a> | <a href="airtable-setup.html">Airtable Setup</a></p>
-        </footer>
+        <div class="connection-status" id="connectionStatus">
+            <span id="connectionText">Offline</span>
+        </div>
+
+        <!-- Bottom Navigation Bar for Mobile -->
+        <nav class="bottom-nav">
+            <a href="#" class="nav-item active" id="nav-home">
+                <i class="fas fa-home"></i>
+                <span data-i18n="home">Home</span>
+            </a>
+            <a href="#" class="nav-item" id="nav-add">
+                <i class="fas fa-plus-circle"></i>
+                <span data-i18n="add">Add</span>
+            </a>
+            <a href="help.html" class="nav-item">
+                <i class="fas fa-question-circle"></i>
+                <span data-i18n="help">Help</span>
+            </a>
+            <a href="#" class="nav-item" id="nav-settings">
+                <i class="fas fa-cog"></i>
+                <span data-i18n="settings">Settings</span>
+            </a>
+        </nav>
+
+        <!-- Hidden Settings Panel -->
+        <div id="settingsPanel" class="settings-panel">
+            <div class="settings-header">
+                <h3 data-i18n="settings">Settings</h3>
+                <button id="closeSettings" class="close-btn touch-target"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="settings-content">
+                <div class="settings-group notification-channels">
+                    <label data-i18n="notificationChannels">Notification Channels</label>
+                    <div class="channel-options">
+                        <div class="channel-option">
+                            <input type="checkbox" id="dueDateChannel" checked>
+                            <label for="dueDateChannel" data-i18n="duePayments">Due Payments</label>
+                        </div>
+                        <div class="channel-option">
+                            <input type="checkbox" id="weeklyDigestChannel">
+                            <label for="weeklyDigestChannel" data-i18n="weeklyDigest">Weekly Digest</label>
+                        </div>
+                        <div class="channel-option">
+                            <input type="checkbox" id="priceChangesChannel">
+                            <label for="priceChangesChannel" data-i18n="priceChanges">Price Changes</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="settings-group">
+                    <label for="enableNotifications" data-i18n="enableNotifications">Enable Notifications</label>
+                    <label class="switch">
+                        <input type="checkbox" id="enableNotifications">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+                <div class="settings-group">
+                    <label for="useBiometrics" data-i18n="useBiometrics">Use Biometric Authentication</label>
+                    <label class="switch">
+                        <input type="checkbox" id="useBiometrics">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+                <div class="settings-group">
+                    <label for="darkMode" data-i18n="darkMode">Dark Mode</label>
+                    <label class="switch">
+                        <input type="checkbox" id="darkMode">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+                <div class="settings-group">
+                    <label for="systemTheme" data-i18n="followSystemTheme">Follow System Theme</label>
+                    <label class="switch">
+                        <input type="checkbox" id="systemTheme" checked>
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+                <div class="settings-group">
+                    <label for="currency" data-i18n="currency">Currency</label>
+                    <select id="currency" class="touch-target">
+                        <option value="INR">₹ Indian Rupee</option>
+                        <option value="USD">$ US Dollar</option>
+                        <option value="EUR">€ Euro</option>
+                        <option value="GBP">£ British Pound</option>
+                        <option value="JPY">¥ Japanese Yen</option>
+                        <option value="CAD">$ Canadian Dollar</option>
+                        <option value="AUD">$ Australian Dollar</option>
+                        <option value="CNY">¥ Chinese Yuan</option>
+                        <option value="SGD">$ Singapore Dollar</option>
+                        <option value="RUB">₽ Russian Ruble</option>
+                    </select>
+                </div>
+                <div class="settings-group">
+                    <label for="language" data-i18n="language">Language</label>
+                    <select id="language" class="touch-target">
+                        <option value="en">English</option>
+                        <option value="hi">हिंदी (Hindi)</option>
+                        <option value="es">Español (Spanish)</option>
+                        <option value="fr">Français (French)</option>
+                        <option value="de">Deutsch (German)</option>
+                        <option value="ja">日本語 (Japanese)</option>
+                        <option value="zh">中文 (Chinese)</option>
+                        <option value="ru">Русский (Russian)</option>
+                    </select>
+                </div>
+                <a href="#" id="exportDataLink" class="btn secondary-btn touch-target" data-i18n="exportData">Export Data</a>
+                <a href="#" id="importDataLink" class="btn secondary-btn touch-target" data-i18n="importData">Import Data</a>
+                <a href="#" id="resetDataLink" class="btn danger-btn touch-target" data-i18n="resetData">Reset Data</a>
+                <a href="airtable-setup.html" class="btn secondary-btn touch-target" data-i18n="databaseSetup">Database Setup</a>
+                <div class="app-info">
+                    <p>Version 1.2.0</p>
+                    <p>&copy; 2023 Subscription Manager</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Subscription Edit Modal -->
+        <div id="editModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 data-i18n="editSubscription">Edit Subscription</h3>
+                    <button id="closeEditModal" class="close-btn touch-target"><i class="fas fa-times"></i></button>
+                </div>
+                <form id="editSubscriptionForm">
+                    <input type="hidden" id="editSubscriptionId">
+                    <div class="form-group">
+                        <label for="editSubscriptionName" data-i18n="subName">Subscription Name</label>
+                        <input type="text" id="editSubscriptionName" required autocomplete="off">
+                    </div>
+                    <div class="form-group">
+                        <label for="editSubscriptionAmount" data-i18n="amount">Amount</label>
+                        <div class="amount-input-wrapper">
+                            <span id="editAmountCurrencySymbol">₹</span>
+                            <input type="number" id="editSubscriptionAmount" min="1" required pattern="[0-9]*" inputmode="numeric">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="editBillingCycle" data-i18n="billingCycle">Billing Cycle</label>
+                        <select id="editBillingCycle" required>
+                            <option value="monthly" data-i18n="monthly">Monthly</option>
+                            <option value="yearly" data-i18n="yearly">Yearly</option>
+                            <option value="quarterly" data-i18n="quarterly">Quarterly</option>
+                            <option value="weekly" data-i18n="weekly">Weekly</option>
+                            <option value="biweekly" data-i18n="biweekly">Bi-weekly</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="editDueDate" data-i18n="nextDueDate">Next Due Date</label>
+                        <input type="date" id="editDueDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editCategory" data-i18n="category">Category</label>
+                        <select id="editCategory" required>
+                            <option value="streaming" data-i18n="streaming">Streaming</option>
+                            <option value="fitness" data-i18n="fitness">Fitness</option>
+                            <option value="productivity" data-i18n="productivity">Productivity</option>
+                            <option value="music" data-i18n="music">Music</option>
+                            <option value="cloud" data-i18n="cloud">Cloud Storage</option>
+                            <option value="utilities" data-i18n="utilities">Utilities</option>
+                            <option value="food" data-i18n="food">Food & Dining</option>
+                            <option value="housing" data-i18n="housing">Housing</option>
+                            <option value="education" data-i18n="education">Education</option>
+                            <option value="other" data-i18n="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <div class="reminder-toggle">
+                            <label for="editEnableReminder" data-i18n="enableReminder">Enable Reminder</label>
+                            <label class="switch">
+                                <input type="checkbox" id="editEnableReminder" checked>
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                        <div class="reminder-days" id="editReminderDaysContainer">
+                            <label for="editReminderDays" data-i18n="reminderDays">Remind me</label>
+                            <select id="editReminderDays">
+                                <option value="0" data-i18n="onDueDate">On due date</option>
+                                <option value="1" data-i18n="oneDayBefore">1 day before</option>
+                                <option value="3" data-i18n="threeDaysBefore">3 days before</option>
+                                <option value="7" data-i18n="oneWeekBefore">1 week before</option>
+                                <option value="14" data-i18n="twoWeeksBefore">2 weeks before</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" id="cancelEditBtn" class="btn secondary-btn touch-target" data-i18n="cancel">Cancel</button>
+                        <button type="submit" class="btn primary-btn touch-target" data-i18n="saveChanges">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- File import input (hidden) -->
+        <input type="file" id="importFileInput" accept=".json" style="display: none;">
     </div>
 
     <!-- Airtable API -->
     <script src="https://cdn.jsdelivr.net/npm/airtable@0.12.2/build/airtable.browser.js"></script>
+    <!-- IndexedDB Manager -->
+    <script src="js/db.js"></script>
+    <!-- Language Translations -->
+    <script src="js/translations.js"></script>
     <!-- Custom JS -->
     <script src="js/app.js"></script>
     <!-- Service Worker Registration -->
@@ -142,19 +394,25 @@
         function dismissNotification() {
             document.getElementById('airtableNotification').style.display = 'none';
             localStorage.setItem('notificationDismissed', 'true');
+            
+            // Add haptic feedback for better mobile experience
+            if (navigator.vibrate) {
+                navigator.vibrate(50);
+            }
         }
         
-        // Check if notification was previously dismissed
+        // Initialize translations after the DOM is loaded
         document.addEventListener('DOMContentLoaded', () => {
-            if (localStorage.getItem('notificationDismissed') === 'true') {
-                document.getElementById('airtableNotification').style.display = 'none';
+            // Initialize i18n
+            if (window.i18n && typeof window.i18n.init === 'function') {
+                window.i18n.init();
             }
             
-            // If API keys are set, automatically hide the notification
-            if (airtableApiKey !== 'YOUR_API_KEY' && airtableBaseId !== 'YOUR_BASE_ID') {
+            // Check if notification was previously dismissed
+            if (localStorage.getItem('notificationDismissed') === 'true') {
                 document.getElementById('airtableNotification').style.display = 'none';
             }
         });
     </script>
 </body>
-</html> 
+</html>
