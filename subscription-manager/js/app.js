@@ -462,6 +462,7 @@ function openEditModal(subscription) {
     const categoryInput = document.getElementById('editCategory');
     const enableReminderInput = document.getElementById('editEnableReminder');
     const reminderDaysInput = document.getElementById('editReminderDays');
+    const reminderDaysContainer = document.getElementById('editReminderDaysContainer');
     
     // Populate form with subscription data
     idInput.value = subscription.id;
@@ -479,8 +480,18 @@ function openEditModal(subscription) {
     categoryInput.value = subscription.category;
     
     // Set reminder toggle and days
-    enableReminderInput.checked = true; // Default to true
-    reminderDaysInput.value = "3"; // Default to 3 days
+    enableReminderInput.checked = subscription.reminderEnabled !== false;
+    reminderDaysInput.value = subscription.reminderDays || "3";
+    
+    // Set reminder days container visibility
+    if (reminderDaysContainer) {
+        reminderDaysContainer.style.display = enableReminderInput.checked ? 'flex' : 'none';
+        
+        // Add event listener for toggle
+        enableReminderInput.addEventListener('change', () => {
+            reminderDaysContainer.style.display = enableReminderInput.checked ? 'flex' : 'none';
+        });
+    }
     
     // Show the modal
     modal.style.display = 'block';
@@ -536,6 +547,10 @@ function handleEditFormSubmit(event) {
         const dueDate = dueDateElement.value;
         const category = document.getElementById('editCategory').value;
         
+        // Get reminder settings
+        const reminderEnabled = document.getElementById('editEnableReminder').checked;
+        const reminderDays = document.getElementById('editReminderDays').value;
+        
         // Validate inputs
         if (!name) {
             showToast('Please enter a subscription name');
@@ -562,6 +577,9 @@ function handleEditFormSubmit(event) {
             billingCycle,
             dueDate,
             category,
+            reminderEnabled,
+            reminderDays,
+            reminderType: localStorage.getItem('defaultReminderType') || 'push',
             updatedAt: new Date().toISOString()
         };
         
@@ -688,6 +706,10 @@ function setupFormListener() {
             const dueDate = dueDateElement.value;
             const category = document.getElementById('category').value;
             
+            // Get reminder settings
+            const reminderEnabled = document.getElementById('enableReminder').checked;
+            const reminderDays = document.getElementById('reminderDays').value;
+            
             // Validate inputs
             if (!name) {
                 showToast('Please enter a subscription name');
@@ -713,6 +735,9 @@ function setupFormListener() {
                 billingCycle,
                 dueDate,
                 category,
+                reminderEnabled,
+                reminderDays,
+                reminderType: localStorage.getItem('defaultReminderType') || 'push',
                 updatedAt: new Date().toISOString()
             };
             
@@ -735,6 +760,19 @@ function setupFormListener() {
     const dueDateInput = document.getElementById('dueDate');
     if (dueDateInput) {
         dueDateInput.valueAsDate = new Date();
+    }
+    
+    // Set up reminder toggle visibility
+    const enableReminder = document.getElementById('enableReminder');
+    const reminderDaysContainer = document.getElementById('reminderDaysContainer');
+    
+    if (enableReminder && reminderDaysContainer) {
+        enableReminder.addEventListener('change', () => {
+            reminderDaysContainer.style.display = enableReminder.checked ? 'flex' : 'none';
+        });
+        
+        // Set initial state
+        reminderDaysContainer.style.display = enableReminder.checked ? 'flex' : 'none';
     }
 }
 

@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Reminders - Subscription Manager</title>
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#4a6bdf">
+    <meta name="description" content="Manage your subscription reminders">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <!-- Android-specific meta tags -->
+    <meta name="android-package" content="com.subscriptiontracker.app">
+    <meta name="android:theme" content="@android:style/Theme.DeviceDefault">
+    <meta name="android:colorMode" content="nightAuto">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="images/icon-192.png">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .reminder-list {
+            margin-top: 20px;
+        }
+        
+        .reminder-card {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .reminder-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .reminder-card-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        
+        .reminder-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+        
+        .reminder-label {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .reminder-value {
+            font-weight: 500;
+        }
+        
+        .reminder-status {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #eee;
+        }
+        
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-active {
+            background-color: #4caf50;
+        }
+        
+        .status-inactive {
+            background-color: #9e9e9e;
+        }
+        
+        .quick-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .quick-action-btn {
+            flex: 1;
+            min-width: 150px;
+            padding: 15px;
+            border-radius: 10px;
+            background-color: #f0f4ff;
+            border: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .quick-action-btn:hover {
+            background-color: #e5ecff;
+        }
+        
+        .quick-action-btn i {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            color: #4a6bdf;
+        }
+        
+        .no-reminders {
+            text-align: center;
+            padding: 40px 20px;
+            color: #aaa;
+        }
+        
+        .no-reminders i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+        
+        .reminder-badge {
+            background-color: #4a6bdf;
+            color: white;
+            border-radius: 20px;
+            padding: 3px 10px;
+            font-size: 0.8rem;
+            margin-left: 10px;
+        }
+        
+        .time-select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            margin-top: 5px;
+            font-family: inherit;
+        }
+        
+        .remind-via {
+            margin-top: 15px;
+        }
+        
+        .notification-options {
+            display: flex;
+            gap: 10px;
+            margin-top: 8px;
+        }
+        
+        .notification-option {
+            flex: 1;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        
+        .notification-option.selected {
+            background-color: #e8f0ff;
+            border-color: #4a6bdf;
+            color: #4a6bdf;
+        }
+        
+        .notification-option i {
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-bell"></i> <span data-i18n="reminders">Reminders</span></h1>
+            
+            <div class="summary-box">
+                <div class="total-box">
+                    <h3 data-i18n="activeReminders">Active Reminders</h3>
+                    <p class="total-amount"><span id="totalReminders">0</span></p>
+                </div>
+                <div class="reminder-preferences">
+                    <h3 data-i18n="preferences">Preferences</h3>
+                    <div class="settings-group">
+                        <label for="defaultReminderType" data-i18n="defaultReminderType">Default Reminder Type</label>
+                        <select id="defaultReminderType" class="touch-target">
+                            <option value="push" data-i18n="pushNotification">Push Notification</option>
+                            <option value="email" data-i18n="email">Email</option>
+                            <option value="both" data-i18n="both">Both</option>
+                        </select>
+                    </div>
+                    <div class="settings-group">
+                        <label for="defaultReminderDays" data-i18n="defaultReminderDays">Default Reminder Days</label>
+                        <select id="defaultReminderDays" class="touch-target">
+                            <option value="0" data-i18n="onDueDate">On due date</option>
+                            <option value="1" data-i18n="oneDayBefore">1 day before</option>
+                            <option value="3" data-i18n="threeDaysBefore" selected>3 days before</option>
+                            <option value="7" data-i18n="oneWeekBefore">1 week before</option>
+                            <option value="14" data-i18n="twoWeeksBefore">2 weeks before</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <div class="quick-actions">
+                <button class="quick-action-btn" id="enableAllBtn">
+                    <i class="fas fa-toggle-on"></i>
+                    <span data-i18n="enableAll">Enable All</span>
+                </button>
+                <button class="quick-action-btn" id="disableAllBtn">
+                    <i class="fas fa-toggle-off"></i>
+                    <span data-i18n="disableAll">Disable All</span>
+                </button>
+                <button class="quick-action-btn" id="setDefaultsBtn">
+                    <i class="fas fa-sliders-h"></i>
+                    <span data-i18n="setDefaults">Set as Defaults</span>
+                </button>
+                <button class="quick-action-btn" id="testReminderBtn">
+                    <i class="fas fa-paper-plane"></i>
+                    <span data-i18n="testReminder">Test Reminder</span>
+                </button>
+            </div>
+            
+            <div class="reminder-list" id="reminderList">
+                <!-- Reminders will be added here dynamically -->
+                <div class="no-reminders" id="noReminders">
+                    <i class="fas fa-bell-slash"></i>
+                    <p data-i18n="noReminders">No reminders set up yet. Add subscriptions with reminders enabled to see them here.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="connection-status" id="connectionStatus">
+            <span id="connectionText">Offline</span>
+        </div>
+
+        <!-- Bottom Navigation Bar for Mobile -->
+        <nav class="bottom-nav">
+            <a href="index.html" class="nav-item" id="nav-home">
+                <i class="fas fa-home"></i>
+                <span data-i18n="home">Home</span>
+            </a>
+            <a href="index.html#add" class="nav-item" id="nav-add">
+                <i class="fas fa-plus-circle"></i>
+                <span data-i18n="add">Add</span>
+            </a>
+            <a href="reminders.html" class="nav-item active">
+                <i class="fas fa-bell"></i>
+                <span data-i18n="reminders">Reminders</span>
+            </a>
+            <a href="#" class="nav-item" id="nav-settings">
+                <i class="fas fa-cog"></i>
+                <span data-i18n="settings">Settings</span>
+            </a>
+        </nav>
+
+        <!-- Hidden Settings Panel -->
+        <div id="settingsPanel" class="settings-panel">
+            <div class="settings-header">
+                <h3 data-i18n="settings">Settings</h3>
+                <button id="closeSettings" class="close-btn touch-target"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="settings-content">
+                <div class="settings-group notification-channels">
+                    <label data-i18n="notificationChannels">Notification Channels</label>
+                    <div class="channel-options">
+                        <div class="channel-option">
+                            <input type="checkbox" id="dueDateChannel" checked>
+                            <label for="dueDateChannel" data-i18n="duePayments">Due Payments</label>
+                        </div>
+                        <div class="channel-option">
+                            <input type="checkbox" id="weeklyDigestChannel">
+                            <label for="weeklyDigestChannel" data-i18n="weeklyDigest">Weekly Digest</label>
+                        </div>
+                        <div class="channel-option">
+                            <input type="checkbox" id="priceChangesChannel">
+                            <label for="priceChangesChannel" data-i18n="priceChanges">Price Changes</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="settings-group">
+                    <label for="enableNotifications" data-i18n="enableNotifications">Enable Notifications</label>
+                    <label class="switch">
+                        <input type="checkbox" id="enableNotifications">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+                <div class="settings-group">
+                    <label for="useBiometrics" data-i18n="useBiometrics">Use Biometric Authentication</label>
+                    <label class="switch">
+                        <input type="checkbox" id="useBiometrics">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+                <div class="settings-group">
+                    <label for="darkMode" data-i18n="darkMode">Dark Mode</label>
+                    <label class="switch">
+                        <input type="checkbox" id="darkMode">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+                <div class="settings-group">
+                    <label for="systemTheme" data-i18n="followSystemTheme">Follow System Theme</label>
+                    <label class="switch">
+                        <input type="checkbox" id="systemTheme" checked>
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+                <div class="settings-group">
+                    <label for="currency" data-i18n="currency">Currency</label>
+                    <select id="currency" class="touch-target">
+                        <option value="INR">₹ Indian Rupee</option>
+                        <option value="USD">$ US Dollar</option>
+                        <option value="EUR">€ Euro</option>
+                        <option value="GBP">£ British Pound</option>
+                        <option value="JPY">¥ Japanese Yen</option>
+                        <option value="CAD">$ Canadian Dollar</option>
+                        <option value="AUD">$ Australian Dollar</option>
+                        <option value="CNY">¥ Chinese Yuan</option>
+                        <option value="SGD">$ Singapore Dollar</option>
+                        <option value="RUB">₽ Russian Ruble</option>
+                    </select>
+                </div>
+                <div class="settings-group">
+                    <label for="language" data-i18n="language">Language</label>
+                    <select id="language" class="touch-target">
+                        <option value="en">English</option>
+                        <option value="hi">हिंदी (Hindi)</option>
+                        <option value="es">Español (Spanish)</option>
+                        <option value="fr">Français (French)</option>
+                        <option value="de">Deutsch (German)</option>
+                        <option value="ja">日本語 (Japanese)</option>
+                        <option value="zh">中文 (Chinese)</option>
+                        <option value="ru">Русский (Russian)</option>
+                    </select>
+                </div>
+                <a href="#" id="exportDataLink" class="btn secondary-btn touch-target" data-i18n="exportData">Export Data</a>
+                <a href="#" id="importDataLink" class="btn secondary-btn touch-target" data-i18n="importData">Import Data</a>
+                <a href="#" id="resetDataLink" class="btn danger-btn touch-target" data-i18n="resetData">Reset Data</a>
+                <a href="airtable-setup.html" class="btn secondary-btn touch-target" data-i18n="databaseSetup">Database Setup</a>
+                <div class="app-info">
+                    <p>Version 1.2.0</p>
+                    <p>&copy; 2023 Subscription Manager</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Edit Reminder Modal -->
+        <div id="editReminderModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 data-i18n="editReminder">Edit Reminder</h3>
+                    <button id="closeReminderModal" class="close-btn touch-target"><i class="fas fa-times"></i></button>
+                </div>
+                <form id="editReminderForm">
+                    <input type="hidden" id="editReminderSubscriptionId">
+                    <div class="form-group">
+                        <label for="reminderEnabled" data-i18n="enableReminder">Enable Reminder</label>
+                        <label class="switch">
+                            <input type="checkbox" id="reminderEnabled" checked>
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label for="reminderDays" data-i18n="reminderTimeframe">Reminder Timeframe</label>
+                        <select id="reminderDays" class="time-select">
+                            <option value="0" data-i18n="onDueDate">On due date</option>
+                            <option value="1" data-i18n="oneDayBefore">1 day before</option>
+                            <option value="3" data-i18n="threeDaysBefore" selected>3 days before</option>
+                            <option value="7" data-i18n="oneWeekBefore">1 week before</option>
+                            <option value="14" data-i18n="twoWeeksBefore">2 weeks before</option>
+                        </select>
+                    </div>
+                    <div class="form-group remind-via">
+                        <label data-i18n="remindVia">Remind via</label>
+                        <div class="notification-options">
+                            <div class="notification-option selected" data-value="push">
+                                <i class="fas fa-mobile-alt"></i>
+                                <span data-i18n="pushNotification">Push</span>
+                            </div>
+                            <div class="notification-option" data-value="email">
+                                <i class="fas fa-envelope"></i>
+                                <span data-i18n="email">Email</span>
+                            </div>
+                            <div class="notification-option" data-value="both">
+                                <i class="fas fa-bell"></i>
+                                <span data-i18n="both">Both</span>
+                            </div>
+                        </div>
+                        <input type="hidden" id="reminderType" value="push">
+                    </div>
+                    <div class="form-group" id="emailAddressGroup" style="display: none;">
+                        <label for="reminderEmail" data-i18n="emailAddress">Email Address</label>
+                        <input type="email" id="reminderEmail" placeholder="your@email.com">
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" id="cancelReminderBtn" class="btn secondary-btn touch-target" data-i18n="cancel">Cancel</button>
+                        <button type="submit" class="btn primary-btn touch-target" data-i18n="saveChanges">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Airtable API -->
+    <script src="https://cdn.jsdelivr.net/npm/airtable@0.12.2/build/airtable.browser.js"></script>
+    <!-- IndexedDB Manager -->
+    <script src="js/db.js"></script>
+    <!-- Language Translations -->
+    <script src="js/translations.js"></script>
+    <!-- Custom JS -->
+    <script src="js/app.js"></script>
+    <!-- Reminders JS -->
+    <script src="js/reminders.js"></script>
+    <!-- Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(registration => {
+                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                    })
+                    .catch(error => {
+                        console.log('ServiceWorker registration failed: ', error);
+                    });
+            });
+        }
+    </script>
+</body>
+</html> 
