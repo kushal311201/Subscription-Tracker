@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subscription Manager - Help</title>
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#4a6bdf">
+    <meta name="description" content="Help and tutorial for the Subscription Manager app">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="images/icon-192.png">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .help-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .help-section {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .help-section h2 {
+            color: #4a6bdf;
+            margin-bottom: 15px;
+        }
+
+        .help-section h3 {
+            color: #333;
+            margin: 20px 0 10px;
+        }
+
+        .step {
+            display: flex;
+            margin-bottom: 15px;
+            align-items: flex-start;
+        }
+
+        .step-number {
+            background-color: #4a6bdf;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            flex-shrink: 0;
+            font-weight: bold;
+        }
+
+        .step-content {
+            flex: 1;
+        }
+
+        .screenshot {
+            max-width: 100%;
+            border-radius: 5px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            margin: 10px 0;
+        }
+
+        code {
+            background-color: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            color: #e83e8c;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: #4a6bdf;
+            text-decoration: none;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        
+        .important-notice {
+            background-color: #e8f4ff;
+            border-radius: 10px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #4a6bdf;
+        }
+        
+        .important-notice h3 {
+            margin-top: 0;
+            color: #4a6bdf;
+        }
+        
+        .btn-special {
+            display: inline-block;
+            background-color: #4a6bdf;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 5px;
+            text-decoration: none;
+            margin-top: 10px;
+            transition: background-color 0.3s;
+        }
+        
+        .btn-special:hover {
+            background-color: #3a59c7;
+        }
+    </style>
+</head>
+<body>
+    <div class="help-container">
+        <header>
+            <h1><i class="fas fa-calendar-check"></i> Subscription Manager - Help</h1>
+        </header>
+        
+        <div class="important-notice">
+            <h3>Important: Airtable Setup Required</h3>
+            <p>Before using the Subscription Manager app, you need to set up an Airtable account and configure your database. We've created a detailed step-by-step guide to help you through this process.</p>
+            <a href="airtable-setup.html" class="btn-special">View Airtable Setup Guide <i class="fas fa-arrow-right"></i></a>
+        </div>
+
+        <div class="help-section">
+            <h2>Getting Started</h2>
+            <p>Welcome to Subscription Manager! This guide will help you set up and use the app effectively.</p>
+            
+            <h3>Setting Up Airtable (Required)</h3>
+            
+            <div class="step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <strong>Create an Airtable Account</strong>
+                    <p>Go to <a href="https://airtable.com" target="_blank">airtable.com</a> and sign up for a free account if you don't already have one.</p>
+                </div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <strong>Create a New Base</strong>
+                    <p>After logging in, create a new base by clicking on "Add a base" → "Start from scratch".</p>
+                    <p>Name your base "Subscription Manager" or any name you prefer.</p>
+                </div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <strong>Set Up the Subscriptions Table</strong>
+                    <p>Rename "Table 1" to "Subscriptions".</p>
+                    <p>Create the following fields:</p>
+                    <ul>
+                        <li><code>name</code> (Single line text)</li>
+                        <li><code>amount</code> (Number, 2 decimal places)</li>
+                        <li><code>billingCycle</code> (Single select: Add options "monthly", "yearly", "quarterly")</li>
+                        <li><code>dueDate</code> (Date)</li>
+                        <li><code>category</code> (Single select: Add options "streaming", "fitness", "productivity", "music", "cloud", "other")</li>
+                    </ul>
+                    <p>Note: Field names are case-sensitive, so make sure to use exact names as above.</p>
+                </div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">4</div>
+                <div class="step-content">
+                    <strong>Get Your API Key</strong>
+                    <p>Go to <a href="https://airtable.com/account" target="_blank">airtable.com/account</a>.</p>
+                    <p>Under the API section, click "Generate API key" if you don't already have one.</p>
+                    <p>Copy your API key and keep it safe.</p>
+                </div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">5</div>
+                <div class="step-content">
+                    <strong>Get Your Base ID</strong>
+                    <p>Go to <a href="https://airtable.com/api" target="_blank">airtable.com/api</a>.</p>
+                    <p>Select your "Subscription Manager" base.</p>
+                    <p>Look for "The ID of this base is" and copy the Base ID (it starts with "app...").</p>
+                </div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">6</div>
+                <div class="step-content">
+                    <strong>Configure the App</strong>
+                    <p>Open the <code>js/app.js</code> file in a text editor.</p>
+                    <p>Replace <code>'YOUR_API_KEY'</code> with your actual API key.</p>
+                    <p>Replace <code>'YOUR_BASE_ID'</code> with your actual Base ID.</p>
+                    <p>Save the file.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="help-section">
+            <h2>Using the App</h2>
+            
+            <h3>Adding a Subscription</h3>
+            <div class="step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <p>Fill out the "Add New Subscription" form with your subscription details.</p>
+                    <p>All fields are required.</p>
+                    <p>Click "Add Subscription" to save it.</p>
+                </div>
+            </div>
+            
+            <h3>Viewing Subscriptions</h3>
+            <div class="step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <p>All your subscriptions appear as cards in the "Your Subscriptions" section.</p>
+                    <p>Cards show details like name, amount, due date, and days until renewal.</p>
+                    <p>Cards are sorted by due date (soonest first).</p>
+                    <p>Subscriptions due within 3 days will show a red warning.</p>
+                </div>
+            </div>
+            
+            <h3>Filtering & Searching</h3>
+            <div class="step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <p>Use the category dropdown to filter by subscription type.</p>
+                    <p>Use the search box to find subscriptions by name.</p>
+                </div>
+            </div>
+            
+            <h3>Editing & Deleting</h3>
+            <div class="step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <p>Click the edit icon <i class="fas fa-edit"></i> on a subscription card to edit its details.</p>
+                    <p>The form will be filled with the subscription's current information.</p>
+                    <p>Make your changes and click "Update Subscription".</p>
+                    <p>To delete a subscription, click the trash icon <i class="fas fa-trash"></i> and confirm.</p>
+                </div>
+            </div>
+            
+            <h3>Monthly Cost & Chart</h3>
+            <div class="step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <p>The "Monthly Burn Rate" shows your total monthly subscription costs.</p>
+                    <p>The pie chart visualizes spending by category.</p>
+                    <p>Hover over chart segments to see detailed amounts and percentages.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="help-section">
+            <h2>Setting Up Email Reminders (Optional)</h2>
+            
+            <p>You can use Zapier to send email reminders before subscriptions renew.</p>
+            
+            <div class="step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <strong>Create a Zapier Account</strong>
+                    <p>Sign up at <a href="https://zapier.com" target="_blank">zapier.com</a> (free plan available).</p>
+                </div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <strong>Create a New Zap</strong>
+                    <p>Click "Create Zap".</p>
+                    <p>Set Airtable as the trigger app and select "Find Record" as the event.</p>
+                    <p>Connect your Airtable account and select your Subscription Manager base and Subscriptions table.</p>
+                </div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <strong>Configure the Trigger</strong>
+                    <p>Add a filter condition where the due date is 3 days away.</p>
+                    <p>You can use Airtable formulas for this, like:</p>
+                    <code>DATETIME_DIFF(TODAY(), {dueDate}, 'days') <= 3</code>
+                </div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">4</div>
+                <div class="step-content">
+                    <strong>Set Up Email Action</strong>
+                    <p>Choose Gmail or another email service as your action app.</p>
+                    <p>Select "Send Email" as the action event.</p>
+                    <p>Connect your email account.</p>
+                    <p>Fill in the email template with your subscription details.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="help-section">
+            <h2>Troubleshooting</h2>
+            
+            <h3>App Not Loading Subscriptions</h3>
+            <p>Check that your API key and Base ID are correctly entered in app.js.</p>
+            <p>Verify that your Airtable table is named exactly "Subscriptions".</p>
+            <p>Ensure your field names match exactly as described (they're case-sensitive).</p>
+            
+            <h3>Can't Add or Edit Subscriptions</h3>
+            <p>Check your Airtable API usage limits (free plan allows 1,200 operations per month).</p>
+            <p>Verify your internet connection.</p>
+            <p>Check browser console for any JavaScript errors (Right-click → Inspect → Console).</p>
+            
+            <h3>Chart Not Displaying</h3>
+            <p>Make sure you have at least one subscription added.</p>
+            <p>Try refreshing the page.</p>
+            <p>Verify that Chart.js is loading correctly.</p>
+        </div>
+
+        <a href="index.html" class="back-link"><i class="fas fa-arrow-left"></i> Back to Subscription Manager</a>
+    </div>
+
+    <!-- Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(registration => {
+                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                    })
+                    .catch(error => {
+                        console.log('ServiceWorker registration failed: ', error);
+                    });
+            });
+        }
+    </script>
+</body>
+</html> 

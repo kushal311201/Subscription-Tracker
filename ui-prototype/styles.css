@@ -1,0 +1,702 @@
+/* 
+ * Subscription Manager Styles
+ * A clean, mobile-first stylesheet for the subscription manager app
+ */
+
+/* 
+ * CSS RESET & BASE STYLES
+ * Basic reset and default styling for all elements
+ */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    /* Color Variables */
+    --primary-color: #6366f1;       /* Indigo for primary actions */
+    --primary-dark: #4f46e5;        /* Darker shade for hover states */
+    --secondary-color: #f3f4f6;     /* Light gray for secondary elements */
+    --text-color: #111827;          /* Dark gray for main text */
+    --text-light: #6b7280;          /* Medium gray for secondary text */
+    --bg-color: #f9fafb;            /* Very light gray for background */
+    --card-color: #ffffff;          /* White for cards */
+    --border-color: #e5e7eb;        /* Light gray for borders */
+    --warning-color: #ef4444;       /* Red for warnings/errors */
+    --success-color: #22c55e;       /* Green for success messages */
+    
+    /* Category Colors */
+    --streaming-color: #60a5fa;     /* Blue for streaming */
+    --fitness-color: #34d399;       /* Green for fitness */
+    --saas-color: #a78bfa;          /* Purple for SaaS */
+    --other-color: #9ca3af;         /* Gray for other */
+    
+    /* Spacing Variables */
+    --spacing-xs: 0.25rem;          /* 4px */
+    --spacing-sm: 0.5rem;           /* 8px */
+    --spacing-md: 1rem;             /* 16px */
+    --spacing-lg: 1.5rem;           /* 24px */
+    --spacing-xl: 2rem;             /* 32px */
+    
+    /* Border Radius */
+    --border-radius-sm: 0.25rem;    /* 4px */
+    --border-radius: 0.5rem;        /* 8px */
+    --border-radius-lg: 1rem;       /* 16px */
+    
+    /* Shadow */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+    color: var(--text-color);
+    background-color: var(--bg-color);
+    /* Add padding to account for fixed header and footer */
+    padding-top: 60px;
+    padding-bottom: 60px;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+a {
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+button {
+    cursor: pointer;
+    font-family: inherit;
+}
+
+/* 
+ * LAYOUT COMPONENTS
+ * Structural elements for page layout
+ */
+
+/* Header */
+.header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background-color: var(--card-color);
+    box-shadow: var(--shadow-sm);
+    z-index: 100;
+}
+
+.header-content {
+    max-width: 768px;
+    margin: 0 auto;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 var(--spacing-md);
+}
+
+.app-name {
+    font-size: 1.25rem;
+    color: var(--primary-color);
+}
+
+.menu-button {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: var(--text-color);
+}
+
+/* Main container */
+.main-container {
+    max-width: 768px;
+    margin: 0 auto;
+    padding: var(--spacing-md);
+}
+
+/* Footer */
+.footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background-color: var(--card-color);
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+}
+
+.ad-placeholder {
+    text-align: center;
+    color: var(--text-light);
+    width: 100%;
+}
+
+/* 
+ * COMPONENTS
+ * Reusable UI components
+ */
+
+/* Section title */
+.section-title {
+    margin-bottom: var(--spacing-md);
+    font-size: 1.25rem;
+    color: var(--text-color);
+}
+
+/* Summary Card */
+.summary-card {
+    background-color: var(--card-color);
+    border-radius: var(--border-radius);
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+}
+
+.summary-info {
+    text-align: center;
+}
+
+.summary-title {
+    font-size: 1rem;
+    color: var(--text-light);
+    margin-bottom: var(--spacing-xs);
+}
+
+.summary-amount {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+/* Add Button */
+.add-button {
+    display: block;
+    background-color: var(--primary-color);
+    color: white;
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius);
+    text-align: center;
+    font-weight: 500;
+    transition: background-color 0.2s;
+}
+
+.add-button:hover {
+    background-color: var(--primary-dark);
+}
+
+/* Integration Card */
+.integration-card {
+    background-color: var(--card-color);
+    border-radius: var(--border-radius);
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+    border-left: 4px solid #f59e0b;
+}
+
+.integration-info p {
+    color: var(--text-light);
+    margin-top: var(--spacing-xs);
+}
+
+.integration-button {
+    display: block;
+    background-color: #f59e0b;
+    color: white;
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius);
+    text-align: center;
+    font-weight: 500;
+    transition: background-color 0.2s;
+}
+
+.integration-button:hover {
+    background-color: #ea580c;
+}
+
+/* Subscription Cards */
+.subscription-list {
+    margin-bottom: var(--spacing-lg);
+}
+
+.subscription-card {
+    background-color: var(--card-color);
+    border-radius: var(--border-radius);
+    padding: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+    box-shadow: var(--shadow-sm);
+    border-left: 4px solid var(--border-color);  /* Default border */
+}
+
+.subscription-card:last-child {
+    margin-bottom: 0;
+}
+
+/* Card elements */
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-md);
+}
+
+.subscription-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.subscription-category {
+    font-size: 0.8rem;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: 1rem;
+    color: white;
+}
+
+/* Category styling */
+.streaming {
+    background-color: var(--streaming-color);
+}
+
+.fitness {
+    background-color: var(--fitness-color);
+}
+
+.saas {
+    background-color: var(--saas-color);
+}
+
+.other {
+    background-color: var(--other-color);
+}
+
+/* Card colored borders based on category */
+.subscription-card:has(.streaming) {
+    border-left-color: var(--streaming-color);
+}
+
+.subscription-card:has(.fitness) {
+    border-left-color: var(--fitness-color);
+}
+
+.subscription-card:has(.saas) {
+    border-left-color: var(--saas-color);
+}
+
+/* Card details */
+.subscription-details {
+    margin-bottom: var(--spacing-md);
+}
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: var(--spacing-sm);
+}
+
+.detail-row:last-child {
+    margin-bottom: 0;
+}
+
+.detail-label {
+    color: var(--text-light);
+    font-size: 0.9rem;
+}
+
+.detail-value {
+    font-weight: 500;
+}
+
+/* Days left warning */
+.days-left.warning .detail-value {
+    color: var(--warning-color);
+    font-weight: 700;
+}
+
+/* Card actions */
+.card-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--spacing-sm);
+}
+
+.action-button {
+    background: none;
+    border: none;
+    font-size: 0.9rem;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--border-radius-sm);
+}
+
+.action-button.edit {
+    color: var(--primary-color);
+}
+
+.action-button.delete {
+    color: var(--warning-color);
+}
+
+.action-button:hover {
+    background-color: var(--secondary-color);
+}
+
+/* 
+ * FORM STYLES
+ * Styles for the add subscription form
+ */
+.form-container {
+    background-color: var(--card-color);
+    border-radius: var(--border-radius);
+    padding: var(--spacing-lg);
+    box-shadow: var(--shadow);
+}
+
+.subscription-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+label {
+    font-weight: 500;
+    font-size: 0.9rem;
+    color: var(--text-color);
+}
+
+input, select {
+    padding: var(--spacing-md);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    font-size: 1rem;
+    font-family: inherit;
+    color: var(--text-color);
+    background-color: white;
+}
+
+input:focus, select:focus {
+    border-color: var(--primary-color);
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+}
+
+/* Form buttons */
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--spacing-md);
+    margin-top: var(--spacing-md);
+}
+
+.button {
+    padding: var(--spacing-md) var(--spacing-lg);
+    border-radius: var(--border-radius);
+    font-weight: 500;
+    font-size: 1rem;
+    text-align: center;
+    transition: all 0.2s;
+}
+
+.primary-button {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+}
+
+.primary-button:hover {
+    background-color: var(--primary-dark);
+}
+
+.secondary-button {
+    background-color: var(--secondary-color);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+}
+
+.secondary-button:hover {
+    background-color: #e5e7eb;
+}
+
+/* 
+ * RESPONSIVE DESIGN
+ * Media queries for larger screens
+ */
+@media (min-width: 640px) {
+    /* Two column layout for summary card on larger screens */
+    .summary-card {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+    }
+    
+    .summary-info {
+        text-align: left;
+    }
+    
+    .add-button {
+        width: auto;
+        white-space: nowrap;
+    }
+    
+    /* Two column layout for integration card */
+    .integration-card {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+    }
+    
+    .integration-button {
+        width: auto;
+        white-space: nowrap;
+    }
+    
+    /* Larger spacing on desktop */
+    .subscription-card {
+        padding: var(--spacing-lg);
+    }
+    
+    .code-block {
+        padding: var(--spacing-lg);
+    }
+}
+
+/* 
+ * GOOGLE SHEETS INTEGRATION STYLES
+ * Styles for the Google Sheets integration page
+ */
+.instructions-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.instructions-content h3 {
+    font-size: 1.1rem;
+    margin-top: var(--spacing-md);
+    color: var(--primary-color);
+}
+
+.instructions-content ul,
+.instructions-content ol {
+    padding-left: var(--spacing-lg);
+}
+
+.instructions-content li {
+    margin-bottom: var(--spacing-xs);
+}
+
+.code-block {
+    background-color: #f8f9fa;
+    border-radius: var(--border-radius);
+    padding: var(--spacing-md);
+    overflow-x: auto;
+    border: 1px solid var(--border-color);
+}
+
+.code-block pre {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.9rem;
+    white-space: pre;
+}
+
+.note-block {
+    background-color: #fff8e6;
+    border-left: 4px solid #f59e0b;
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius-sm);
+    margin: var(--spacing-md) 0;
+}
+
+/* Auth Section */
+.auth-section {
+    background-color: var(--card-color);
+    border-radius: var(--border-radius);
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
+    box-shadow: var(--shadow);
+    text-align: center;
+}
+
+.auth-section p {
+    margin-bottom: var(--spacing-md);
+    color: var(--text-light);
+}
+
+/* Search and Filter Section */
+.filter-section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+}
+
+.search-box {
+    position: relative;
+}
+
+.search-box input {
+    width: 100%;
+    padding: var(--spacing-md);
+    padding-left: 2.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    font-size: 1rem;
+}
+
+.search-icon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-light);
+}
+
+.filter-box select {
+    width: 100%;
+    padding: var(--spacing-md);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    font-size: 1rem;
+    background-color: white;
+}
+
+/* Loading and Empty States */
+.loading-message,
+.empty-message {
+    text-align: center;
+    padding: var(--spacing-lg);
+    color: var(--text-light);
+    font-style: italic;
+}
+
+/* Media queries for larger screens */
+@media (min-width: 640px) {
+    /* Two column layout for filter section */
+    .filter-section {
+        flex-direction: row;
+    }
+    
+    .search-box {
+        flex: 2;
+    }
+    
+    .filter-box {
+        flex: 1;
+    }
+    
+    /* Two column layout for summary card on larger screens */
+    .summary-card {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+    }
+    
+    .summary-info {
+        text-align: left;
+    }
+    
+    .add-button {
+        width: auto;
+        white-space: nowrap;
+    }
+    
+    /* Two column layout for integration card */
+    .integration-card {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+    }
+    
+    .integration-button {
+        width: auto;
+        white-space: nowrap;
+    }
+    
+    /* Larger spacing on desktop */
+    .subscription-card {
+        padding: var(--spacing-lg);
+    }
+    
+    .code-block {
+        padding: var(--spacing-lg);
+    }
+}
+
+/* Sheet Setup Styles */
+.setup-action {
+    background-color: #f1f5f9;
+    border-radius: var(--border-radius);
+    padding: var(--spacing-md);
+    margin: var(--spacing-md) 0;
+    border: 1px dashed var(--border-color);
+    text-align: center;
+}
+
+.setup-action p {
+    margin-bottom: var(--spacing-md);
+}
+
+#setup-result {
+    margin-top: var(--spacing-md);
+}
+
+.success-message {
+    background-color: #ecfdf5;
+    border-left: 4px solid var(--success-color);
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius-sm);
+    margin-top: var(--spacing-md);
+    text-align: left;
+}
+
+.success-message h3 {
+    color: var(--success-color);
+    margin-bottom: var(--spacing-sm);
+}
+
+.success-message code {
+    display: block;
+    background-color: #f8fafc;
+    padding: var(--spacing-sm);
+    margin: var(--spacing-sm) 0;
+    border-radius: var(--border-radius-sm);
+    font-family: 'Courier New', Courier, monospace;
+    overflow-x: auto;
+    word-break: break-all;
+}
+
+.error-message {
+    background-color: #fef2f2;
+    border-left: 4px solid var(--warning-color);
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius-sm);
+    margin-top: var(--spacing-md);
+    text-align: left;
+}
+
+.error-message h3 {
+    color: var(--warning-color);
+    margin-bottom: var(--spacing-sm);
+} 

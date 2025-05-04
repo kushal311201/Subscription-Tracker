@@ -1,0 +1,28 @@
+Subscription Manager App Icons
+
+For the app to work properly as a Progressive Web App (PWA), you need to create two icon images:
+
+1. icon-192.png (192x192 pixels)
+2. icon-512.png (512x512 pixels)
+
+These icons should be placed in this directory (images folder).
+
+You can create these icons using any image editing software like Photoshop, GIMP, or even online tools like:
+- Canva (https://www.canva.com)
+- PWA Builder Image Generator (https://www.pwabuilder.com/imageGenerator)
+
+Icon Design Tips:
+- Use a simple, recognizable design that looks good at small sizes
+- Include some padding around the main logo/icon (about 10-15% on each side)
+- Use a solid background color rather than transparency for best results on mobile
+- Make sure the icon represents what your app does (e.g., a calendar or money symbol for a subscription tracker)
+
+Placeholder Icons:
+Currently, the app is set up with basic placeholder icons. For best results, replace these with your own custom-designed icons.
+
+Testing Your Icons:
+After adding your icons, refresh the app in your browser. If you've installed it as a PWA, you may need to uninstall and reinstall it to see the new icons take effect.
+
+Maskable Icons:
+For the best experience on Android, consider creating "maskable" icons that fill the entire icon area. Learn more here:
+https://web.dev/maskable-icon/ 

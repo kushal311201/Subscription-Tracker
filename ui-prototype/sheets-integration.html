@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Sheets Integration</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Use system fonts for lightweight load -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <!-- Basic icons for UI elements -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- 
+        HEADER: Sticky navigation bar at the top of all pages
+        Contains app name and future menu icon
+    -->
+    <header class="header">
+        <div class="header-content">
+            <h1 class="app-name">Subscription Manager</h1>
+            <button class="menu-button">☰</button>
+        </div>
+    </header>
+
+    <!-- 
+        MAIN CONTENT: Contains all page-specific content
+    -->
+    <main class="main-container">
+        <section class="form-container">
+            <h2 class="section-title">Google Sheets Reminders Setup</h2>
+            
+            <div class="instructions-content">
+                <p>Follow these steps to set up automated reminders for your subscriptions using Google Sheets:</p>
+                
+                <h3>Step 1: Create a Google Sheet</h3>
+                <p>Create a new Google Sheet with the following columns:</p>
+                <ul>
+                    <li>Subscription Name</li>
+                    <li>Amount</li>
+                    <li>Billing Cycle</li>
+                    <li>Next Due Date</li>
+                    <li>Category</li>
+                    <li>Email Address (for notifications)</li>
+                </ul>
+                
+                <div class="setup-action">
+                    <p>You can create this sheet automatically with the button below:</p>
+                    <button id="create-sheet-button" class="button primary-button" disabled>
+                        <i class="fas fa-table"></i> Create Sheet Automatically
+                    </button>
+                    <div id="setup-result"></div>
+                </div>
+                
+                <h3>Step 2: Add Google Apps Script</h3>
+                <p>In your Google Sheet:</p>
+                <ol>
+                    <li>Click on "Extensions" &gt; "Apps Script"</li>
+                    <li>Delete any code in the editor</li>
+                    <li>Copy and paste the following code:</li>
+                </ol>
+                
+                <div class="code-block">
+                    <pre>
+function checkDueDates() {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  const dataRange = sheet.getDataRange();
+  const values = dataRange.getValues();
+  
+  // Skip header row
+  for (let i = 1; i < values.length; i++) {
+    const row = values[i];
+    const subscriptionName = row[0];
+    const amount = row[1];
+    const dueDateStr = row[3];
+    const email = row[5];
+    
+    if (!subscriptionName || !dueDateStr || !email) continue;
+    
+    const dueDate = new Date(dueDateStr);
+    const today = new Date();
+    
+    // Calculate days until due date
+    const daysUntilDue = Math.floor((dueDate - today) / (1000 * 60 * 60 * 24));
+    
+    // Send reminder if due date is 3 days away
+    if (daysUntilDue === 3) {
+      sendReminderEmail(email, subscriptionName, amount, dueDate);
+    }
+  }
+}
+
+function sendReminderEmail(email, subscription, amount, dueDate) {
+  const formattedDate = Utilities.formatDate(dueDate, Session.getScriptTimeZone(), "dd MMMM yyyy");
+  const subject = `Reminder: ${subscription} subscription payment due soon`;
+  const body = `
+    Hello,
+    
+    This is a reminder that your ${subscription} subscription payment of ${amount} is due on ${formattedDate} (3 days from now).
+    
+    Regards,
+    Your Subscription Manager
+  `;
+  
+  MailApp.sendEmail(email, subject, body);
+}</pre>
+                </div>
+                
+                <h3>Step 3: Set Up a Trigger</h3>
+                <p>To run the script automatically:</p>
+                <ol>
+                    <li>In the Apps Script editor, click on "Triggers" in the left sidebar</li>
+                    <li>Click "+ Add Trigger"</li>
+                    <li>Configure the trigger:
+                        <ul>
+                            <li>Choose function: checkDueDates</li>
+                            <li>Event source: Time-driven</li>
+                            <li>Type of time: Day timer</li>
+                            <li>Time of day: 8am to 9am (or your preferred time)</li>
+                        </ul>
+                    </li>
+                    <li>Click "Save"</li>
+                </ol>
+                
+                <h3>Step 4: Authorize the Script</h3>
+                <p>When prompted, authorize the script to:</p>
+                <ul>
+                    <li>Access your Google Sheets</li>
+                    <li>Send emails on your behalf</li>
+                </ul>
+                
+                <h3>How It Works</h3>
+                <p>Once set up, the script will:</p>
+                <ul>
+                    <li>Run daily at your chosen time</li>
+                    <li>Check each subscription's due date</li>
+                    <li>Send an email reminder when a payment is due in 3 days</li>
+                </ul>
+                
+                <div class="note-block">
+                    <p><strong>Note:</strong> You'll need to manually update the Next Due Date after making payments.</p>
+                </div>
+                
+                <div class="form-actions">
+                    <a href="index.html" class="button primary-button">
+                        Back to Home
+                    </a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 
+        FOOTER: Sticky footer with ad placeholder
+    -->
+    <footer class="footer">
+        <div class="ad-placeholder">
+            Ad Banner Placeholder
+        </div>
+    </footer>
+
+    <!-- Load the JavaScript -->
+    <script src="scripts.js"></script>
+    <script src="sheets-setup.js"></script>
+</body>
+</html> 

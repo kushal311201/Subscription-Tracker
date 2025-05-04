@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subscription Manager</title>
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#4a6bdf">
+    <meta name="description" content="Track and manage your recurring subscriptions">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="images/icon-192.png">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chart.js for pie chart -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-calendar-check"></i> Subscription Manager</h1>
+            
+            <div id="airtableNotification" class="notification-banner">
+                <div class="notification-content">
+                    <div class="notification-title">Airtable Setup Required</div>
+                    <p>Before using this app, you need to set up your Airtable database for storing subscriptions.</p>
+                </div>
+                <a href="airtable-setup.html" class="btn">Setup Guide</a>
+                <button class="close-btn" onclick="dismissNotification()"><i class="fas fa-times"></i></button>
+            </div>
+            
+            <div class="summary-box">
+                <div class="total-box">
+                    <h3>Monthly Burn Rate</h3>
+                    <p class="total-amount">₹<span id="totalMonthly">0</span></p>
+                </div>
+                <div class="chart-container">
+                    <canvas id="categoryChart"></canvas>
+                </div>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <div class="add-subscription">
+                <h2>Add New Subscription</h2>
+                <form id="subscriptionForm">
+                    <div class="form-group">
+                        <label for="subscriptionName">Subscription Name</label>
+                        <input type="text" id="subscriptionName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="subscriptionAmount">Amount (₹)</label>
+                        <input type="number" id="subscriptionAmount" min="1" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="billingCycle">Billing Cycle</label>
+                        <select id="billingCycle" required>
+                            <option value="monthly">Monthly</option>
+                            <option value="yearly">Yearly</option>
+                            <option value="quarterly">Quarterly</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="dueDate">Next Due Date</label>
+                        <input type="date" id="dueDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="category">Category</label>
+                        <select id="category" required>
+                            <option value="streaming">Streaming</option>
+                            <option value="fitness">Fitness</option>
+                            <option value="productivity">Productivity</option>
+                            <option value="music">Music</option>
+                            <option value="cloud">Cloud Storage</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn primary-btn">Add Subscription</button>
+                </form>
+            </div>
+
+            <div class="subscription-list">
+                <div class="list-header">
+                    <h2>Your Subscriptions</h2>
+                    <div class="filter-section">
+                        <select id="filterCategory">
+                            <option value="all">All Categories</option>
+                            <option value="streaming">Streaming</option>
+                            <option value="fitness">Fitness</option>
+                            <option value="productivity">Productivity</option>
+                            <option value="music">Music</option>
+                            <option value="cloud">Cloud Storage</option>
+                            <option value="other">Other</option>
+                        </select>
+                        <input type="text" id="searchInput" placeholder="Search...">
+                    </div>
+                </div>
+                <div id="subscriptionCards" class="cards-container">
+                    <!-- Subscription cards will be added here dynamically -->
+                    <div class="empty-state">
+                        <i class="fas fa-list-ul"></i>
+                        <p>No subscriptions added yet. Add your first subscription using the form.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="ad-container">
+            <!-- Ad Banner Space -->
+            <div class="ad-banner">
+                <p>Advertisement Space</p>
+            </div>
+        </div>
+
+        <footer>
+            <p>&copy; 2023 Subscription Manager | <a href="#" id="resetDataLink">Reset Data</a> | <a href="help.html">Help</a> | <a href="airtable-setup.html">Airtable Setup</a></p>
+        </footer>
+    </div>
+
+    <!-- Airtable API -->
+    <script src="https://cdn.jsdelivr.net/npm/airtable@0.12.2/build/airtable.browser.js"></script>
+    <!-- Custom JS -->
+    <script src="js/app.js"></script>
+    <!-- Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(registration => {
+                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                    })
+                    .catch(error => {
+                        console.log('ServiceWorker registration failed: ', error);
+                    });
+            });
+        }
+        
+        // Notification dismissal function
+        function dismissNotification() {
+            document.getElementById('airtableNotification').style.display = 'none';
+            localStorage.setItem('notificationDismissed', 'true');
+        }
+        
+        // Check if notification was previously dismissed
+        document.addEventListener('DOMContentLoaded', () => {
+            if (localStorage.getItem('notificationDismissed') === 'true') {
+                document.getElementById('airtableNotification').style.display = 'none';
+            }
+            
+            // If API keys are set, automatically hide the notification
+            if (airtableApiKey !== 'YOUR_API_KEY' && airtableBaseId !== 'YOUR_BASE_ID') {
+                document.getElementById('airtableNotification').style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html> 

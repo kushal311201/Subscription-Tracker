@@ -1,0 +1,23 @@
+{
+  "name": "subscription-tracker",
+  "version": "1.0.0",
+  "description": "Track your subscriptions with Google Sheets integration",
+  "main": "index.html",
+  "scripts": {
+    "dev": "npx serve ui-prototype",
+    "build": "cp -r ui-prototype/* public/"
+  },
+  "keywords": [
+    "subscription",
+    "tracker",
+    "google-sheets"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "serve": "^14.2.1"
+  },
+  "devDependencies": {
+    "vercel": "^32.0.1"
+  }
+} 
