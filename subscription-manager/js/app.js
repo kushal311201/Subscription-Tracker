@@ -56,6 +56,10 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Register for notifications
             setupNotifications();
+            
+            // Setup bottom navigation and settings
+            setupNavigation();
+            setupSettingsPanel();
         })
         .catch(error => {
             console.error('Failed to initialize IndexedDB:', error);
@@ -412,8 +416,8 @@ function createSubscriptionCard(subscription) {
     });
     
     card.querySelector('.action-btn.edit').addEventListener('click', () => {
-        // Implement edit functionality
-        console.log('Edit subscription:', subscription);
+        // Open edit modal and populate with subscription data
+        openEditModal(subscription);
         
         // Haptic feedback
         if (navigator.vibrate) navigator.vibrate(50);
@@ -443,6 +447,184 @@ function createSubscriptionCard(subscription) {
     
     // Add to container
     container.appendChild(card);
+}
+
+// Open the edit modal with subscription data
+function openEditModal(subscription) {
+    // Get modal and form elements
+    const modal = document.getElementById('editModal');
+    const form = document.getElementById('editSubscriptionForm');
+    const idInput = document.getElementById('editSubscriptionId');
+    const nameInput = document.getElementById('editSubscriptionName');
+    const amountInput = document.getElementById('editSubscriptionAmount');
+    const billingCycleInput = document.getElementById('editBillingCycle');
+    const dueDateInput = document.getElementById('editDueDate');
+    const categoryInput = document.getElementById('editCategory');
+    const enableReminderInput = document.getElementById('editEnableReminder');
+    const reminderDaysInput = document.getElementById('editReminderDays');
+    
+    // Populate form with subscription data
+    idInput.value = subscription.id;
+    nameInput.value = subscription.name;
+    amountInput.value = subscription.amount;
+    billingCycleInput.value = subscription.billingCycle;
+    
+    // Format date for input (YYYY-MM-DD)
+    const dueDate = new Date(subscription.dueDate);
+    const year = dueDate.getFullYear();
+    const month = String(dueDate.getMonth() + 1).padStart(2, '0');
+    const day = String(dueDate.getDate()).padStart(2, '0');
+    dueDateInput.value = `${year}-${month}-${day}`;
+    
+    categoryInput.value = subscription.category;
+    
+    // Set reminder toggle and days
+    enableReminderInput.checked = true; // Default to true
+    reminderDaysInput.value = "3"; // Default to 3 days
+    
+    // Show the modal
+    modal.style.display = 'block';
+    
+    // Setup form submission
+    setupEditFormListeners();
+}
+
+// Setup edit form listeners
+function setupEditFormListeners() {
+    const modal = document.getElementById('editModal');
+    const form = document.getElementById('editSubscriptionForm');
+    const closeBtn = document.getElementById('closeEditModal');
+    const cancelBtn = document.getElementById('cancelEditBtn');
+    const enableReminderToggle = document.getElementById('editEnableReminder');
+    const reminderDaysContainer = document.getElementById('editReminderDaysContainer');
+    
+    // Close modal when clicking close or cancel buttons
+    const closeModal = () => {
+        modal.style.display = 'none';
+        form.removeEventListener('submit', handleEditFormSubmit);
+    };
+    
+    if (closeBtn) closeBtn.addEventListener('click', closeModal);
+    if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
+    
+    // Toggle reminder days visibility
+    if (enableReminderToggle && reminderDaysContainer) {
+        enableReminderToggle.addEventListener('change', () => {
+            reminderDaysContainer.style.display = enableReminderToggle.checked ? 'flex' : 'none';
+        });
+        
+        // Set initial state
+        reminderDaysContainer.style.display = enableReminderToggle.checked ? 'flex' : 'none';
+    }
+    
+    // Handle form submission
+    form.addEventListener('submit', handleEditFormSubmit);
+}
+
+// Handle edit form submission
+function handleEditFormSubmit(event) {
+    event.preventDefault();
+    
+    try {
+        // Get form values
+        const id = document.getElementById('editSubscriptionId').value;
+        const name = document.getElementById('editSubscriptionName').value.trim();
+        const amountElement = document.getElementById('editSubscriptionAmount');
+        const amount = parseFloat(amountElement.value);
+        const billingCycle = document.getElementById('editBillingCycle').value;
+        const dueDateElement = document.getElementById('editDueDate');
+        const dueDate = dueDateElement.value;
+        const category = document.getElementById('editCategory').value;
+        
+        // Validate inputs
+        if (!name) {
+            showToast('Please enter a subscription name');
+            return;
+        }
+        
+        if (isNaN(amount) || amount <= 0) {
+            showToast('Please enter a valid amount');
+            amountElement.focus();
+            return;
+        }
+        
+        if (!dueDate) {
+            showToast('Please select a due date');
+            dueDateElement.focus();
+            return;
+        }
+        
+        // Create updated subscription object
+        const updatedSubscription = {
+            id,
+            name,
+            amount,
+            billingCycle,
+            dueDate,
+            category,
+            updatedAt: new Date().toISOString()
+        };
+        
+        // Update the subscription
+        updateSubscription(updatedSubscription);
+        
+        // Close the modal
+        document.getElementById('editModal').style.display = 'none';
+        
+        // Haptic feedback
+        if (navigator.vibrate) {
+            navigator.vibrate([50, 30, 100]);
+        }
+    } catch (error) {
+        console.error('Error in edit form submission:', error);
+        showToast('An error occurred. Please try again.');
+    }
+}
+
+// Update a subscription
+function updateSubscription(subscription) {
+    // Update in IndexedDB
+    SubscriptionDB.update(subscription)
+        .then(() => {
+            // Update the UI
+            const card = document.getElementById(`subscription-${subscription.id}`);
+            if (card) {
+                card.remove();
+            }
+            
+            // Create new card with updated data
+            createSubscriptionCard(subscription);
+            
+            // Update total amount and chart
+            loadSubscriptions();
+            
+            // Show toast
+            showToast('Subscription updated successfully');
+            
+            // If online, also update in Airtable
+            if (isOnline && airtableApiKey !== 'YOUR_API_KEY' && airtableBaseId !== 'YOUR_BASE_ID') {
+                // Initialize Airtable
+                const base = new Airtable({ apiKey: airtableApiKey }).base(airtableBaseId);
+                
+                // Update in Airtable
+                base('Subscriptions').update(subscription.id, {
+                    'Name': subscription.name,
+                    'Amount': subscription.amount,
+                    'Billing Cycle': subscription.billingCycle,
+                    'Due Date': subscription.dueDate,
+                    'Category': subscription.category,
+                    'Last Updated': subscription.updatedAt
+                }, (err) => {
+                    if (err) {
+                        console.error('Error updating in Airtable:', err);
+                    }
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error updating subscription in IndexedDB:', error);
+            showToast('Error updating subscription. Please try again.');
+        });
 }
 
 // Setup swipe actions for mobile
@@ -487,37 +669,73 @@ function setupSwipeActions(card, id) {
 function setupFormListener() {
     const form = document.getElementById('subscriptionForm');
     
+    if (!form) {
+        console.error('Subscription form not found');
+        return;
+    }
+    
     form.addEventListener('submit', event => {
         event.preventDefault();
+        console.log('Form submitted');
         
-        // Get form values
-        const name = document.getElementById('subscriptionName').value;
-        const amount = document.getElementById('subscriptionAmount').value;
-        const billingCycle = document.getElementById('billingCycle').value;
-        const dueDate = document.getElementById('dueDate').value;
-        const category = document.getElementById('category').value;
-        
-        // Create subscription object
-        const subscription = {
-            name,
-            amount,
-            billingCycle,
-            dueDate,
-            category,
-            updatedAt: new Date().toISOString()
-        };
-        
-        // Save subscription
-        saveSubscription(subscription);
-        
-        // Haptic feedback
-        if (navigator.vibrate) {
-            navigator.vibrate([50, 30, 100]);
+        try {
+            // Get form values
+            const name = document.getElementById('subscriptionName').value.trim();
+            const amountElement = document.getElementById('subscriptionAmount');
+            const amount = parseFloat(amountElement.value);
+            const billingCycle = document.getElementById('billingCycle').value;
+            const dueDateElement = document.getElementById('dueDate');
+            const dueDate = dueDateElement.value;
+            const category = document.getElementById('category').value;
+            
+            // Validate inputs
+            if (!name) {
+                showToast('Please enter a subscription name');
+                return;
+            }
+            
+            if (isNaN(amount) || amount <= 0) {
+                showToast('Please enter a valid amount');
+                amountElement.focus();
+                return;
+            }
+            
+            if (!dueDate) {
+                showToast('Please select a due date');
+                dueDateElement.focus();
+                return;
+            }
+            
+            // Create subscription object
+            const subscription = {
+                name,
+                amount,
+                billingCycle,
+                dueDate,
+                category,
+                updatedAt: new Date().toISOString()
+            };
+            
+            console.log('Saving subscription:', subscription);
+            
+            // Save subscription
+            saveSubscription(subscription);
+            
+            // Haptic feedback
+            if (navigator.vibrate) {
+                navigator.vibrate([50, 30, 100]);
+            }
+        } catch (error) {
+            console.error('Error in form submission:', error);
+            showToast('An error occurred. Please try again.');
         }
     });
     
     // Set default due date to today
-    document.getElementById('dueDate').valueAsDate = new Date();
+    const dueDateInput = document.getElementById('dueDate');
+    if (dueDateInput) {
+        dueDateInput.valueAsDate = new Date();
+    }
 }
 
 // Update total monthly amount
@@ -533,6 +751,10 @@ function updateTotalAmount(subscriptions) {
             total += amount / 12;
         } else if (subscription.billingCycle === 'quarterly') {
             total += amount / 3;
+        } else if (subscription.billingCycle === 'weekly') {
+            total += amount * 4.33; // Average weeks in a month
+        } else if (subscription.billingCycle === 'biweekly') {
+            total += amount * 2.17; // Average bi-weekly periods in a month
         }
     });
     
@@ -561,6 +783,10 @@ function updateCategoryChart(subscriptions) {
             categories[category] += amount / 12;
         } else if (subscription.billingCycle === 'quarterly') {
             categories[category] += amount / 3;
+        } else if (subscription.billingCycle === 'weekly') {
+            categories[category] += amount * 4.33; // Average weeks in a month
+        } else if (subscription.billingCycle === 'biweekly') {
+            categories[category] += amount * 2.17; // Average bi-weekly periods in a month
         }
     });
     
@@ -761,4 +987,381 @@ function urlBase64ToUint8Array(base64String) {
         outputArray[i] = rawData.charCodeAt(i);
     }
     return outputArray;
+}
+
+// Setup bottom navigation
+function setupNavigation() {
+    const navHome = document.getElementById('nav-home');
+    const navAdd = document.getElementById('nav-add');
+    const navSettings = document.getElementById('nav-settings');
+    const addSubscriptionSection = document.querySelector('.add-subscription');
+    const subscriptionListSection = document.querySelector('.subscription-list');
+    
+    if (navHome) {
+        navHome.addEventListener('click', e => {
+            e.preventDefault();
+            // Show subscription list, hide add form
+            subscriptionListSection.style.display = 'block';
+            addSubscriptionSection.style.display = 'none';
+            
+            // Update active nav
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            navHome.classList.add('active');
+            
+            // Haptic feedback
+            if (navigator.vibrate) navigator.vibrate(30);
+        });
+    }
+    
+    if (navAdd) {
+        navAdd.addEventListener('click', e => {
+            e.preventDefault();
+            // Show add form, hide subscription list
+            addSubscriptionSection.style.display = 'block';
+            subscriptionListSection.style.display = 'none';
+            
+            // Update active nav
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            navAdd.classList.add('active');
+            
+            // Haptic feedback
+            if (navigator.vibrate) navigator.vibrate(30);
+        });
+    }
+    
+    if (navSettings) {
+        navSettings.addEventListener('click', e => {
+            e.preventDefault();
+            // Show settings panel
+            const settingsPanel = document.getElementById('settingsPanel');
+            if (settingsPanel) {
+                settingsPanel.classList.add('open');
+                
+                // Haptic feedback
+                if (navigator.vibrate) navigator.vibrate(30);
+            }
+        });
+    }
+}
+
+// Setup settings panel
+function setupSettingsPanel() {
+    const settingsPanel = document.getElementById('settingsPanel');
+    const closeSettings = document.getElementById('closeSettings');
+    const darkModeToggle = document.getElementById('darkMode');
+    const systemThemeToggle = document.getElementById('systemTheme');
+    const notificationsToggle = document.getElementById('enableNotifications');
+    const biometricsToggle = document.getElementById('useBiometrics');
+    const currencySelect = document.getElementById('currency');
+    const languageSelect = document.getElementById('language');
+    const exportDataLink = document.getElementById('exportDataLink');
+    const importDataLink = document.getElementById('importDataLink');
+    const resetDataLink = document.getElementById('resetDataLink');
+    const importFileInput = document.getElementById('importFileInput');
+    
+    // Close settings panel
+    if (closeSettings) {
+        closeSettings.addEventListener('click', () => {
+            settingsPanel.classList.remove('open');
+            
+            // Haptic feedback
+            if (navigator.vibrate) navigator.vibrate(30);
+        });
+    }
+    
+    // Dark mode toggle
+    if (darkModeToggle) {
+        darkModeToggle.addEventListener('change', () => {
+            const darkMode = darkModeToggle.checked;
+            localStorage.setItem('darkMode', darkMode);
+            
+            if (systemThemeToggle.checked) {
+                // If system theme is enabled, disable it
+                systemThemeToggle.checked = false;
+                localStorage.setItem('useSystemTheme', false);
+            }
+            
+            if (darkMode) {
+                document.body.classList.add('dark-mode');
+            } else {
+                document.body.classList.remove('dark-mode');
+            }
+            
+            // Haptic feedback
+            if (navigator.vibrate) navigator.vibrate(30);
+        });
+    }
+    
+    // System theme toggle
+    if (systemThemeToggle) {
+        systemThemeToggle.addEventListener('change', () => {
+            const useSystemTheme = systemThemeToggle.checked;
+            localStorage.setItem('useSystemTheme', useSystemTheme);
+            
+            if (useSystemTheme) {
+                // Follow system preference
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                if (prefersDark) {
+                    document.body.classList.add('dark-mode');
+                    if (darkModeToggle) darkModeToggle.checked = true;
+                } else {
+                    document.body.classList.remove('dark-mode');
+                    if (darkModeToggle) darkModeToggle.checked = false;
+                }
+            }
+            
+            // Haptic feedback
+            if (navigator.vibrate) navigator.vibrate(30);
+        });
+    }
+    
+    // Notifications toggle
+    if (notificationsToggle) {
+        // Set initial state
+        notificationsToggle.checked = localStorage.getItem('enableNotifications') === 'true';
+        
+        notificationsToggle.addEventListener('change', () => {
+            const enableNotifications = notificationsToggle.checked;
+            localStorage.setItem('enableNotifications', enableNotifications);
+            
+            if (enableNotifications) {
+                // Request notification permission
+                setupNotifications();
+            }
+            
+            // Haptic feedback
+            if (navigator.vibrate) navigator.vibrate(30);
+        });
+    }
+    
+    // Biometrics toggle
+    if (biometricsToggle) {
+        // Set initial state
+        biometricsToggle.checked = localStorage.getItem('useBiometrics') === 'true';
+        
+        biometricsToggle.addEventListener('change', () => {
+            const useBiometrics = biometricsToggle.checked;
+            localStorage.setItem('useBiometrics', useBiometrics);
+            
+            // Haptic feedback
+            if (navigator.vibrate) navigator.vibrate(30);
+        });
+    }
+    
+    // Currency selection
+    if (currencySelect) {
+        // Set initial value
+        const savedCurrency = localStorage.getItem('currency');
+        if (savedCurrency) {
+            currencySelect.value = savedCurrency;
+        }
+        
+        currencySelect.addEventListener('change', () => {
+            const currency = currencySelect.value;
+            localStorage.setItem('currency', currency);
+            
+            // Update currency symbols
+            updateCurrencySymbols();
+            
+            // Reload subscriptions to update formatting
+            loadSubscriptions();
+            
+            // Haptic feedback
+            if (navigator.vibrate) navigator.vibrate(30);
+        });
+    }
+    
+    // Export data
+    if (exportDataLink) {
+        exportDataLink.addEventListener('click', event => {
+            event.preventDefault();
+            exportData();
+        });
+    }
+    
+    // Import data
+    if (importDataLink && importFileInput) {
+        importDataLink.addEventListener('click', event => {
+            event.preventDefault();
+            importFileInput.click();
+        });
+        
+        importFileInput.addEventListener('change', event => {
+            const file = event.target.files[0];
+            if (file) {
+                importData(file);
+            }
+        });
+    }
+    
+    // Reset data
+    if (resetDataLink) {
+        resetDataLink.addEventListener('click', event => {
+            event.preventDefault();
+            resetData();
+        });
+    }
+    
+    // Notification channels
+    setupNotificationChannels();
+}
+
+// Update currency symbols
+function updateCurrencySymbols() {
+    const currencySymbol = window.i18n.getCurrencySymbol();
+    
+    // Update currency symbols in the UI
+    const amountSymbol = document.getElementById('amountCurrencySymbol');
+    const editAmountSymbol = document.getElementById('editAmountCurrencySymbol');
+    
+    if (amountSymbol) amountSymbol.textContent = currencySymbol;
+    if (editAmountSymbol) editAmountSymbol.textContent = currencySymbol;
+    
+    // Update amount in cards
+    document.querySelectorAll('.amount-value').forEach(element => {
+        const amount = element.textContent.replace(/[^0-9.]/g, '');
+        element.textContent = `${currencySymbol}${amount}`;
+    });
+}
+
+// Export data to JSON file
+function exportData() {
+    SubscriptionDB.getAll()
+        .then(subscriptions => {
+            const data = {
+                subscriptions,
+                exportDate: new Date().toISOString(),
+                version: '1.0'
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `subscription-data-${new Date().toISOString().slice(0,10)}.json`;
+            document.body.appendChild(a);
+            a.click();
+            
+            // Clean up
+            setTimeout(() => {
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }, 100);
+            
+            showToast('Data exported successfully');
+        })
+        .catch(error => {
+            console.error('Error exporting data:', error);
+            showToast('Error exporting data');
+        });
+}
+
+// Import data from JSON file
+function importData(file) {
+    const reader = new FileReader();
+    
+    reader.onload = event => {
+        try {
+            const data = JSON.parse(event.target.result);
+            
+            if (!data.subscriptions || !Array.isArray(data.subscriptions)) {
+                throw new Error('Invalid data format');
+            }
+            
+            // Import each subscription
+            Promise.all(data.subscriptions.map(subscription => SubscriptionDB.add(subscription)))
+                .then(() => {
+                    loadSubscriptions(); // Reload data
+                    showToast('Data imported successfully');
+                })
+                .catch(error => {
+                    console.error('Error importing data:', error);
+                    showToast('Error importing data');
+                });
+        } catch (error) {
+            console.error('Error parsing import file:', error);
+            showToast('Invalid data file');
+        }
+    };
+    
+    reader.readAsText(file);
+}
+
+// Reset all data
+function resetData() {
+    if (confirm('Are you sure? This will delete all your subscriptions.')) {
+        SubscriptionDB.clearAll()
+            .then(() => {
+                loadSubscriptions(); // Reload (empty) data
+                showToast('All data has been reset');
+            })
+            .catch(error => {
+                console.error('Error resetting data:', error);
+                showToast('Error resetting data');
+            });
+    }
+}
+
+// Setup notification channels
+function setupNotificationChannels() {
+    const channelToggles = {
+        'dueDateChannel': true,
+        'weeklyDigestChannel': false,
+        'priceChangesChannel': false
+    };
+    
+    // Set initial states from localStorage
+    Object.keys(channelToggles).forEach(channelId => {
+        const toggle = document.getElementById(channelId);
+        if (toggle) {
+            const savedState = localStorage.getItem(channelId);
+            toggle.checked = savedState !== null ? savedState === 'true' : channelToggles[channelId];
+            
+            // Add change listener
+            toggle.addEventListener('change', () => {
+                localStorage.setItem(channelId, toggle.checked);
+                
+                // If using Android notification channels, update them
+                if ('serviceWorker' in navigator) {
+                    navigator.serviceWorker.controller?.postMessage({
+                        type: 'UPDATE_NOTIFICATION_CHANNEL',
+                        channelId: channelId.replace('Channel', ''),
+                        enabled: toggle.checked
+                    });
+                }
+                
+                // Haptic feedback
+                if (navigator.vibrate) navigator.vibrate(30);
+            });
+        }
+    });
+}
+
+// Show toast notification
+function showToast(message, duration = 3000) {
+    // Remove any existing toasts
+    const existingToast = document.querySelector('.toast');
+    if (existingToast) {
+        existingToast.remove();
+    }
+    
+    // Create new toast
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    
+    // Show toast
+    setTimeout(() => {
+        toast.classList.add('show');
+    }, 10);
+    
+    // Hide toast after duration
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => {
+            toast.remove();
+        }, 300);
+    }, duration);
 } 
