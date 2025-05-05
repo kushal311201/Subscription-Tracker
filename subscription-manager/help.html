@@ -122,83 +122,59 @@
 <body>
     <div class="help-container">
         <header>
-            <h1><i class="fas fa-calendar-check"></i> Subscription Manager - Help</h1>
+            <div class="logo-container">
+                <img src="images/coffee-logo.svg" alt="Coffee Logo" class="coffee-logo">
+                <h1 class="animate-in">Help & Support</h1>
+            </div>
+            <div class="header-actions">
+                <div class="top-dark-mode-toggle">
+                    <label class="switch">
+                        <input type="checkbox" id="topDarkMode">
+                        <span class="slider round"></span>
+                    </label>
+                    <span class="toggle-label">Dark Mode</span>
+                </div>
+            </div>
         </header>
         
         <div class="important-notice">
-            <h3>Important: Airtable Setup Required</h3>
-            <p>Before using the Subscription Manager app, you need to set up an Airtable account and configure your database. We've created a detailed step-by-step guide to help you through this process.</p>
-            <a href="airtable-setup.html" class="btn-special">View Airtable Setup Guide <i class="fas fa-arrow-right"></i></a>
+            <h3>Local Data Storage</h3>
+            <p>Subscription Tracker uses your device's local storage to save your subscription data. This means all your data stays on your device and is not sent to any external servers.</p>
         </div>
 
         <div class="help-section">
             <h2>Getting Started</h2>
             <p>Welcome to Subscription Manager! This guide will help you set up and use the app effectively.</p>
             
-            <h3>Setting Up Airtable (Required)</h3>
+            <h3>Data Storage Information</h3>
             
             <div class="step">
                 <div class="step-number">1</div>
                 <div class="step-content">
-                    <strong>Create an Airtable Account</strong>
-                    <p>Go to <a href="https://airtable.com" target="_blank">airtable.com</a> and sign up for a free account if you don't already have one.</p>
+                    <strong>Local Storage</strong>
+                    <p>Your subscription data is stored locally on your device using IndexedDB, a powerful browser database.</p>
+                    <p>No account creation is needed - just add your subscriptions and they'll be saved on your current device.</p>
                 </div>
             </div>
             
             <div class="step">
                 <div class="step-number">2</div>
                 <div class="step-content">
-                    <strong>Create a New Base</strong>
-                    <p>After logging in, create a new base by clicking on "Add a base" → "Start from scratch".</p>
-                    <p>Name your base "Subscription Manager" or any name you prefer.</p>
+                    <strong>Privacy First</strong>
+                    <p>We prioritize your privacy. Your subscription data never leaves your device unless you explicitly choose to export or sync it.</p>
                 </div>
             </div>
             
             <div class="step">
                 <div class="step-number">3</div>
                 <div class="step-content">
-                    <strong>Set Up the Subscriptions Table</strong>
-                    <p>Rename "Table 1" to "Subscriptions".</p>
-                    <p>Create the following fields:</p>
+                    <strong>Installing the App</strong>
+                    <p>For the best experience, you can install this as a Progressive Web App (PWA):</p>
                     <ul>
-                        <li><code>name</code> (Single line text)</li>
-                        <li><code>amount</code> (Number, 2 decimal places)</li>
-                        <li><code>billingCycle</code> (Single select: Add options "monthly", "yearly", "quarterly")</li>
-                        <li><code>dueDate</code> (Date)</li>
-                        <li><code>category</code> (Single select: Add options "streaming", "fitness", "productivity", "music", "cloud", "other")</li>
+                        <li>In Chrome/Edge: Look for the install icon in the address bar</li>
+                        <li>In Safari (iOS): Tap the Share button, then "Add to Home Screen"</li>
                     </ul>
-                    <p>Note: Field names are case-sensitive, so make sure to use exact names as above.</p>
-                </div>
-            </div>
-            
-            <div class="step">
-                <div class="step-number">4</div>
-                <div class="step-content">
-                    <strong>Get Your API Key</strong>
-                    <p>Go to <a href="https://airtable.com/account" target="_blank">airtable.com/account</a>.</p>
-                    <p>Under the API section, click "Generate API key" if you don't already have one.</p>
-                    <p>Copy your API key and keep it safe.</p>
-                </div>
-            </div>
-            
-            <div class="step">
-                <div class="step-number">5</div>
-                <div class="step-content">
-                    <strong>Get Your Base ID</strong>
-                    <p>Go to <a href="https://airtable.com/api" target="_blank">airtable.com/api</a>.</p>
-                    <p>Select your "Subscription Manager" base.</p>
-                    <p>Look for "The ID of this base is" and copy the Base ID (it starts with "app...").</p>
-                </div>
-            </div>
-            
-            <div class="step">
-                <div class="step-number">6</div>
-                <div class="step-content">
-                    <strong>Configure the App</strong>
-                    <p>Open the <code>js/app.js</code> file in a text editor.</p>
-                    <p>Replace <code>'YOUR_API_KEY'</code> with your actual API key.</p>
-                    <p>Replace <code>'YOUR_BASE_ID'</code> with your actual Base ID.</p>
-                    <p>Save the file.</p>
+                    <p>Installing as a PWA allows the app to work offline and provides a more app-like experience.</p>
                 </div>
             </div>
         </div>
@@ -259,46 +235,47 @@
         </div>
 
         <div class="help-section">
-            <h2>Setting Up Email Reminders (Optional)</h2>
+            <h2>Data Management</h2>
             
-            <p>You can use Zapier to send email reminders before subscriptions renew.</p>
-            
+            <h3>Exporting Your Data</h3>
             <div class="step">
                 <div class="step-number">1</div>
                 <div class="step-content">
-                    <strong>Create a Zapier Account</strong>
-                    <p>Sign up at <a href="https://zapier.com" target="_blank">zapier.com</a> (free plan available).</p>
+                    <p>To export your subscription data:</p>
+                    <ol>
+                        <li>Open the Settings panel</li>
+                        <li>Click on "Export Data"</li>
+                        <li>Save the JSON file to your device</li>
+                    </ol>
+                    <p>This file contains all your subscription information and can be used to backup or transfer your data.</p>
                 </div>
             </div>
             
+            <h3>Importing Data</h3>
             <div class="step">
-                <div class="step-number">2</div>
+                <div class="step-number">1</div>
                 <div class="step-content">
-                    <strong>Create a New Zap</strong>
-                    <p>Click "Create Zap".</p>
-                    <p>Set Airtable as the trigger app and select "Find Record" as the event.</p>
-                    <p>Connect your Airtable account and select your Subscription Manager base and Subscriptions table.</p>
+                    <p>To import subscription data from a previous export:</p>
+                    <ol>
+                        <li>Open the Settings panel</li>
+                        <li>Click on "Import Data"</li>
+                        <li>Select your previously exported JSON file</li>
+                        <li>Confirm the import when prompted</li>
+                    </ol>
                 </div>
             </div>
             
+            <h3>Resetting Data</h3>
             <div class="step">
-                <div class="step-number">3</div>
+                <div class="step-number">1</div>
                 <div class="step-content">
-                    <strong>Configure the Trigger</strong>
-                    <p>Add a filter condition where the due date is 3 days away.</p>
-                    <p>You can use Airtable formulas for this, like:</p>
-                    <code>DATETIME_DIFF(TODAY(), {dueDate}, 'days') <= 3</code>
-                </div>
-            </div>
-            
-            <div class="step">
-                <div class="step-number">4</div>
-                <div class="step-content">
-                    <strong>Set Up Email Action</strong>
-                    <p>Choose Gmail or another email service as your action app.</p>
-                    <p>Select "Send Email" as the action event.</p>
-                    <p>Connect your email account.</p>
-                    <p>Fill in the email template with your subscription details.</p>
+                    <p>To reset all your data:</p>
+                    <ol>
+                        <li>Open the Settings panel</li>
+                        <li>Click on "Reset Data"</li>
+                        <li>Confirm the reset when prompted</li>
+                    </ol>
+                    <p><strong>Warning:</strong> This will permanently delete all your subscription data from the app. Consider exporting your data first if you might need it later.</p>
                 </div>
             </div>
         </div>
@@ -307,19 +284,18 @@
             <h2>Troubleshooting</h2>
             
             <h3>App Not Loading Subscriptions</h3>
-            <p>Check that your API key and Base ID are correctly entered in app.js.</p>
-            <p>Verify that your Airtable table is named exactly "Subscriptions".</p>
-            <p>Ensure your field names match exactly as described (they're case-sensitive).</p>
+            <p>Try refreshing the page. If that doesn't work, try clearing your browser cache.</p>
+            <p>If you're in private/incognito browsing mode, the app may have limited storage capabilities.</p>
             
             <h3>Can't Add or Edit Subscriptions</h3>
-            <p>Check your Airtable API usage limits (free plan allows 1,200 operations per month).</p>
-            <p>Verify your internet connection.</p>
-            <p>Check browser console for any JavaScript errors (Right-click → Inspect → Console).</p>
+            <p>Make sure you're not in private/incognito browsing mode.</p>
+            <p>Check if your browser supports IndexedDB (all modern browsers do).</p>
+            <p>Try clearing some browser storage if your device is low on space.</p>
             
             <h3>Chart Not Displaying</h3>
             <p>Make sure you have at least one subscription added.</p>
             <p>Try refreshing the page.</p>
-            <p>Verify that Chart.js is loading correctly.</p>
+            <p>Check if JavaScript is enabled in your browser.</p>
         </div>
 
         <a href="index.html" class="back-link"><i class="fas fa-arrow-left"></i> Back to Subscription Manager</a>

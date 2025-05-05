@@ -250,18 +250,20 @@ function createReminderCard(subscription) {
     card.className = 'reminder-card';
     card.id = `reminder-${subscription.id}`;
     card.dataset.dueDate = subscription.dueDate;
+    card.dataset.category = subscription.category;
     
     // Set card HTML
     card.innerHTML = `
         <div class="reminder-card-header">
             <span class="reminder-card-title">${subscription.name}</span>
+            <span class="category-badge ${subscription.category}">${capitalizeFirstLetter(subscription.category)}</span>
             <button class="action-btn edit touch-target" aria-label="Edit reminder">
                 <i class="fas fa-pencil-alt"></i>
             </button>
         </div>
         <div class="reminder-info">
             <span class="reminder-label">Subscription Amount:</span>
-            <span class="reminder-value">${currencySymbol}${subscription.amount} (${subscription.billingCycle})</span>
+            <span class="reminder-value subscription-amount">${currencySymbol}${subscription.amount} (${subscription.billingCycle})</span>
         </div>
         <div class="reminder-info">
             <span class="reminder-label">Due Date:</span>
@@ -772,4 +774,9 @@ function getCurrencySymbol() {
     };
     
     return symbols[currency] || symbol;
+}
+
+// Helper function to capitalize the first letter of a string
+function capitalizeFirstLetter(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
 } 

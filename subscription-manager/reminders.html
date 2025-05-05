@@ -464,39 +464,41 @@
     </div>
 
     <div class="container">
-        <header class="animate-in">
-            <h1 class="animate__animated animate__fadeInDown"><i class="fas fa-bell"></i> <span data-i18n="reminders">Reminders</span></h1>
-            
-            <div class="header-actions animate__animated animate__fadeIn animate__delay-1s">
+        <header>
+            <div class="logo-container">
+                <img src="images/coffee-logo.svg" alt="Coffee Logo" class="coffee-logo">
+                <h1 class="animate-in"><i class="fas fa-bell"></i> <span data-i18n="reminders">Reminders</span></h1>
+            </div>
+            <div class="header-actions">
                 <div class="top-dark-mode-toggle">
-                    <label for="topDarkMode"><i class="fas fa-moon"></i> Dark Mode</label>
                     <label class="switch">
                         <input type="checkbox" id="topDarkMode">
                         <span class="slider round"></span>
                     </label>
-                </div>
-            </div>
-            
-            <div class="summary-box animate__animated animate__fadeIn animate__delay-2s">
-                <div class="total-box">
-                    <h3 data-i18n="activeReminders">Active Reminders</h3>
-                    <p class="total-amount"><span id="totalReminders">0</span></p>
-                </div>
-                <div class="reminder-preferences">
-                    <h3 data-i18n="preferences">Preferences</h3>
-                    <div class="settings-group">
-                        <label for="defaultReminderDays" data-i18n="defaultReminderDays">Default Reminder Days</label>
-                        <select id="defaultReminderDays" class="touch-target">
-                            <option value="0" data-i18n="onDueDate">On due date</option>
-                            <option value="1" data-i18n="oneDayBefore">1 day before</option>
-                            <option value="3" data-i18n="threeDaysBefore" selected>3 days before</option>
-                            <option value="7" data-i18n="oneWeekBefore">1 week before</option>
-                            <option value="14" data-i18n="twoWeeksBefore">2 weeks before</option>
-                        </select>
-                    </div>
+                    <span class="toggle-label">Dark Mode</span>
                 </div>
             </div>
         </header>
+
+        <div class="summary-box animate__animated animate__fadeIn animate__delay-2s">
+            <div class="total-box">
+                <h3 data-i18n="activeReminders">Active Reminders</h3>
+                <p class="total-amount"><span id="totalReminders">0</span></p>
+            </div>
+            <div class="reminder-preferences">
+                <h3 data-i18n="preferences">Preferences</h3>
+                <div class="settings-group">
+                    <label for="defaultReminderDays" data-i18n="defaultReminderDays">Default Reminder Days</label>
+                    <select id="defaultReminderDays" class="touch-target">
+                        <option value="0" data-i18n="onDueDate">On due date</option>
+                        <option value="1" data-i18n="oneDayBefore">1 day before</option>
+                        <option value="3" data-i18n="threeDaysBefore" selected>3 days before</option>
+                        <option value="7" data-i18n="oneWeekBefore">1 week before</option>
+                        <option value="14" data-i18n="twoWeeksBefore">2 weeks before</option>
+                    </select>
+                </div>
+            </div>
+        </div>
 
         <div class="main-content">
             <div class="quick-actions animate__animated animate__fadeIn animate__delay-3s">

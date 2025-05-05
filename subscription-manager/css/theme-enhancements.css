@@ -1,0 +1,991 @@
+/* Enhanced Theme & Styling Improvements - Coffee Shop Theme */
+
+:root {
+  /* Main color palette based on Coffee Shop design */
+  --primary-color: #8B5A2B;
+  --primary-color-rgb: 139, 90, 43;
+  --primary-color-light: #A67C52;
+  --primary-color-dark: #704119;
+  
+  --success-color: #537A5A;
+  --success-color-rgb: 83, 122, 90;
+  --warning-color: #C2955A;
+  --warning-color-rgb: 194, 149, 90;
+  --danger-color: #A73121;
+  --danger-color-rgb: 167, 49, 33;
+  --info-color: #718EA4;
+  --info-color-rgb: 113, 142, 164;
+  
+  /* Background & surface colors */
+  --bg-primary: #F8F3E9;
+  --bg-card: #FFFFFF;
+  --bg-input: #FFFFFF;
+  
+  /* Text colors */
+  --text-primary: #3A2C1F;
+  --text-secondary: #6C5F51;
+  --text-light: #9C8E7B;
+  
+  /* Borders & shadows */
+  --border-color: #E8DFD5;
+  --shadow-sm: 0 2px 4px rgba(99, 75, 37, 0.05);
+  --shadow-md: 0 4px 6px rgba(99, 75, 37, 0.07), 0 1px 3px rgba(99, 75, 37, 0.08);
+  --shadow-lg: 0 10px 15px rgba(99, 75, 37, 0.07), 0 5px 8px rgba(99, 75, 37, 0.08);
+  
+  /* Spacing */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  
+  /* Card styling */
+  --card-border-radius: 16px;
+  --card-padding: 20px;
+  --card-gap: 24px;
+  
+  /* Form elements */
+  --input-height: 48px;
+  --input-border-radius: 8px;
+  --button-border-radius: 24px;
+  
+  /* Category Colors */
+  --streaming-color: #E67E22;
+  --streaming-color-rgb: 230, 126, 34;
+  --fitness-color: #537A5A;
+  --fitness-color-rgb: 83, 122, 90;
+  --productivity-color: #3A8BB4;
+  --productivity-color-rgb: 58, 139, 180;
+  --music-color: #8E44AD;
+  --music-color-rgb: 142, 68, 173;
+  --cloud-color: #718EA4;
+  --cloud-color-rgb: 113, 142, 164;
+  --other-color: #7C6E63;
+  --other-color-rgb: 124, 110, 99;
+  --saas-color: #D35400;
+  --saas-color-rgb: 211, 84, 0;
+}
+
+/* Dark mode overrides for Coffee Shop Theme */
+body.dark-mode {
+  --primary-color: #C28B51;
+  --primary-color-light: #D6A977;
+  --primary-color-dark: #9E6B39;
+  
+  --bg-primary: #2A2118;
+  --bg-card: #372D22;
+  --bg-input: #423528;
+  
+  --text-primary: #F3EAE0;
+  --text-secondary: #C8B8A5;
+  --text-light: #9C8E7B;
+  
+  --border-color: #4D4033;
+  --shadow-sm: 0 2px 4px rgba(0,0,0,0.2);
+  --shadow-md: 0 4px 8px rgba(0,0,0,0.25);
+  --shadow-lg: 0 10px 20px rgba(0,0,0,0.3);
+}
+
+/* ==== Global Styling Enhancements ==== */
+body {
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  background-color: var(--bg-primary);
+  background-image: 
+    linear-gradient(135deg, rgba(139, 90, 43, 0.05) 0%, rgba(165, 135, 95, 0.05) 100%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cg fill='%238b5a2b' fill-opacity='0.03'%3E%3Cpath d='M0 0h40v40H0V0zm40 40h40v40H40V40zm0-40h2l-2 2V0zm0 4l4-4h2l-6 6V4zm0 4l8-8h2L40 10V8zm0 4L52 0h2L40 14v-2zm0 4L56 0h2L40 18v-2zm0 4L60 0h2L40 22v-2zm0 4L64 0h2L40 26v-2zm0 4L68 0h2L40 30v-2zm0 4L72 0h2L40 34v-2zm0 4L76 0h2L40 38v-2zm0 4L80 0v2L42 40h-2zm4 0L80 4v2L46 40h-2zm4 0L80 8v2L50 40h-2zm4 0l28-28v2L54 40h-2zm4 0l24-24v2L58 40h-2zm4 0l20-20v2L62 40h-2zm4 0l16-16v2L66 40h-2zm4 0l12-12v2L70 40h-2zm4 0l8-8v2l-6 6h-2zm4 0l4-4v2l-2 2h-2z'/%3E%3C/g%3E%3C/svg%3E");
+  background-attachment: fixed;
+  color: var(--text-primary);
+  line-height: 1.5;
+  font-weight: 400;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  min-height: 100vh;
+}
+
+/* Logo container styles */
+.logo-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.coffee-logo {
+  width: 40px;
+  height: 40px;
+  transition: transform 0.3s ease;
+}
+
+.logo-container:hover .coffee-logo {
+  transform: rotate(10deg);
+}
+
+/* Beautiful gradient card styling */
+.subscription-card {
+  background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(250, 246, 241, 0.95) 100%);
+  border-radius: var(--card-border-radius);
+  box-shadow: var(--shadow-md);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border: 1px solid rgba(var(--primary-color-rgb), 0.08);
+  padding: var(--card-padding);
+}
+
+.subscription-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--primary-color), var(--primary-color-light));
+  opacity: 0.9;
+}
+
+.subscription-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Category-based card styling */
+.subscription-card[data-category="streaming"]::before {
+  background: linear-gradient(90deg, var(--streaming-color), rgba(var(--streaming-color-rgb), 0.7));
+}
+
+.subscription-card[data-category="fitness"]::before {
+  background: linear-gradient(90deg, var(--fitness-color), rgba(var(--fitness-color-rgb), 0.7));
+}
+
+.subscription-card[data-category="productivity"]::before {
+  background: linear-gradient(90deg, var(--productivity-color), rgba(var(--productivity-color-rgb), 0.7));
+}
+
+.subscription-card[data-category="music"]::before {
+  background: linear-gradient(90deg, var(--music-color), rgba(var(--music-color-rgb), 0.7));
+}
+
+.subscription-card[data-category="cloud"]::before {
+  background: linear-gradient(90deg, var(--cloud-color), rgba(var(--cloud-color-rgb), 0.7));
+}
+
+.subscription-card[data-category="saas"]::before {
+  background: linear-gradient(90deg, var(--saas-color), rgba(var(--saas-color-rgb), 0.7));
+}
+
+.subscription-card[data-category="other"]::before {
+  background: linear-gradient(90deg, var(--other-color), rgba(var(--other-color-rgb), 0.7));
+}
+
+/* Subscription name styling */
+.subscription-name {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Subscription amount styling */
+.subscription-amount {
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin: 10px 0;
+  background: linear-gradient(90deg, var(--primary-color), var(--primary-color-light));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Category badge styling */
+.category-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 100px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: capitalize;
+  color: white;
+}
+
+.category-badge.streaming {
+  background: linear-gradient(45deg, var(--streaming-color), rgba(var(--streaming-color-rgb), 0.8));
+}
+
+.category-badge.fitness {
+  background: linear-gradient(45deg, var(--fitness-color), rgba(var(--fitness-color-rgb), 0.8));
+}
+
+.category-badge.productivity {
+  background: linear-gradient(45deg, var(--productivity-color), rgba(var(--productivity-color-rgb), 0.8));
+}
+
+.category-badge.music {
+  background: linear-gradient(45deg, var(--music-color), rgba(var(--music-color-rgb), 0.8));
+}
+
+.category-badge.cloud {
+  background: linear-gradient(45deg, var(--cloud-color), rgba(var(--cloud-color-rgb), 0.8));
+}
+
+.category-badge.saas {
+  background: linear-gradient(45deg, var(--saas-color), rgba(var(--saas-color-rgb), 0.8));
+}
+
+.category-badge.other {
+  background: linear-gradient(45deg, var(--other-color), rgba(var(--other-color-rgb), 0.8));
+}
+
+/* Enhanced summary box styling */
+.summary-box {
+  background-image: linear-gradient(135deg, rgba(139, 90, 43, 0.07) 0%, rgba(165, 135, 95, 0.07) 100%);
+  border-radius: var(--card-border-radius);
+  box-shadow: var(--shadow-md);
+  padding: var(--card-padding);
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(var(--primary-color-rgb), 0.08);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.summary-box:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.summary-box::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--primary-color), var(--primary-color-light));
+}
+
+/* Enhanced Add Subscription Form Styling */
+.add-subscription {
+  background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 243, 233, 0.95) 100%);
+  border-radius: var(--card-border-radius);
+  box-shadow: var(--shadow-md);
+  padding: var(--card-padding);
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(var(--primary-color-rgb), 0.08);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  margin-bottom: var(--card-gap);
+}
+
+.add-subscription::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--primary-color), var(--primary-color-light));
+}
+
+.add-subscription h2 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* Form group styling */
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+/* Input focus glow effect */
+.form-group input[type="text"],
+.form-group input[type="number"],
+.form-group input[type="date"],
+.form-group input[type="email"],
+.form-group select {
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--input-border-radius);
+  background-color: var(--bg-input);
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  transition: all 0.25s ease;
+}
+
+.form-group input[type="text"]:focus,
+.form-group input[type="number"]:focus,
+.form-group input[type="date"]:focus,
+.form-group input[type="email"]:focus,
+.form-group select:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb), 0.15);
+  outline: none;
+}
+
+/* Amount input with currency symbol */
+.amount-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background-color: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: var(--input-border-radius);
+  overflow: hidden;
+  transition: all 0.25s ease;
+}
+
+.amount-input-wrapper:focus-within {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb), 0.15);
+}
+
+.amount-input-wrapper span {
+  display: flex;
+  align-items: center;
+  padding: 0 15px;
+  font-weight: 600;
+  color: var(--primary-color);
+  background-color: rgba(var(--primary-color-rgb), 0.05);
+  border-right: 1px solid var(--border-color);
+  height: 100%;
+}
+
+.amount-input-wrapper input {
+  flex: 1;
+  border: none;
+  padding: 12px 15px;
+  background-color: transparent;
+  color: var(--text-primary);
+  font-size: 0.95rem;
+}
+
+.amount-input-wrapper input:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+/* Toggle switch styling */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 48px;
+  height: 24px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(var(--text-light), 0.3);
+  transition: 0.4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.4s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+input:checked + .slider {
+  background: linear-gradient(45deg, var(--primary-color), var(--primary-color-light));
+}
+
+input:checked + .slider:before {
+  transform: translateX(24px);
+}
+
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+
+.reminder-toggle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Enhanced button styling */
+.btn {
+  border-radius: var(--button-border-radius);
+  padding: 12px 22px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.btn::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -2;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.1);
+  transition: all 0.3s;
+  z-index: -1;
+}
+
+.btn:hover::before {
+  width: 100%;
+}
+
+.btn-primary, .primary-btn {
+  background: linear-gradient(45deg, var(--primary-color), var(--primary-color-light));
+  border: none;
+  color: white;
+  padding: 12px 25px;
+  font-size: 0.95rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-primary:hover, .primary-btn:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.btn-success {
+  background: linear-gradient(45deg, var(--success-color), rgba(var(--success-color-rgb), 0.8));
+  border: none;
+  color: white;
+}
+
+.btn-danger {
+  background: linear-gradient(45deg, var(--danger-color), rgba(var(--danger-color-rgb), 0.8));
+  border: none;
+  color: white;
+}
+
+/* Shiny button effect */
+.btn::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.2) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: translateX(-100%);
+  transition: transform 0.5s ease;
+}
+
+.btn:hover::after {
+  transform: translateX(100%);
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  .container {
+    padding: 0 10px;
+  }
+  
+  .subscription-card {
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 12px;
+  }
+  
+  .card-actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .btn {
+    width: 100%; /* Full width buttons on mobile */
+    padding: 12px 16px;
+    font-size: 14px;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  
+  .summary-box {
+    flex-direction: column;
+    padding: 15px;
+    border-radius: 12px;
+  }
+  
+  .total-box, .chart-container {
+    width: 100%;
+  }
+  
+  /* Adjust header for mobile */
+  .app-header {
+    flex-direction: column;
+    padding: 10px;
+  }
+  
+  .app-title {
+    margin-bottom: 10px;
+    font-size: 1.5rem;
+  }
+  
+  /* Hide certain elements on mobile or adjust their display */
+  .hide-on-mobile {
+    display: none;
+  }
+  
+  /* Stack form controls on mobile */
+  .form-row {
+    flex-direction: column;
+  }
+  
+  .form-group {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+  
+  /* Improve form element touch targets */
+  input, select, textarea, button {
+    font-size: 16px; /* Prevent zoom on iOS */
+    height: 48px;
+  }
+  
+  /* Better spacing for mobile */
+  body {
+    padding-bottom: 20px;
+  }
+  
+  /* Smoother scrolling for touch devices */
+  body, .container, .subscription-list {
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Small phone optimizations */
+@media (max-width: 480px) {
+  .app-title {
+    font-size: 1.3rem;
+  }
+  
+  .subscription-card, .summary-box {
+    border-radius: 10px;
+    padding: 12px;
+  }
+  
+  .total-amount {
+    font-size: 1.5rem;
+  }
+  
+  .btn {
+    padding: 10px 14px;
+    font-size: 13px;
+  }
+}
+
+/* Settings panel enhancements */
+.settings-panel {
+  background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 243, 233, 0.95) 100%);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: var(--card-border-radius);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid rgba(var(--primary-color-rgb), 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.settings-panel:hover {
+  transform: translateY(-2px);
+}
+
+/* Dark mode switch enhancements */
+.dark-mode-switch {
+  position: relative;
+  width: 60px;
+  height: 30px;
+  background: linear-gradient(45deg, var(--primary-color), var(--primary-color-light));
+  border-radius: 30px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.dark-mode-switch::after {
+  content: '';
+  position: absolute;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  top: 2px;
+  left: 2px;
+  background: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+body.dark-mode .dark-mode-switch::after {
+  left: 32px;
+}
+
+/* Beautiful form control styling */
+.form-control {
+  border: 1px solid var(--border-color);
+  border-radius: var(--input-border-radius);
+  height: var(--input-height);
+  padding: 0 15px;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+  background-color: var(--bg-input);
+  color: var(--text-primary);
+}
+
+.form-control:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb), 0.1);
+}
+
+/* Dark mode body background */
+body.dark-mode {
+  background-image: 
+    linear-gradient(135deg, rgba(58, 44, 31, 0.1) 0%, rgba(70, 54, 36, 0.1) 100%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cg fill='%23704119' fill-opacity='0.05'%3E%3Cpath d='M0 0h40v40H0V0zm40 40h40v40H40V40zm0-40h2l-2 2V0zm0 4l4-4h2l-6 6V4zm0 4l8-8h2L40 10V8zm0 4L52 0h2L40 14v-2zm0 4L56 0h2L40 18v-2zm0 4L60 0h2L40 22v-2zm0 4L64 0h2L40 26v-2zm0 4L68 0h2L40 30v-2zm0 4L72 0h2L40 34v-2zm0 4L76 0h2L40 38v-2zm0 4L80 0v2L42 40h-2zm4 0L80 4v2L46 40h-2zm4 0L80 8v2L50 40h-2zm4 0l28-28v2L54 40h-2zm4 0l24-24v2L58 40h-2zm4 0l20-20v2L62 40h-2zm4 0l16-16v2L66 40h-2zm4 0l12-12v2L70 40h-2zm4 0l8-8v2l-6 6h-2zm4 0l4-4v2l-2 2h-2z'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* Loading animation for buttons */
+.btn-loading {
+  position: relative;
+  pointer-events: none;
+  color: transparent !important;
+}
+
+.btn-loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  margin: -10px 0 0 -10px;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Enhance spacing between subscription cards */
+.subscription-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Dark mode adjustments for inputs */
+body.dark-mode .form-group input[type="text"],
+body.dark-mode .form-group input[type="number"],
+body.dark-mode .form-group input[type="date"],
+body.dark-mode .form-group input[type="email"],
+body.dark-mode .form-group select,
+body.dark-mode .amount-input-wrapper {
+  background-color: var(--bg-input);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+body.dark-mode .amount-input-wrapper span {
+  background-color: rgba(var(--primary-color-rgb), 0.15);
+  color: var(--primary-color-light);
+}
+
+body.dark-mode .add-subscription {
+  background-image: linear-gradient(135deg, rgba(55, 45, 34, 0.95) 0%, rgba(42, 33, 24, 0.95) 100%);
+}
+
+/* Placeholder text styling */
+::placeholder {
+  color: var(--text-light);
+  opacity: 0.7;
+}
+
+body.dark-mode ::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.5;
+}
+
+/* Reminder card styling to match subscription cards */
+.reminder-card {
+  background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(250, 246, 241, 0.95) 100%);
+  border-radius: var(--card-border-radius);
+  box-shadow: var(--shadow-md);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border: 1px solid rgba(var(--primary-color-rgb), 0.08);
+  padding: var(--card-padding);
+  margin-bottom: var(--card-gap);
+}
+
+.reminder-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--primary-color), var(--primary-color-light));
+  opacity: 0.9;
+}
+
+.reminder-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Apply category-based styling to reminder cards */
+.reminder-card[data-category="streaming"]::before {
+  background: linear-gradient(90deg, var(--streaming-color), rgba(var(--streaming-color-rgb), 0.7));
+}
+
+.reminder-card[data-category="fitness"]::before {
+  background: linear-gradient(90deg, var(--fitness-color), rgba(var(--fitness-color-rgb), 0.7));
+}
+
+.reminder-card[data-category="productivity"]::before {
+  background: linear-gradient(90deg, var(--productivity-color), rgba(var(--productivity-color-rgb), 0.7));
+}
+
+.reminder-card[data-category="music"]::before {
+  background: linear-gradient(90deg, var(--music-color), rgba(var(--music-color-rgb), 0.7));
+}
+
+.reminder-card[data-category="cloud"]::before {
+  background: linear-gradient(90deg, var(--cloud-color), rgba(var(--cloud-color-rgb), 0.7));
+}
+
+.reminder-card[data-category="saas"]::before {
+  background: linear-gradient(90deg, var(--saas-color), rgba(var(--saas-color-rgb), 0.7));
+}
+
+.reminder-card[data-category="other"]::before {
+  background: linear-gradient(90deg, var(--other-color), rgba(var(--other-color-rgb), 0.7));
+}
+
+.reminder-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  position: relative;
+}
+
+.reminder-card-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.reminder-info {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.reminder-label {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.reminder-value {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.reminder-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 100px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  background: linear-gradient(45deg, var(--primary-color), rgba(var(--primary-color-rgb), 0.8));
+  color: white;
+  margin-left: 10px;
+}
+
+.reminder-status {
+  display: flex;
+  align-items: center;
+  margin-top: 15px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(var(--border-color), 0.5);
+}
+
+.status-indicator {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 8px;
+}
+
+.status-indicator.status-active {
+  background: linear-gradient(45deg, var(--success-color), rgba(var(--success-color-rgb), 0.8));
+  box-shadow: 0 0 10px rgba(var(--success-color-rgb), 0.5);
+}
+
+.status-indicator.status-inactive {
+  background: linear-gradient(45deg, var(--text-light), var(--text-secondary));
+}
+
+.status-text {
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+/* Dark mode adjustments for reminder cards */
+body.dark-mode .reminder-card {
+  background-image: linear-gradient(135deg, rgba(55, 45, 34, 0.95) 0%, rgba(42, 33, 24, 0.95) 100%);
+}
+
+body.dark-mode .reminder-status {
+  border-top-color: rgba(var(--border-color), 0.2);
+}
+
+/* Coffee Shop Logo Element - App Header */
+.app-header::before {
+  content: '';
+  position: absolute;
+  top: -5px;
+  left: 10px;
+  width: 30px;
+  height: 30px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%238B5A2B'%3E%3Cpath d='M2,21V19H20V21H2M20,8V5H18V8H20M20,3A2,2 0 0,1 22,5V8A2,2 0 0,1 20,10H18V13A4,4 0 0,1 14,17H8A4,4 0 0,1 4,13V3H20M16,5H6V13A2,2 0 0,0 8,15H14A2,2 0 0,0 16,13V5Z' /%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  opacity: 0.8;
+  z-index: 2;
+}
+
+.app-title {
+  position: relative;
+  padding-left: 40px;
+}
+
+/* Add subtle coffee bean pattern to cards */
+.subscription-card, .reminder-card, .settings-panel, .add-subscription {
+  position: relative;
+}
+
+.subscription-card::after, .reminder-card::after, .settings-panel::after, .add-subscription::after {
+  content: '';
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  width: 20px;
+  height: 20px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%238B5A2B' opacity='0.1'%3E%3Cpath d='M12,6C7.03,6 3,10.03 3,15C3,16.3 3.26,17.53 3.7,18.69C4.13,18.12 4.94,16.96 6,16C10,13 11,13 11,13C11,13 12,13 16,16C17.06,16.96 17.87,18.12 18.3,18.69C18.74,17.53 19,16.3 19,15C19,10.03 14.97,6 12,6Z' /%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  opacity: 0.2;
+  z-index: 0;
+}
+
+/* Coffee-themed header styling */
+header, .app-header {
+  background: linear-gradient(135deg, rgba(139, 90, 43, 0.1) 0%, rgba(99, 64, 30, 0.05) 100%);
+  border-bottom: 1px solid rgba(139, 90, 43, 0.1);
+  padding: 16px 20px;
+  margin-bottom: 24px;
+  border-radius: 0 0 12px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+header::before, .app-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--primary-color), var(--primary-color-light));
+  z-index: 10;
+}
+
+header h1, .app-header h1, .app-title {
+  margin: 0;
+  padding-left: 30px;
+  font-size: 1.7rem;
+  font-weight: 600;
+  background: linear-gradient(90deg, var(--primary-color), var(--primary-color-light));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Remember email checkbox styling */
+.remember-email-group {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.remember-email-group input[type="checkbox"] {
+  margin-right: 8px;
+  height: auto;
+  width: auto;
+}
+
+.remember-email-group label {
+  margin-bottom: 0;
+  font-weight: normal;
+}
+
+body.dark-mode .remember-email-group {
+  color: var(--dark-text-secondary);
+}

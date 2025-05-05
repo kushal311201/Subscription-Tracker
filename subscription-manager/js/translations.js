@@ -10,9 +10,9 @@ let currentLanguage = 'en';
 const translations = {
   en: {
     appTitle: 'Subscription Manager',
-    setupTitle: 'Airtable Setup Required',
-    setupDesc: 'Before using this app, you need to set up your Airtable database for storing subscriptions.',
-    setupGuide: 'Setup Guide',
+    setupTitle: 'Local Storage Setup',
+    setupDesc: 'This app uses your device\'s local storage to save your subscription data safely and privately.',
+    setupGuide: 'Storage Info',
     monthlyBurn: 'Monthly Burn Rate',
     pullToRefresh: 'Pull down to refresh',
     addNewSub: 'Add New Subscription',
@@ -66,7 +66,7 @@ const translations = {
     exportData: 'Export Data',
     importData: 'Import Data',
     resetData: 'Reset Data',
-    databaseSetup: 'Database Setup',
+    databaseSetup: 'Storage Settings',
     editSubscription: 'Edit Subscription',
     cancel: 'Cancel',
     saveChanges: 'Save Changes',
@@ -100,9 +100,9 @@ const translations = {
   
   hi: {
     appTitle: 'सदस्यता प्रबंधक',
-    setupTitle: 'Airtable सेटअप आवश्यक है',
-    setupDesc: 'इस ऐप का उपयोग करने से पहले, आपको सदस्यताओं को संग्रहीत करने के लिए अपने Airtable डेटाबेस को सेटअप करने की आवश्यकता है।',
-    setupGuide: 'सेटअप गाइड',
+    setupTitle: 'स्थानीय स्टोरेज सेटअप',
+    setupDesc: 'यह ऐप आपके सदस्यता डेटा को सुरक्षित और निजी तौर पर सहेजने के लिए आपके डिवाइस के स्थानीय स्टोरेज का उपयोग करता है।',
+    setupGuide: 'स्टोरेज जानकारी',
     monthlyBurn: 'मासिक खर्च दर',
     pullToRefresh: 'रीफ्रेश करने के लिए नीचे खींचें',
     addNewSub: 'नई सदस्यता जोड़ें',
@@ -156,7 +156,7 @@ const translations = {
     exportData: 'डेटा निर्यात करें',
     importData: 'डेटा आयात करें',
     resetData: 'डेटा रीसेट करें',
-    databaseSetup: 'डेटाबेस सेटअप',
+    databaseSetup: 'स्टोरेज सेटिंग्स',
     editSubscription: 'सदस्यता संपादित करें',
     cancel: 'रद्द करें',
     saveChanges: 'परिवर्तन सहेजें',
@@ -190,9 +190,9 @@ const translations = {
   
   es: {
     appTitle: 'Gestor de Suscripciones',
-    setupTitle: 'Configuración de Airtable Requerida',
-    setupDesc: 'Antes de usar esta aplicación, necesitas configurar tu base de datos Airtable para almacenar suscripciones.',
-    setupGuide: 'Guía de Configuración',
+    setupTitle: 'Configuración de Almacenamiento Local',
+    setupDesc: 'Esta aplicación utiliza el almacenamiento local de tu dispositivo para guardar tus datos de suscripción de forma segura y privada.',
+    setupGuide: 'Información de Almacenamiento',
     monthlyBurn: 'Gasto Mensual',
     pullToRefresh: 'Desliza hacia abajo para actualizar',
     addNewSub: 'Añadir Nueva Suscripción',

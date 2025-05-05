@@ -3,12 +3,31 @@
  * Handles offline data storage
  */
 
-const DB_NAME = 'subscription-tracker-db';
+const DB_NAME = 'subscriptionTrackerDB';
 const DB_VERSION = 1;
 const SUBSCRIPTION_STORE = 'subscriptions';
+const CONFIG_STORE = 'config';
 
 // Database connection
 let db;
+// In-memory cache for subscriptions
+const subscriptionCache = {
+  data: null,
+  timestamp: 0,
+  maxAge: 60000, // Cache validity in ms (1 minute)
+  isValid: function() {
+    return this.data !== null && (Date.now() - this.timestamp < this.maxAge);
+  },
+  update: function(data) {
+    this.data = data;
+    this.timestamp = Date.now();
+    return data;
+  },
+  invalidate: function() {
+    this.data = null;
+    this.timestamp = 0;
+  }
+};
 
 /**
  * Initialize the database
@@ -16,78 +35,137 @@ let db;
  */
 function initDB() {
   return new Promise((resolve, reject) => {
-    // Return the existing connection if already open
-    if (db) {
-      return resolve(db);
-    }
-
-    console.log('Opening IndexedDB database...');
-    
-    // Handle browsers that don't support IndexedDB
+    // Check if IndexedDB is supported
     if (!window.indexedDB) {
-      console.error('Your browser does not support IndexedDB');
-      return reject(new Error('Your browser does not support IndexedDB'));
+      const fallbackError = new Error('Your browser doesn\'t support IndexedDB. Using fallback storage.');
+      console.warn(fallbackError);
+      initFallbackStorage();
+      return resolve(); // Resolve with fallback
     }
     
     try {
-      const request = indexedDB.open(DB_NAME, DB_VERSION);
-
-      request.onupgradeneeded = event => {
-        try {
-          const db = event.target.result;
-          console.log('Upgrading IndexedDB database...');
-
-          // Create subscriptions store
-          if (!db.objectStoreNames.contains(SUBSCRIPTION_STORE)) {
-            const store = db.createObjectStore(SUBSCRIPTION_STORE, { keyPath: 'id' });
-            store.createIndex('name', 'name', { unique: false });
-            store.createIndex('dueDate', 'dueDate', { unique: false });
-            store.createIndex('category', 'category', { unique: false });
-            console.log('Created subscriptions store');
-          }
-        } catch (err) {
-          console.error('Error during database upgrade:', err);
-          reject(err);
-        }
-      };
-
-      request.onsuccess = event => {
-        db = event.target.result;
-        console.log('IndexedDB database opened successfully');
-        
-        // Handle database errors
-        db.onerror = event => {
-          console.error('Database error:', event.target.errorCode);
-        };
-        
-        // Listen for close events
-        db.onclose = () => {
-          console.log('Database connection closed unexpectedly');
-          db = null;
-        };
-        
-        // Listen for version change events
-        db.onversionchange = event => {
-          db.close();
-          console.log('Database version changed, please reload the page');
-          db = null;
-        };
-        
-        resolve(db);
-      };
-
-      request.onerror = event => {
-        console.error('IndexedDB error:', event.target.error);
-        reject(event.target.error);
+      const request = window.indexedDB.open(DB_NAME, DB_VERSION);
+      
+      request.onerror = function(event) {
+        const error = new Error('Database error: ' + (event.target.error ? event.target.error.message : 'Unknown error'));
+        console.error('IndexedDB error:', error);
+        initFallbackStorage();
+        resolve(); // Resolve with fallback
       };
       
-      request.onblocked = event => {
-        console.error('Database opening blocked. Please close other tabs with this app open.');
-        reject(new Error('Database opening blocked'));
+      request.onupgradeneeded = function(event) {
+        const db = event.target.result;
+        
+        // Create object store if it doesn't exist
+        if (!db.objectStoreNames.contains(SUBSCRIPTION_STORE)) {
+          const objectStore = db.createObjectStore(SUBSCRIPTION_STORE, { keyPath: 'id' });
+          
+          // Create indices for better search performance
+          objectStore.createIndex('name', 'name', { unique: false });
+          objectStore.createIndex('category', 'category', { unique: false });
+          objectStore.createIndex('dueDate', 'dueDate', { unique: false });
+        }
+        
+        // Create config store if it doesn't exist
+        if (!db.objectStoreNames.contains(CONFIG_STORE)) {
+          db.createObjectStore(CONFIG_STORE, { keyPath: 'key' });
+        }
       };
-    } catch (err) {
-      console.error('Error initializing IndexedDB:', err);
-      reject(err);
+      
+      request.onsuccess = function(event) {
+        db = event.target.result;
+        console.log('Database initialized successfully');
+        
+        // Handle connection errors
+        db.onerror = function(event) {
+          console.error('Database error:', event.target.error);
+        };
+        
+        // Load cache on initialization
+        refreshCache().then(() => {
+          resolve();
+        }).catch(error => {
+          console.error('Error loading cache:', error);
+          reject(error);
+        });
+      };
+      
+      // Handle blocked or failed open attempts
+      request.onblocked = function() {
+        const blockedError = new Error('Database connection blocked. Please close other tabs with this app open.');
+        console.error(blockedError);
+        reject(blockedError);
+      };
+    } catch (error) {
+      console.error('Fatal database initialization error:', error);
+      initFallbackStorage();
+      resolve(); // Resolve with fallback
+    }
+  });
+}
+
+/**
+ * Fallback to localStorage if IndexedDB is not supported or fails
+ * @returns {boolean} True if localStorage is initialized
+ */
+function initFallbackStorage() {
+  console.log('Initializing localStorage fallback');
+  
+  // Check if localStorage is supported
+  if (!window.localStorage) {
+    console.error('Neither IndexedDB nor localStorage is supported!');
+    return false;
+  }
+  
+  // Load existing data from localStorage if available
+  try {
+    const storedData = localStorage.getItem('subscriptions');
+    if (storedData) {
+      subscriptionCache.data = JSON.parse(storedData);
+    }
+    return true;
+  } catch (error) {
+    console.error('Error initializing localStorage fallback:', error);
+    return false;
+  }
+}
+
+/**
+ * Refresh the cache from the database
+ * @returns {Promise} Promise that resolves with the refreshed cache
+ */
+function refreshCache() {
+  return new Promise((resolve, reject) => {
+    // If using fallback storage, resolve immediately
+    if (!db) {
+      resolve(subscriptionCache.data);
+      return;
+    }
+    
+    try {
+      const transaction = db.transaction([SUBSCRIPTION_STORE], 'readonly');
+      const objectStore = transaction.objectStore(SUBSCRIPTION_STORE);
+      const request = objectStore.getAll();
+      
+      request.onsuccess = function(event) {
+        subscriptionCache.data = event.target.result;
+        resolve(subscriptionCache.data);
+      };
+      
+      request.onerror = function(event) {
+        reject(new Error('Error refreshing cache: ' + event.target.error));
+      };
+      
+      // Add transaction error handling
+      transaction.onerror = function(event) {
+        reject(new Error('Transaction error: ' + event.target.error));
+      };
+      
+      transaction.onabort = function(event) {
+        reject(new Error('Transaction aborted: ' + event.target.error));
+      };
+    } catch (error) {
+      reject(error);
     }
   });
 }
@@ -98,32 +176,56 @@ function initDB() {
  * @returns {Promise} Promise that resolves with the saved subscription
  */
 function addSubscription(subscription) {
-  // Generate a unique ID if one isn't provided
-  if (!subscription.id) {
-    subscription.id = generateUniqueId();
-  }
-  
-  // Add timestamp
-  subscription.updatedAt = new Date().toISOString();
-  
-  return executeTransaction(SUBSCRIPTION_STORE, 'readwrite', store => {
-    return new Promise((resolve, reject) => {
+  return new Promise((resolve, reject) => {
+    // If using fallback storage
+    if (!db) {
       try {
-        const request = store.put(subscription);
+        // Generate a unique ID if not provided
+        if (!subscription.id) {
+          subscription.id = Date.now().toString();
+        }
         
-        request.onsuccess = () => {
-          resolve(subscription);
-        };
-        
-        request.onerror = event => {
-          console.error('Error adding subscription:', event.target.error);
-          reject(event.target.error);
-        };
-      } catch (err) {
-        console.error('Transaction error while adding subscription:', err);
-        reject(err);
+        subscriptionCache.data.push(subscription);
+        localStorage.setItem('subscriptions', JSON.stringify(subscriptionCache.data));
+        resolve(subscription);
+        return;
+      } catch (error) {
+        reject(error);
+        return;
       }
-    });
+    }
+    
+    try {
+      // Generate a unique ID if not provided
+      if (!subscription.id) {
+        subscription.id = Date.now().toString();
+      }
+      
+      const transaction = db.transaction([SUBSCRIPTION_STORE], 'readwrite');
+      const objectStore = transaction.objectStore(SUBSCRIPTION_STORE);
+      const request = objectStore.add(subscription);
+      
+      request.onsuccess = function() {
+        // Update cache
+        subscriptionCache.data.push(subscription);
+        resolve(subscription);
+      };
+      
+      request.onerror = function(event) {
+        reject(new Error('Error adding subscription: ' + event.target.error));
+      };
+      
+      // Add transaction error handling
+      transaction.onerror = function(event) {
+        reject(new Error('Transaction error: ' + event.target.error));
+      };
+      
+      transaction.onabort = function(event) {
+        reject(new Error('Transaction aborted: ' + event.target.error));
+      };
+    } catch (error) {
+      reject(error);
+    }
   });
 }
 
@@ -132,25 +234,13 @@ function addSubscription(subscription) {
  * @returns {Promise} Promise that resolves with an array of subscriptions
  */
 function getAllSubscriptions() {
-  return executeTransaction(SUBSCRIPTION_STORE, 'readonly', store => {
-    return new Promise((resolve, reject) => {
-      try {
-        const request = store.getAll();
-        
-        request.onsuccess = () => {
-          resolve(request.result || []);
-        };
-        
-        request.onerror = event => {
-          console.error('Error getting all subscriptions:', event.target.error);
-          reject(event.target.error);
-        };
-      } catch (err) {
-        console.error('Transaction error while getting all subscriptions:', err);
-        reject(err);
-      }
-    });
-  });
+  // Return cached data if valid
+  if (subscriptionCache.isValid()) {
+    console.log('Using cached subscription data');
+    return Promise.resolve(subscriptionCache.data);
+  }
+  
+  return refreshCache();
 }
 
 /**
@@ -159,24 +249,16 @@ function getAllSubscriptions() {
  * @returns {Promise} Promise that resolves with the subscription
  */
 function getSubscription(id) {
-  return executeTransaction(SUBSCRIPTION_STORE, 'readonly', store => {
-    return new Promise((resolve, reject) => {
-      try {
-        const request = store.get(id);
-        
-        request.onsuccess = () => {
-          resolve(request.result);
-        };
-        
-        request.onerror = event => {
-          console.error('Error getting subscription:', event.target.error);
-          reject(event.target.error);
-        };
-      } catch (err) {
-        console.error('Transaction error while getting subscription:', err);
-        reject(err);
-      }
-    });
+  // Check cache first if it's valid
+  if (subscriptionCache.isValid() && subscriptionCache.data) {
+    const cachedItem = subscriptionCache.data.find(item => item.id === id);
+    if (cachedItem) {
+      return Promise.resolve(cachedItem);
+    }
+  }
+  
+  return refreshCache().then(data => {
+    return data.find(item => item.id === id);
   });
 }
 
@@ -186,27 +268,54 @@ function getSubscription(id) {
  * @returns {Promise} Promise that resolves with the updated subscription
  */
 function updateSubscription(subscription) {
-  // Update timestamp
-  subscription.updatedAt = new Date().toISOString();
-  
-  return executeTransaction(SUBSCRIPTION_STORE, 'readwrite', store => {
-    return new Promise((resolve, reject) => {
+  return new Promise((resolve, reject) => {
+    // If using fallback storage
+    if (!db) {
       try {
-        const request = store.put(subscription);
-        
-        request.onsuccess = () => {
+        const index = subscriptionCache.data.findIndex(s => s.id === subscription.id);
+        if (index !== -1) {
+          subscriptionCache.data[index] = subscription;
+          localStorage.setItem('subscriptions', JSON.stringify(subscriptionCache.data));
           resolve(subscription);
-        };
-        
-        request.onerror = event => {
-          console.error('Error updating subscription:', event.target.error);
-          reject(event.target.error);
-        };
-      } catch (err) {
-        console.error('Transaction error while updating subscription:', err);
-        reject(err);
+        } else {
+          reject(new Error('Subscription not found'));
+        }
+        return;
+      } catch (error) {
+        reject(error);
+        return;
       }
-    });
+    }
+    
+    try {
+      const transaction = db.transaction([SUBSCRIPTION_STORE], 'readwrite');
+      const objectStore = transaction.objectStore(SUBSCRIPTION_STORE);
+      const request = objectStore.put(subscription);
+      
+      request.onsuccess = function() {
+        // Update cache
+        const index = subscriptionCache.data.findIndex(s => s.id === subscription.id);
+        if (index !== -1) {
+          subscriptionCache.data[index] = subscription;
+        }
+        resolve(subscription);
+      };
+      
+      request.onerror = function(event) {
+        reject(new Error('Error updating subscription: ' + event.target.error));
+      };
+      
+      // Add transaction error handling
+      transaction.onerror = function(event) {
+        reject(new Error('Transaction error: ' + event.target.error));
+      };
+      
+      transaction.onabort = function(event) {
+        reject(new Error('Transaction aborted: ' + event.target.error));
+      };
+    } catch (error) {
+      reject(error);
+    }
   });
 }
 
@@ -216,65 +325,84 @@ function updateSubscription(subscription) {
  * @returns {Promise} Promise that resolves when the subscription is deleted
  */
 function deleteSubscription(id) {
-  return executeTransaction(SUBSCRIPTION_STORE, 'readwrite', store => {
-    return new Promise((resolve, reject) => {
+  return new Promise((resolve, reject) => {
+    // If using fallback storage
+    if (!db) {
       try {
-        const deleteRequest = store.delete(id);
-        
-        deleteRequest.onsuccess = () => {
-          resolve();
-        };
-        
-        deleteRequest.onerror = event => {
-          console.error('Error deleting subscription:', event.target.error);
-          reject(event.target.error);
-        };
-      } catch (err) {
-        console.error('Transaction error while deleting subscription:', err);
-        reject(err);
+        const index = subscriptionCache.data.findIndex(s => s.id === id);
+        if (index !== -1) {
+          subscriptionCache.data.splice(index, 1);
+          localStorage.setItem('subscriptions', JSON.stringify(subscriptionCache.data));
+          resolve(true);
+        } else {
+          reject(new Error('Subscription not found'));
+        }
+        return;
+      } catch (error) {
+        reject(error);
+        return;
       }
-    });
+    }
+    
+    try {
+      const transaction = db.transaction([SUBSCRIPTION_STORE], 'readwrite');
+      const objectStore = transaction.objectStore(SUBSCRIPTION_STORE);
+      const request = objectStore.delete(id);
+      
+      request.onsuccess = function() {
+        // Update cache
+        const index = subscriptionCache.data.findIndex(s => s.id === id);
+        if (index !== -1) {
+          subscriptionCache.data.splice(index, 1);
+        }
+        resolve(true);
+      };
+      
+      request.onerror = function(event) {
+        reject(new Error('Error deleting subscription: ' + event.target.error));
+      };
+      
+      // Add transaction error handling
+      transaction.onerror = function(event) {
+        reject(new Error('Transaction error: ' + event.target.error));
+      };
+      
+      transaction.onabort = function(event) {
+        reject(new Error('Transaction aborted: ' + event.target.error));
+      };
+    } catch (error) {
+      reject(error);
+    }
   });
 }
 
 /**
- * Execute a transaction on the database
- * @param {string} storeName - The name of the object store
- * @param {string} mode - The transaction mode ('readonly' or 'readwrite')
- * @param {Function} callback - The function to execute within the transaction
- * @returns {Promise} Promise that resolves with the result of the callback
+ * Search for subscriptions by name or category
+ * @param {string} query - The search query
+ * @returns {Promise} Promise that resolves with matching subscriptions
  */
-function executeTransaction(storeName, mode, callback) {
-  return initDB().then(db => {
-    return new Promise((resolve, reject) => {
-      try {
-        const transaction = db.transaction(storeName, mode);
-        const store = transaction.objectStore(storeName);
-        
-        transaction.oncomplete = () => {
-          resolve();
-        };
-        
-        transaction.onerror = event => {
-          console.error('Transaction error:', event.target.error);
-          reject(event.target.error);
-        };
-        
-        transaction.onabort = event => {
-          console.error('Transaction aborted:', event.target.error);
-          reject(event.target.error || new Error('Transaction aborted'));
-        };
-        
-        const result = callback(store);
-        resolve(result);
-      } catch (err) {
-        console.error('Error executing transaction:', err);
-        reject(err);
-      }
-    });
-  }).catch(err => {
-    console.error('Database initialization failed:', err);
-    throw err;
+function searchSubscriptions(query) {
+  if (!query || query.trim() === '') {
+    return getAllSubscriptions();
+  }
+  
+  query = query.toLowerCase().trim();
+  
+  // Use cache if available for faster searches
+  if (subscriptionCache.isValid() && subscriptionCache.data) {
+    return Promise.resolve(
+      subscriptionCache.data.filter(sub => 
+        sub.name.toLowerCase().includes(query) || 
+        sub.category.toLowerCase().includes(query)
+      )
+    );
+  }
+  
+  return getAllSubscriptions().then(subscriptions => {
+    return subscriptions.filter(sub => 
+      sub.name.toLowerCase().includes(query) || 
+      sub.category.toLowerCase().includes(query)
+    );
   });
 }
 
@@ -297,6 +425,8 @@ function clearDatabase() {
         const request = store.clear();
         
         request.onsuccess = () => {
+          // Invalidate cache when all data is cleared
+          subscriptionCache.invalidate();
           resolve();
         };
         
@@ -329,5 +459,47 @@ const SubscriptionDB = {
   update: updateSubscription,
   delete: deleteSubscription,
   clearAll: clearDatabase,
-  isSupported: isIndexedDBSupported
+  isSupported: isIndexedDBSupported,
+  search: searchSubscriptions,
+  refreshCache: () => subscriptionCache.invalidate(),
+  saveConfig: function(key, value) {
+    return new Promise((resolve, reject) => {
+      if (!db) {
+        reject(new Error('Database not initialized'));
+        return;
+      }
+      
+      const transaction = db.transaction([CONFIG_STORE], 'readwrite');
+      const store = transaction.objectStore(CONFIG_STORE);
+      const request = store.put({ key, value });
+      
+      request.onsuccess = () => {
+        resolve(value);
+      };
+      
+      request.onerror = (event) => {
+        reject(event.target.error);
+      };
+    });
+  },
+  getConfig: function(key) {
+    return new Promise((resolve, reject) => {
+      if (!db) {
+        reject(new Error('Database not initialized'));
+        return;
+      }
+      
+      const transaction = db.transaction([CONFIG_STORE], 'readonly');
+      const store = transaction.objectStore(CONFIG_STORE);
+      const request = store.get(key);
+      
+      request.onsuccess = () => {
+        resolve(request.result ? request.result.value : null);
+      };
+      
+      request.onerror = (event) => {
+        reject(event.target.error);
+      };
+    });
+  }
 }; 

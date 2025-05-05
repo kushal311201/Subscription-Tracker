@@ -18,62 +18,63 @@ A simple web app to help you track and manage your recurring subscriptions. This
 - **Days Left Counter**: Shows how many days until renewal (with warning when close to renewal)
 - **Filter & Search**: Easily find subscriptions by category or name
 - **Responsive Design**: Works on desktop and mobile devices
+- **Offline Support**: Works without internet connection
+- **Coffee Shop Theme**: Beautiful coffee-inspired design
 
 ## Getting Started
 
 ### Prerequisites
 
-- Airtable account (free plan works fine)
 - Web browser (Chrome, Firefox, Safari, Edge)
+- No account creation required
 
 ### Setup
 
-1. **Create an Airtable Base**:
-   - Sign up for Airtable at [airtable.com](https://airtable.com)
-   - Create a new base called "Subscription Manager"
-   - Create a table named "Subscriptions" with the following fields:
-     - `name` (Single line text)
-     - `amount` (Number)
-     - `billingCycle` (Single select: monthly, yearly, quarterly)
-     - `dueDate` (Date)
-     - `category` (Single select: streaming, fitness, productivity, music, cloud, other)
+1. **Open the App**:
+   - Simply open `index.html` in your web browser
+   - Or visit the deployed version online
 
-2. **Get Your API Key and Base ID**:
-   - Go to [airtable.com/account](https://airtable.com/account)
-   - Under API section, generate an API key if you don't have one
-   - Go to [airtable.com/api](https://airtable.com/api), select your base to find your Base ID
+2. **Start Using the App**:
+   - Add your first subscription using the form
+   - Your data is stored locally in your browser's IndexedDB storage
+   - No data is sent to any external servers
 
-3. **Configure the App**:
-   - Open the `js/app.js` file 
-   - Replace `YOUR_API_KEY` with your actual Airtable API key
-   - Replace `YOUR_BASE_ID` with your Airtable Base ID
+3. **Install as PWA** (optional):
+   - On Chrome/Edge: Look for the install icon in the address bar
+   - On Safari iOS: Tap Share > Add to Home Screen
+   - This allows the app to work offline and provides a more app-like experience
 
-4. **Start Using the App**:
-   - Open `index.html` in your web browser
-   - Start adding your subscriptions!
+## Data Storage
 
-## Setting Up Email Reminders (Optional)
+This app uses IndexedDB, a powerful browser storage technology, to:
 
-You can set up automated email reminders for upcoming renewals using Zapier:
+- Store all your subscription data locally on your device
+- Provide complete privacy - your data never leaves your device
+- Allow the app to work even when offline
+- Persist data between browser sessions
 
-1. **Create a Zapier Account**: Sign up at [zapier.com](https://zapier.com)
+If IndexedDB is not available, the app falls back to localStorage for basic functionality.
 
-2. **Create a New Zap**:
-   - Trigger: Choose "Airtable" → "Find Record"
-   - Action: Choose "Gmail" → "Send Email"
+## Data Management
 
-3. **Configure the Trigger**:
-   - Connect your Airtable account
-   - Select your Subscription Manager base and Subscriptions table
-   - Set up a filter where:
-     - Formula: `DATETIME_DIFF(TODAY(), {dueDate}, 'days') <= 3`
+### Exporting Your Data
 
-4. **Configure the Action**:
-   - Connect your Gmail account
-   - Set up email template with subscription details
-   - Example subject: "Reminder: {{name}} subscription renews in {{days_left}} days"
+1. Open the Settings panel
+2. Click "Export Data"
+3. Save the JSON file to your device
 
-5. **Test and Enable the Zap**
+### Importing Data
+
+1. Open the Settings panel
+2. Click "Import Data"
+3. Select a previously exported JSON file
+4. Confirm the import
+
+### Resetting Data
+
+1. Open the Settings panel
+2. Click "Reset Data"
+3. Confirm the reset
 
 ## Deploying the App (For Free)
 
@@ -89,17 +90,16 @@ You can deploy this app for free using Netlify or GitHub Pages:
 
 ### Convert to PWA (Progressive Web App)
 
-To make the app installable on mobile devices:
-
-1. Create a `manifest.json` file in the root directory
-2. Add service worker support 
-3. Deploy again
+The app is already configured as a PWA with:
+- A manifest.json file
+- Service worker for offline functionality
+- Installable on mobile and desktop devices
 
 ## Customization
 
-- **Change Colors**: Edit the CSS variables in `css/style.css`
+- **Change Colors**: Edit the CSS variables in `css/theme-enhancements.css`
 - **Add Categories**: Edit the category options in `index.html` and `js/app.js`
-- **Change Currency**: Replace ₹ with your preferred currency symbol in the code
+- **Change Currency**: Change the currency setting in the app settings
 
 ## License
 
@@ -107,6 +107,6 @@ This project is open source and available under the MIT License.
 
 ## Acknowledgments
 
-- [Airtable](https://airtable.com) for the backend database
 - [Chart.js](https://www.chartjs.org) for the pie chart
-- [Font Awesome](https://fontawesome.com) for the icons 
+- [Font Awesome](https://fontawesome.com) for the icons
+- [IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API) for local storage 

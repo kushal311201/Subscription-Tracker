@@ -2,111 +2,40 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Subscription Manager</title>
-    <!-- PWA Meta Tags -->
-    <meta name="theme-color" content="#5664d2">
-    <meta name="description" content="Track and manage your recurring subscriptions">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#8B5A2B">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="mobile-web-app-capable" content="yes">
-    <!-- Android-specific meta tags -->
-    <meta name="android-package" content="com.subscriptiontracker.app">
-    <meta name="android:theme" content="@android:style/Theme.DeviceDefault">
-    <meta name="android:colorMode" content="nightAuto">
+    <title>Subscription Tracker</title>
+    <!-- Preload critical fonts and resources -->
+    <link rel="preload" href="fonts/inter-var.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="css/style.css" as="style">
+    <link rel="preload" href="css/theme-enhancements.css" as="style">
+    <link rel="preload" href="css/budget-analytics.css" as="style">
+    <link rel="preload" href="js/db.js" as="script">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="img/favicon.png">
+    <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+    
+    <!-- PWA manifest -->
     <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="images/icon-192.png">
-    <!-- Font Awesome for icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-    <!-- Google Fonts - Using better font combinations -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Chart.js for pie chart -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Pull to refresh library -->
-    <script src="https://cdn.jsdelivr.net/npm/pulltorefreshjs@0.1.22/dist/index.umd.min.js"></script>
-    <!-- Vibration API polyfill -->
-    <script src="https://cdn.jsdelivr.net/npm/vibration-api-polyfill@1.0.0/dist/vibration-api-polyfill.min.js"></script>
-    <!-- Fingerprint.js for biometric authentication -->
-    <script src="https://cdn.jsdelivr.net/npm/@fingerprintjs/fingerprintjs@3.4.1/dist/fp.min.js"></script>
-    <!-- i18next for internationalization -->
-    <script src="https://cdn.jsdelivr.net/npm/i18next@21.8.10/i18next.min.js"></script>
-    <!-- Luxon for better date handling -->
-    <script src="https://cdn.jsdelivr.net/npm/luxon@2.4.0/build/global/luxon.min.js"></script>
-    <!-- Animation libraries -->
-    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.2/dist/gsap.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="css/style.css">
+    
+    <!-- Critical CSS inline for faster rendering -->
     <style>
-        .header-actions {
-            display: flex;
-            align-items: center;
-            margin-top: 10px;
-            margin-bottom: 15px;
+        /* Critical CSS for initial paint */
+        :root {
+            --primary-color: #8B5A2B;
+            --bg-primary: #F8F3E9;
+            --text-primary: #3A2C1F;
         }
-        .top-dark-mode-toggle {
-            display: flex;
-            align-items: center;
-            background-color: var(--bg-light);
-            border-radius: 20px;
-            padding: 5px 15px;
-            box-shadow: var(--shadow-sm);
-            margin-left: auto;
-            transition: all var(--transition-normal);
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
         }
-        .dark-mode .top-dark-mode-toggle {
-            background-color: var(--bg-card);
-        }
-        .top-dark-mode-toggle label {
-            margin-right: 10px;
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-            font-weight: 500;
-        }
-        .dark-mode .top-dark-mode-toggle label {
-            color: var(--text-secondary);
-        }
-        .top-dark-mode-toggle .switch {
-            position: relative;
-            display: inline-block;
-            width: 40px;
-            height: 20px;
-        }
-        .top-dark-mode-toggle .switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-        .top-dark-mode-toggle .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #ccc;
-            transition: .4s;
-            border-radius: 20px;
-        }
-        .top-dark-mode-toggle .slider:before {
-            position: absolute;
-            content: "";
-            height: 16px;
-            width: 16px;
-            left: 2px;
-            bottom: 2px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
-        }
-        .top-dark-mode-toggle input:checked + .slider {
-            background-color: var(--primary-color);
-        }
-        .top-dark-mode-toggle input:checked + .slider:before {
-            transform: translateX(20px);
-        }
-        
-        /* App Loader */
         .app-loader {
             position: fixed;
             top: 0;
@@ -115,493 +44,699 @@
             height: 100%;
             background-color: var(--bg-primary);
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
-            z-index: 10000;
-            transition: opacity 0.5s ease, visibility 0.5s ease;
+            z-index: 9999;
+            transition: opacity 0.5s ease;
         }
-        
         .app-loader.hidden {
             opacity: 0;
-            visibility: hidden;
+            pointer-events: none;
         }
-        
-        .loader-spinner {
-            width: 64px;
-            height: 64px;
-            position: relative;
-            perspective: 800px;
+        .loader-cube-wrap {
+            transform-style: preserve-3d;
+            width: 80px;
+            height: 80px;
+            animation: loader-spin 8s infinite linear;
         }
-        
         .loader-cube {
             position: absolute;
             width: 100%;
             height: 100%;
-            transform-style: preserve-3d;
-            animation: rotate 2s infinite linear;
+            border: 2px solid var(--primary-color);
+            background: rgba(139, 90, 43, 0.1);
+            box-shadow: 0 0 20px rgba(139, 90, 43, 0.2);
+            border-radius: 2px;
         }
-        
-        .loader-face {
-            position: absolute;
-            width: 60px;
-            height: 60px;
-            background: linear-gradient(to right, var(--primary-color), var(--primary-light));
-            border-radius: 8px;
-            box-shadow: var(--shadow-md);
-            opacity: 0.9;
-        }
-        
-        .loader-face:nth-child(1) { transform: translateZ(30px); }
-        .loader-face:nth-child(2) { transform: rotateY(180deg) translateZ(30px); }
-        .loader-face:nth-child(3) { transform: rotateY(90deg) translateZ(30px); }
-        .loader-face:nth-child(4) { transform: rotateY(-90deg) translateZ(30px); }
-        .loader-face:nth-child(5) { transform: rotateX(90deg) translateZ(30px); }
-        .loader-face:nth-child(6) { transform: rotateX(-90deg) translateZ(30px); }
-        
-        .loader-text {
-            margin-top: 32px;
-            font-weight: 500;
-            color: var(--primary-color);
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            font-size: 14px;
-        }
-        
-        @keyframes rotate {
-            0% { transform: rotateX(0deg) rotateY(0deg); }
-            100% { transform: rotateX(360deg) rotateY(360deg); }
-        }
-        
-        /* Animations for items */
-        .animate-in {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-        
-        .animate-fade-in {
-            animation: fadeIn 0.7s ease forwards;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+        .loader-cube-front { transform: translateZ(40px); }
+        .loader-cube-back { transform: translateZ(-40px) rotateY(180deg); }
+        .loader-cube-right { transform: rotateY(90deg) translateZ(40px); }
+        .loader-cube-left { transform: rotateY(-90deg) translateZ(40px); }
+        .loader-cube-top { transform: rotateX(90deg) translateZ(40px); }
+        .loader-cube-bottom { transform: rotateX(-90deg) translateZ(40px); }
+        @keyframes loader-spin {
+            0% { transform: rotateY(0deg) rotateX(0deg); }
+            100% { transform: rotateY(360deg) rotateX(360deg); }
         }
     </style>
+    
+    <!-- Non-critical CSS loaded asynchronously -->
+    <link rel="stylesheet" href="css/style.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="css/theme-enhancements.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="css/budget-analytics.css" media="print" onload="this.media='all'">
+    <noscript>
+        <link rel="stylesheet" href="css/style.css">
+        <link rel="stylesheet" href="css/theme-enhancements.css">
+        <link rel="stylesheet" href="css/budget-analytics.css">
+    </noscript>
+    
+    <!-- Preconnect to external resources -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <!-- Fonts loaded asynchronously -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600&display=swap" 
+          rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600&display=swap" 
+              rel="stylesheet">
+    </noscript>
+    
+    <!-- Font Awesome - load async -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" 
+          integrity="sha512-1ycn6IcaQQ40/MKBW2W4Rhis/DbILU74C1vSrLJxCq57o941Ym01SwNsOMqvEBFlcgUa6xLiPY/NS5R+E6ztJQ==" 
+          crossorigin="anonymous" referrerpolicy="no-referrer" media="print" onload="this.media='all'">
 </head>
 <body>
     <!-- App Loader -->
     <div class="app-loader">
-        <div class="loader-spinner">
-            <div class="loader-cube">
-                <div class="loader-face"></div>
-                <div class="loader-face"></div>
-                <div class="loader-face"></div>
-                <div class="loader-face"></div>
-                <div class="loader-face"></div>
-                <div class="loader-face"></div>
-            </div>
+        <div class="loader-cube-wrap">
+            <div class="loader-cube loader-cube-front"></div>
+            <div class="loader-cube loader-cube-back"></div>
+            <div class="loader-cube loader-cube-right"></div>
+            <div class="loader-cube loader-cube-left"></div>
+            <div class="loader-cube loader-cube-top"></div>
+            <div class="loader-cube loader-cube-bottom"></div>
         </div>
-        <div class="loader-text">Loading your subscriptions</div>
+    </div>
+
+    <!-- Connection Status -->
+    <div id="connectionStatus" class="connection-status">
+        <span id="connectionText">Online</span>
     </div>
 
     <div class="container">
-        <header class="animate-in">
-            <h1 class="animate__animated animate__fadeInDown"><i class="fas fa-calendar-check"></i> <span data-i18n="appTitle">Subscription Manager</span></h1>
-            
-            <div class="header-actions animate__animated animate__fadeIn animate__delay-1s">
+        <!-- Header -->
+        <header>
+            <div class="logo-container">
+                <img src="images/coffee-logo.svg" alt="Coffee Logo" class="coffee-logo">
+                <h1 class="animate-in">Subscription Tracker</h1>
+            </div>
+            <div class="header-actions">
                 <div class="top-dark-mode-toggle">
-                    <label for="topDarkMode"><i class="fas fa-moon"></i> Dark Mode</label>
                     <label class="switch">
                         <input type="checkbox" id="topDarkMode">
                         <span class="slider round"></span>
                     </label>
-                </div>
-            </div>
-            
-            <div class="summary-box animate__animated animate__fadeIn animate__delay-2s">
-                <div class="total-box">
-                    <h3 data-i18n="monthlyBurn">Monthly Burn Rate</h3>
-                    <p class="total-amount"><span id="currencySymbol">₹</span><span id="totalMonthly">0</span></p>
-                </div>
-                <div class="chart-container">
-                    <canvas id="categoryChart"></canvas>
+                    <span class="toggle-label">Dark Mode</span>
                 </div>
             </div>
         </header>
 
-        <div class="main-content">
-            <div id="pull-to-refresh-indicator" class="pull-indicator">
-                <i class="fas fa-sync-alt fa-spin"></i>
-                <span data-i18n="pullToRefresh">Pull down to refresh</span>
+        <!-- Summary Box -->
+        <div class="summary-box animate-in">
+            <div class="total-box">
+                <h3>Total Monthly</h3>
+                <div class="total-amount" id="totalMonthly">0.00</div>
+            </div>
+            <div class="chart-container">
+                <canvas id="categoryChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Budget Planning Section -->
+        <div class="budget-planner animate-in">
+            <div class="budget-header">
+                <h2>Budget Planning</h2>
+                <div class="budget-period-selector">
+                    <div class="period-option active" data-period="monthly">Monthly</div>
+                    <div class="period-option" data-period="yearly">Yearly</div>
+                </div>
             </div>
             
-            <div class="add-subscription">
-                <h2 data-i18n="addNewSub">Add New Subscription</h2>
+            <div class="budget-limit-wrapper">
+                <label for="budgetLimit">Set Budget Limit:</label>
+                <div class="budget-input-wrapper">
+                    <span class="budget-currency-symbol" id="budgetCurrencySymbol">₹</span>
+                    <input type="number" id="budgetLimit" placeholder="Enter your budget limit" step="0.01" min="0">
+                </div>
+                <button id="saveBudgetBtn" class="btn primary-btn">Save</button>
+            </div>
+            
+            <div class="budget-progress">
+                <div class="label-flex">
+                    <label>Budget Usage</label>
+                    <span id="budgetPercentage">0%</span>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-bar" id="budgetProgressBar" style="width: 0%;"></div>
+                </div>
+                <div class="budget-details">
+                    <span id="currentSpending">₹0.00 spent</span>
+                    <span id="budgetRemaining">₹0.00 remaining</span>
+                </div>
+            </div>
+            
+            <div id="budgetAlert" class="budget-alert" style="display: none;">
+                <i class="fas fa-exclamation-triangle"></i>
+                <div class="budget-alert-message">You're approaching your budget limit! Consider reviewing your subscriptions.</div>
+            </div>
+            
+            <div class="budget-prediction">
+                <div class="prediction-title">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Projected Spending</span>
+                </div>
+                <p>Based on your current subscriptions, you'll spend approximately:</p>
+                <div class="projection-amount" id="monthlyProjection">₹0.00 / month</div>
+                
+                <div class="annual-projection">
+                    <p>Annual projection:</p>
+                    <div class="projection-amount" id="yearlyProjection">₹0.00 / year</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analytics Dashboard -->
+        <div class="analytics-dashboard animate-in">
+            <div class="analytics-header">
+                <h2>Analytics Dashboard</h2>
+                <div class="time-period-selector">
+                    <button class="time-period-btn active" data-period="6m">6 Months</button>
+                    <button class="time-period-btn" data-period="1y">1 Year</button>
+                    <button class="time-period-btn" data-period="all">All Time</button>
+                </div>
+            </div>
+            
+            <div class="analytics-tabs">
+                <div class="analytics-tab active" data-tab="trends">Spending Trends</div>
+                <div class="analytics-tab" data-tab="categories">Category Analysis</div>
+                <div class="analytics-tab" data-tab="comparison">Comparisons</div>
+            </div>
+            
+            <div class="analytics-content">
+                <!-- Spending Trends Tab -->
+                <div class="analytics-tab-content active" id="trendsTab">
+                    <div class="chart-container-large">
+                        <canvas id="trendChart"></canvas>
+                    </div>
+                </div>
+                
+                <!-- Category Analysis Tab -->
+                <div class="analytics-tab-content" id="categoriesTab" style="display: none;">
+                    <div class="chart-container-large">
+                        <canvas id="categoryAnalysisChart"></canvas>
+                    </div>
+                </div>
+                
+                <!-- Comparison Tab -->
+                <div class="analytics-tab-content" id="comparisonTab" style="display: none;">
+                    <div class="comparison-grid">
+                        <div class="comparison-card">
+                            <div class="comparison-title">Most Expensive</div>
+                            <div class="comparison-value" id="mostExpensive">--</div>
+                        </div>
+                        <div class="comparison-card">
+                            <div class="comparison-title">Least Used</div>
+                            <div class="comparison-value" id="leastUsed">--</div>
+                        </div>
+                        <div class="comparison-card">
+                            <div class="comparison-title">Biggest Category</div>
+                            <div class="comparison-value" id="biggestCategory">--</div>
+                        </div>
+                        <div class="comparison-card">
+                            <div class="comparison-title">YoY Change</div>
+                            <div class="comparison-value">
+                                <span id="yearChange">--</span>
+                                <span class="comparison-change" id="yearChangePercent">--</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="export-section">
+                <div class="export-dropdown">
+                    <button class="export-btn">
+                        <i class="fas fa-download"></i>
+                        Export Report
+                    </button>
+                    <div class="export-options">
+                        <div class="export-option" data-format="pdf">
+                            <i class="fas fa-file-pdf"></i>
+                            PDF Report
+                        </div>
+                        <div class="export-option" data-format="csv">
+                            <i class="fas fa-file-csv"></i>
+                            CSV Data
+                        </div>
+                        <div class="export-option" data-format="json">
+                            <i class="fas fa-file-code"></i>
+                            JSON Data
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Add Subscription Form -->
+            <div class="add-subscription animate-in">
+                <h2>Add Subscription</h2>
                 <form id="subscriptionForm">
                     <div class="form-group">
-                        <label for="subscriptionName" data-i18n="subName">Subscription Name</label>
-                        <input type="text" id="subscriptionName" required autocomplete="off">
+                        <label for="subscriptionName">Subscription Name</label>
+                        <input type="text" id="subscriptionName" placeholder="Netflix, Spotify, etc." required>
                     </div>
                     <div class="form-group">
-                        <label for="subscriptionAmount" data-i18n="amount">Amount</label>
+                        <label for="subscriptionAmount">Amount</label>
                         <div class="amount-input-wrapper">
                             <span id="amountCurrencySymbol">₹</span>
-                            <input type="number" id="subscriptionAmount" min="1" required pattern="[0-9]*" inputmode="numeric">
+                            <input type="number" id="subscriptionAmount" placeholder="0.00" step="0.01" min="0" required>
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="billingCycle" data-i18n="billingCycle">Billing Cycle</label>
+                        <label for="billingCycle">Billing Cycle</label>
                         <select id="billingCycle" required>
-                            <option value="monthly" data-i18n="monthly">Monthly</option>
-                            <option value="yearly" data-i18n="yearly">Yearly</option>
-                            <option value="quarterly" data-i18n="quarterly">Quarterly</option>
-                            <option value="weekly" data-i18n="weekly">Weekly</option>
-                            <option value="biweekly" data-i18n="biweekly">Bi-weekly</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="biweekly">Bi-weekly</option>
+                            <option value="monthly">Monthly</option>
+                            <option value="quarterly">Quarterly</option>
+                            <option value="yearly">Yearly</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="dueDate" data-i18n="nextDueDate">Next Due Date</label>
+                        <label for="dueDate">Due Date</label>
                         <input type="date" id="dueDate" required>
                     </div>
                     <div class="form-group">
-                        <label for="category" data-i18n="category">Category</label>
+                        <label for="category">Category</label>
                         <select id="category" required>
-                            <option value="streaming" data-i18n="streaming">Streaming</option>
-                            <option value="fitness" data-i18n="fitness">Fitness</option>
-                            <option value="productivity" data-i18n="productivity">Productivity</option>
-                            <option value="music" data-i18n="music">Music</option>
-                            <option value="cloud" data-i18n="cloud">Cloud Storage</option>
-                            <option value="utilities" data-i18n="utilities">Utilities</option>
-                            <option value="food" data-i18n="food">Food & Dining</option>
-                            <option value="housing" data-i18n="housing">Housing</option>
-                            <option value="education" data-i18n="education">Education</option>
-                            <option value="other" data-i18n="other">Other</option>
+                            <option value="streaming">Streaming</option>
+                            <option value="fitness">Fitness</option>
+                            <option value="productivity">Productivity</option>
+                            <option value="music">Music</option>
+                            <option value="cloud">Cloud Storage</option>
+                            <option value="other">Other</option>
                         </select>
                     </div>
-                    <div class="form-group">
-                        <div class="reminder-toggle">
-                            <label for="enableReminder" data-i18n="enablePushNotification">Push Notification</label>
-                            <label class="switch">
-                                <input type="checkbox" id="enableReminder" checked>
-                                <span class="slider round"></span>
-                            </label>
-                        </div>
-                        <div class="reminder-toggle">
-                            <label for="enableEmailReminder" data-i18n="enableEmailNotification">Email Notification</label>
-                            <label class="switch">
-                                <input type="checkbox" id="enableEmailReminder">
-                                <span class="slider round"></span>
-                            </label>
-                        </div>
-                        <div class="form-group" id="emailAddressGroupAdd" style="display: none;">
-                            <label for="reminderEmailAdd" data-i18n="emailAddress">Email Address</label>
-                            <input type="email" id="reminderEmailAdd" placeholder="your@email.com">
-                        </div>
-                        <div class="reminder-days" id="reminderDaysContainer">
-                            <label for="reminderDays" data-i18n="reminderDays">Remind me</label>
-                            <select id="reminderDays">
-                                <option value="0" data-i18n="onDueDate">On due date</option>
-                                <option value="1" data-i18n="oneDayBefore">1 day before</option>
-                                <option value="3" data-i18n="threeDaysBefore" selected>3 days before</option>
-                                <option value="7" data-i18n="oneWeekBefore">1 week before</option>
-                                <option value="14" data-i18n="twoWeeksBefore">2 weeks before</option>
-                            </select>
+                    
+                    <div class="form-group reminder-toggle">
+                        <label for="enableReminder">Enable Reminder</label>
+                        <label class="switch">
+                            <input type="checkbox" id="enableReminder">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="form-group reminder-toggle">
+                        <label for="enableEmailReminder">Email Notification</label>
+                        <label class="switch">
+                            <input type="checkbox" id="enableEmailReminder">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                    
+                    <div id="reminderDaysContainer" class="form-group reminder-days" style="display: none;">
+                        <label for="reminderDays">Remind me</label>
+                        <select id="reminderDays">
+                            <option value="1">1 day before</option>
+                            <option value="2">2 days before</option>
+                            <option value="3" selected>3 days before</option>
+                            <option value="5">5 days before</option>
+                            <option value="7">7 days before</option>
+                        </select>
+                    </div>
+                    
+                    <div id="emailAddressGroupAdd" class="form-group" style="display: none;">
+                        <label for="reminderEmailAdd">Email Address</label>
+                        <input type="email" id="reminderEmailAdd" placeholder="your@email.com">
+                        <div class="remember-email-group">
+                            <input type="checkbox" id="rememberEmailCheck" checked>
+                            <label for="rememberEmailCheck">Remember email for future subscriptions</label>
                         </div>
                     </div>
-                    <button type="submit" class="btn primary-btn touch-target" data-i18n="addSubscription">Add Subscription</button>
+                    
+                    <button type="submit" class="btn primary-btn">
+                        <i class="fas fa-plus-circle"></i> Add Subscription
+                    </button>
                 </form>
             </div>
 
-            <div class="subscription-list">
+            <!-- Subscription List -->
+            <div class="subscription-list animate-in">
                 <div class="list-header">
-                    <h2 data-i18n="yourSubscriptions">Your Subscriptions</h2>
+                    <h2>Your Subscriptions</h2>
                     <div class="filter-section">
-                        <select id="filterCategory" class="touch-target">
-                            <option value="all" data-i18n="allCategories">All Categories</option>
-                            <option value="streaming" data-i18n="streaming">Streaming</option>
-                            <option value="fitness" data-i18n="fitness">Fitness</option>
-                            <option value="productivity" data-i18n="productivity">Productivity</option>
-                            <option value="music" data-i18n="music">Music</option>
-                            <option value="cloud" data-i18n="cloud">Cloud Storage</option>
-                            <option value="utilities" data-i18n="utilities">Utilities</option>
-                            <option value="food" data-i18n="food">Food & Dining</option>
-                            <option value="housing" data-i18n="housing">Housing</option>
-                            <option value="education" data-i18n="education">Education</option>
-                            <option value="other" data-i18n="other">Other</option>
-                        </select>
                         <div class="search-wrapper">
-                            <i class="fas fa-search search-icon"></i>
-                            <input type="text" id="searchInput" placeholder="Search..." class="touch-target" data-i18n-placeholder="search">
-                            <button type="button" id="clearSearch" class="clear-search touch-target"><i class="fas fa-times"></i></button>
+                            <i class="search-icon fas fa-search"></i>
+                            <input type="text" id="searchInput" placeholder="Search subscriptions...">
                         </div>
+                        <select id="filterCategory">
+                            <option value="all">All Categories</option>
+                            <option value="streaming">Streaming</option>
+                            <option value="fitness">Fitness</option>
+                            <option value="productivity">Productivity</option>
+                            <option value="music">Music</option>
+                            <option value="cloud">Cloud Storage</option>
+                            <option value="other">Other</option>
+                        </select>
                     </div>
                 </div>
                 <div id="subscriptionCards" class="cards-container">
-                    <!-- Subscription cards will be added here dynamically -->
-                    <div class="empty-state">
-                        <i class="fas fa-list-ul"></i>
-                        <p data-i18n="noSubscriptions">No subscriptions added yet. Add your first subscription using the form.</p>
-                    </div>
+                    <!-- Cards will be added here -->
+                </div>
+                <div class="empty-state">
+                    <i class="fas fa-bookmark"></i>
+                    <p>No subscriptions added yet. Add your first subscription to track it.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upcoming Reminders -->
+        <div class="upcoming-reminders animate-in">
+            <div class="reminders-header">
+                <h2><i class="fas fa-bell"></i> Upcoming Reminders</h2>
+                <button class="btn view-all-btn secondary-btn">
+                    View All <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+            <div id="upcomingRemindersList" class="reminders-list">
+                <div class="empty-reminders">
+                    <i class="fas fa-bell-slash"></i>
+                    <p>No upcoming reminders. Add subscriptions with reminders enabled to see them here.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <div class="bottom-nav">
+        <a href="#" class="nav-item active" id="nav-home">
+            <i class="fas fa-home"></i>
+            <span>Home</span>
+        </a>
+        <a href="#" class="nav-item" id="nav-add">
+            <i class="fas fa-plus-circle"></i>
+            <span>Add</span>
+        </a>
+        <a href="#" class="nav-item" id="nav-settings">
+            <i class="fas fa-cog"></i>
+            <span>Settings</span>
+        </a>
+    </div>
+
+    <!-- Settings Panel -->
+    <div id="settingsPanel" class="settings-panel">
+        <div class="settings-header">
+            <h2>Settings</h2>
+            <button id="closeSettings" class="close-btn"><i class="fas fa-times"></i></button>
+        </div>
+        
+        <!-- User Profile Section -->
+        <div class="user-profile-section">
+            <div class="profile-header">
+                <div class="profile-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="profile-info">
+                    <div class="profile-name">Guest User</div>
+                    <div class="profile-email">Not signed in</div>
+                </div>
+            </div>
+            <button class="btn primary-btn" id="signInBtn">
+                <i class="fas fa-sign-in-alt"></i> Sign In
+            </button>
+        </div>
+        
+        <div class="settings-content">
+            <!-- Appearance -->
+            <div class="settings-group">
+                <span>Dark Mode</span>
+                <label class="switch">
+                    <input type="checkbox" id="darkMode">
+                    <span class="slider round"></span>
+                </label>
+            </div>
+            <div class="settings-group">
+                <span>Use System Theme</span>
+                <label class="switch">
+                    <input type="checkbox" id="systemTheme" checked>
+                    <span class="slider round"></span>
+                </label>
+            </div>
+            
+            <!-- Account Settings -->
+            <div class="settings-group">
+                <span>Sync Across Devices</span>
+                <label class="switch">
+                    <input type="checkbox" id="cloudSync">
+                    <span class="slider round"></span>
+                </label>
+            </div>
+            
+            <div class="settings-group">
+                <span>Email Verification</span>
+                <button class="btn secondary-btn" id="verifyEmailBtn" disabled>Verify</button>
+            </div>
+            
+            <!-- Notifications -->
+            <div class="settings-group">
+                <span>Enable Notifications</span>
+                <label class="switch">
+                    <input type="checkbox" id="enableNotifications">
+                    <span class="slider round"></span>
+                </label>
+            </div>
+            
+            <!-- Notification Channels -->
+            <div class="notification-channels">
+                <div class="settings-group">
+                    <span>Due Date Reminders</span>
+                    <label class="switch">
+                        <input type="checkbox" id="dueDateChannel" checked>
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+                <div class="settings-group">
+                    <span>Weekly Digest</span>
+                    <label class="switch">
+                        <input type="checkbox" id="weeklyDigestChannel">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+                <div class="settings-group">
+                    <span>Price Change Alerts</span>
+                    <label class="switch">
+                        <input type="checkbox" id="priceChangesChannel">
+                        <span class="slider round"></span>
+                    </label>
                 </div>
             </div>
             
-            <!-- Upcoming Reminders Section -->
-            <div class="upcoming-reminders">
-                <div class="reminders-header">
-                    <h2><i class="fas fa-bell"></i> Upcoming Reminders</h2>
-                    <a href="reminders.html" class="btn secondary-btn view-all-btn">View All <i class="fas fa-arrow-right"></i></a>
-                </div>
-                <div id="upcomingRemindersList" class="reminders-list">
-                    <!-- Reminders will be added here dynamically -->
-                    <div class="empty-reminders">
-                        <i class="fas fa-bell-slash"></i>
-                        <p>No upcoming reminders. Add subscriptions with reminders enabled to see them here.</p>
-                    </div>
-                </div>
+            <!-- Security -->
+            <div class="settings-group">
+                <span>Use Biometrics</span>
+                <label class="switch">
+                    <input type="checkbox" id="useBiometrics">
+                    <span class="slider round"></span>
+                </label>
             </div>
-        </div>
-
-        <div class="ad-container">
-            <!-- Ad Banner Space -->
-            <div class="ad-banner">
-                <p data-i18n="adSpace">Advertisement Space</p>
+            
+            <!-- Preferences -->
+            <div class="settings-group">
+                <span>Currency</span>
+                <select id="currency">
+                    <option value="INR">Indian Rupee (₹)</option>
+                    <option value="USD">US Dollar ($)</option>
+                    <option value="EUR">Euro (€)</option>
+                    <option value="GBP">British Pound (£)</option>
+                    <option value="JPY">Japanese Yen (¥)</option>
+                    <option value="CAD">Canadian Dollar ($)</option>
+                    <option value="AUD">Australian Dollar ($)</option>
+                    <option value="CNY">Chinese Yuan (¥)</option>
+                    <option value="RUB">Russian Ruble (₽)</option>
+                </select>
             </div>
-        </div>
-
-        <div class="connection-status" id="connectionStatus">
-            <span id="connectionText">Offline</span>
-        </div>
-
-        <!-- Bottom Navigation Bar for Mobile -->
-        <nav class="bottom-nav">
-            <a href="#" class="nav-item active" id="nav-home">
-                <i class="fas fa-home"></i>
-                <span data-i18n="home">Home</span>
-            </a>
-            <a href="#" class="nav-item" id="nav-add">
-                <i class="fas fa-plus-circle"></i>
-                <span data-i18n="add">Add</span>
-            </a>
-            <a href="reminders.html" class="nav-item">
-                <i class="fas fa-bell"></i>
-                <span data-i18n="reminders">Reminders</span>
-            </a>
-            <a href="#" class="nav-item" id="nav-settings">
-                <i class="fas fa-cog"></i>
-                <span data-i18n="settings">Settings</span>
-            </a>
-        </nav>
-
-        <!-- Hidden Settings Panel -->
-        <div id="settingsPanel" class="settings-panel">
-            <div class="settings-header">
-                <h3 data-i18n="settings">Settings</h3>
-                <button id="closeSettings" class="close-btn touch-target"><i class="fas fa-times"></i></button>
+            
+            <!-- Backup & Data -->
+            <div class="settings-group">
+                <span>Auto Backup</span>
+                <label class="switch">
+                    <input type="checkbox" id="autoBackup">
+                    <span class="slider round"></span>
+                </label>
             </div>
-            <div class="settings-content">
-                <div class="settings-group notification-channels">
-                    <label data-i18n="notificationChannels">Notification Channels</label>
-                    <div class="channel-options">
-                        <div class="channel-option">
-                            <input type="checkbox" id="dueDateChannel" checked>
-                            <label for="dueDateChannel" data-i18n="duePayments">Due Payments</label>
-                        </div>
-                        <div class="channel-option">
-                            <input type="checkbox" id="weeklyDigestChannel">
-                            <label for="weeklyDigestChannel" data-i18n="weeklyDigest">Weekly Digest</label>
-                        </div>
-                        <div class="channel-option">
-                            <input type="checkbox" id="priceChangesChannel">
-                            <label for="priceChangesChannel" data-i18n="priceChanges">Price Changes</label>
-                        </div>
-                    </div>
-                </div>
-                <div class="settings-group">
-                    <label for="enableNotifications" data-i18n="enableNotifications">Enable Notifications</label>
-                    <label class="switch">
-                        <input type="checkbox" id="enableNotifications">
-                        <span class="slider round"></span>
-                    </label>
-                </div>
-                <div class="settings-group">
-                    <label for="useBiometrics" data-i18n="useBiometrics">Use Biometric Authentication</label>
-                    <label class="switch">
-                        <input type="checkbox" id="useBiometrics">
-                        <span class="slider round"></span>
-                    </label>
-                </div>
-                <div class="settings-group">
-                    <label for="darkMode" data-i18n="darkMode">Dark Mode</label>
-                    <label class="switch">
-                        <input type="checkbox" id="darkMode">
-                        <span class="slider round"></span>
-                    </label>
-                </div>
-                <div class="settings-group">
-                    <label for="systemTheme" data-i18n="followSystemTheme">Follow System Theme</label>
-                    <label class="switch">
-                        <input type="checkbox" id="systemTheme" checked>
-                        <span class="slider round"></span>
-                    </label>
-                </div>
-                <div class="settings-group">
-                    <label for="currency" data-i18n="currency">Currency</label>
-                    <select id="currency" class="touch-target">
-                        <option value="INR">₹ Indian Rupee</option>
-                        <option value="USD">$ US Dollar</option>
-                        <option value="EUR">€ Euro</option>
-                        <option value="GBP">£ British Pound</option>
-                        <option value="JPY">¥ Japanese Yen</option>
-                        <option value="CAD">$ Canadian Dollar</option>
-                        <option value="AUD">$ Australian Dollar</option>
-                        <option value="CNY">¥ Chinese Yuan</option>
-                        <option value="SGD">$ Singapore Dollar</option>
-                        <option value="RUB">₽ Russian Ruble</option>
-                    </select>
-                </div>
-                <div class="settings-group">
-                    <label for="language" data-i18n="language">Language</label>
-                    <select id="language" class="touch-target">
-                        <option value="en">English</option>
-                        <option value="hi">हिंदी (Hindi)</option>
-                        <option value="es">Español (Spanish)</option>
-                        <option value="fr">Français (French)</option>
-                        <option value="de">Deutsch (German)</option>
-                        <option value="ja">日本語 (Japanese)</option>
-                        <option value="zh">中文 (Chinese)</option>
-                        <option value="ru">Русский (Russian)</option>
-                    </select>
-                </div>
-                <a href="#" id="exportDataLink" class="btn secondary-btn touch-target" data-i18n="exportData">Export Data</a>
-                <a href="#" id="importDataLink" class="btn secondary-btn touch-target" data-i18n="importData">Import Data</a>
-                <a href="#" id="resetDataLink" class="btn danger-btn touch-target" data-i18n="resetData">Reset Data</a>
-                <div class="app-info">
-                    <p>Version 1.2.0</p>
-                    <p>&copy; 2023 Subscription Manager</p>
-                    <p><strong>All data is stored locally on your device</strong></p>
-                </div>
+            
+            <!-- Data Management -->
+            <div class="settings-group">
+                <span>Export Data</span>
+                <a href="#" id="exportDataLink" class="share-btn"><i class="fas fa-download"></i></a>
+            </div>
+            <div class="settings-group">
+                <span>Import Data</span>
+                <a href="#" id="importDataLink" class="share-btn"><i class="fas fa-upload"></i></a>
+                <input type="file" id="importFileInput" accept=".json" style="display: none;">
+            </div>
+            <div class="settings-group">
+                <span>Reset All Data</span>
+                <a href="#" id="resetDataLink" class="share-btn" style="color: var(--danger-color);"><i class="fas fa-trash-alt"></i></a>
+            </div>
+            
+            <!-- About -->
+            <div class="settings-group">
+                <span>Privacy Policy</span>
+                <a href="#" class="share-btn" id="privacyPolicyLink"><i class="fas fa-shield-alt"></i></a>
+            </div>
+            <div class="settings-group">
+                <span>Terms of Service</span>
+                <a href="#" class="share-btn" id="termsLink"><i class="fas fa-file-contract"></i></a>
             </div>
         </div>
         
-        <!-- Subscription Edit Modal -->
-        <div id="editModal" class="modal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3 data-i18n="editSubscription">Edit Subscription</h3>
-                    <button id="closeEditModal" class="close-btn touch-target"><i class="fas fa-times"></i></button>
-                </div>
-                <form id="editSubscriptionForm">
-                    <input type="hidden" id="editSubscriptionId">
-                    <div class="form-group">
-                        <label for="editSubscriptionName" data-i18n="subName">Subscription Name</label>
-                        <input type="text" id="editSubscriptionName" required autocomplete="off">
-                    </div>
-                    <div class="form-group">
-                        <label for="editSubscriptionAmount" data-i18n="amount">Amount</label>
-                        <div class="amount-input-wrapper">
-                            <span id="editAmountCurrencySymbol">₹</span>
-                            <input type="number" id="editSubscriptionAmount" min="1" required pattern="[0-9]*" inputmode="numeric">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="editBillingCycle" data-i18n="billingCycle">Billing Cycle</label>
-                        <select id="editBillingCycle" required>
-                            <option value="monthly" data-i18n="monthly">Monthly</option>
-                            <option value="yearly" data-i18n="yearly">Yearly</option>
-                            <option value="quarterly" data-i18n="quarterly">Quarterly</option>
-                            <option value="weekly" data-i18n="weekly">Weekly</option>
-                            <option value="biweekly" data-i18n="biweekly">Bi-weekly</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="editDueDate" data-i18n="nextDueDate">Next Due Date</label>
-                        <input type="date" id="editDueDate" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="editCategory" data-i18n="category">Category</label>
-                        <select id="editCategory" required>
-                            <option value="streaming" data-i18n="streaming">Streaming</option>
-                            <option value="fitness" data-i18n="fitness">Fitness</option>
-                            <option value="productivity" data-i18n="productivity">Productivity</option>
-                            <option value="music" data-i18n="music">Music</option>
-                            <option value="cloud" data-i18n="cloud">Cloud Storage</option>
-                            <option value="utilities" data-i18n="utilities">Utilities</option>
-                            <option value="food" data-i18n="food">Food & Dining</option>
-                            <option value="housing" data-i18n="housing">Housing</option>
-                            <option value="education" data-i18n="education">Education</option>
-                            <option value="other" data-i18n="other">Other</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <div class="reminder-toggle">
-                            <label for="editEnableReminder" data-i18n="enablePushNotification">Push Notification</label>
-                            <label class="switch">
-                                <input type="checkbox" id="editEnableReminder" checked>
-                                <span class="slider round"></span>
-                            </label>
-                        </div>
-                        <div class="reminder-toggle">
-                            <label for="editEnableEmailReminder" data-i18n="enableEmailNotification">Email Notification</label>
-                            <label class="switch">
-                                <input type="checkbox" id="editEnableEmailReminder">
-                                <span class="slider round"></span>
-                            </label>
-                        </div>
-                        <div class="form-group" id="editEmailAddressGroup" style="display: none;">
-                            <label for="editReminderEmail" data-i18n="emailAddress">Email Address</label>
-                            <input type="email" id="editReminderEmail" placeholder="your@email.com">
-                        </div>
-                        <div class="reminder-days" id="editReminderDaysContainer">
-                            <label for="editReminderDays" data-i18n="reminderDays">Remind me</label>
-                            <select id="editReminderDays">
-                                <option value="0" data-i18n="onDueDate">On due date</option>
-                                <option value="1" data-i18n="oneDayBefore">1 day before</option>
-                                <option value="3" data-i18n="threeDaysBefore">3 days before</option>
-                                <option value="7" data-i18n="oneWeekBefore">1 week before</option>
-                                <option value="14" data-i18n="twoWeeksBefore">2 weeks before</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="modal-actions">
-                        <button type="button" id="cancelEditBtn" class="btn secondary-btn touch-target" data-i18n="cancel">Cancel</button>
-                        <button type="submit" class="btn primary-btn touch-target" data-i18n="saveChanges">Save Changes</button>
-                    </div>
-                </form>
-            </div>
+        <div class="app-info">
+            <p>Subscription Tracker v1.5.0</p>
+            <p>© 2023 Subscription Tracker</p>
         </div>
-
-        <!-- File import input (hidden) -->
-        <input type="file" id="importFileInput" accept=".json" style="display: none;">
     </div>
 
-    <!-- IndexedDB Manager -->
+    <!-- Edit Modal -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Edit Subscription</h3>
+                <button id="closeEditModal" class="close-btn"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="editSubscriptionForm">
+                <input type="hidden" id="editSubscriptionId">
+                <div class="form-group">
+                    <label for="editSubscriptionName">Subscription Name</label>
+                    <input type="text" id="editSubscriptionName" placeholder="Netflix, Spotify, etc." required>
+                </div>
+                <div class="form-group">
+                    <label for="editSubscriptionAmount">Amount</label>
+                    <div class="amount-input-wrapper">
+                        <span id="editAmountCurrencySymbol">₹</span>
+                        <input type="number" id="editSubscriptionAmount" placeholder="0.00" step="0.01" min="0" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="editBillingCycle">Billing Cycle</label>
+                    <select id="editBillingCycle" required>
+                        <option value="weekly">Weekly</option>
+                        <option value="biweekly">Bi-weekly</option>
+                        <option value="monthly">Monthly</option>
+                        <option value="quarterly">Quarterly</option>
+                        <option value="yearly">Yearly</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="editDueDate">Due Date</label>
+                    <input type="date" id="editDueDate" required>
+                </div>
+                <div class="form-group">
+                    <label for="editCategory">Category</label>
+                    <select id="editCategory" required>
+                        <option value="streaming">Streaming</option>
+                        <option value="fitness">Fitness</option>
+                        <option value="productivity">Productivity</option>
+                        <option value="music">Music</option>
+                        <option value="cloud">Cloud Storage</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                
+                <div class="form-group reminder-toggle">
+                    <label for="editEnableReminder">Enable Reminder</label>
+                    <label class="switch">
+                        <input type="checkbox" id="editEnableReminder">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+                
+                <div class="form-group reminder-toggle">
+                    <label for="editEnableEmailReminder">Email Notification</label>
+                    <label class="switch">
+                        <input type="checkbox" id="editEnableEmailReminder">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+                
+                <div id="editReminderDaysContainer" class="form-group reminder-days" style="display: none;">
+                    <label for="editReminderDays">Remind me</label>
+                    <select id="editReminderDays">
+                        <option value="1">1 day before</option>
+                        <option value="2">2 days before</option>
+                        <option value="3" selected>3 days before</option>
+                        <option value="5">5 days before</option>
+                        <option value="7">7 days before</option>
+                    </select>
+                </div>
+                
+                <div id="editEmailAddressGroup" class="form-group" style="display: none;">
+                    <label for="editReminderEmail">Email Address</label>
+                    <input type="email" id="editReminderEmail" placeholder="your@email.com">
+                    <div class="remember-email-group">
+                        <input type="checkbox" id="editRememberEmailCheck" checked>
+                        <label for="editRememberEmailCheck">Remember email for future subscriptions</label>
+                    </div>
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="button" id="cancelEditBtn" class="btn secondary-btn">Cancel</button>
+                    <button type="submit" class="btn primary-btn">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Sign In Modal -->
+    <div id="signInModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Sign In</h3>
+                <button id="closeSignInModal" class="close-btn"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="signInForm">
+                <div class="form-group">
+                    <label for="signInEmail">Email</label>
+                    <input type="email" id="signInEmail" placeholder="your@email.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="signInPassword">Password</label>
+                    <input type="password" id="signInPassword" placeholder="Enter your password" required>
+                </div>
+                <div class="form-group">
+                    <a href="#" id="forgotPasswordLink">Forgot Password?</a>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" id="createAccountBtn" class="btn secondary-btn">Create Account</button>
+                    <button type="submit" class="btn primary-btn">Sign In</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Load critical scripts first -->
     <script src="js/db.js"></script>
-    <!-- Language Translations -->
-    <script src="js/translations.js"></script>
-    <!-- Custom JS -->
-    <script src="js/app.js"></script>
-    <!-- Service Worker Registration -->
+    
+    <!-- Load Chart.js asynchronously -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js" defer></script>
+    
+    <!-- Load GSAP with defer -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js" defer></script>
+    
+    <!-- Load main app script -->
+    <script src="js/app.js" defer></script>
+    
+    <!-- Load budget analytics script -->
+    <script src="js/budget-analytics.js" defer></script>
+    
+    <!-- Load service worker after page load -->
     <script>
+        // Register service worker for PWA
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
-                    .then(registration => {
-                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('service-worker.js')
+                    .then(function(registration) {
+                        console.log('Service Worker registered with scope:', registration.scope);
                     })
-                    .catch(error => {
-                        console.log('ServiceWorker registration failed: ', error);
+                    .catch(function(err) {
+                        console.log('Service Worker registration failed:', err);
                     });
             });
         }
-        
-        // Initialize translations after the DOM is loaded
-        document.addEventListener('DOMContentLoaded', () => {
-            // Initialize i18n
-            if (window.i18n && typeof window.i18n.init === 'function') {
-                window.i18n.init();
-            }
-        });
     </script>
 </body>
 </html>
