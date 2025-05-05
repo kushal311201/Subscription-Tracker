@@ -2013,19 +2013,23 @@ function urlBase64ToUint8Array(base64String) {
     return outputArray;
 }
 
-// Setup bottom navigation
+// Setup navigation and settings
 function setupNavigation() {
     console.log('Setting up navigation');
     
     const navHome = document.getElementById('nav-home');
-    const navSettings = document.getElementById('nav-settings');
+    const settingsButton = document.getElementById('settingsButton');
+    const settingsPanel = document.getElementById('settingsPanel');
+    const closeSettings = document.getElementById('closeSettings');
     const addSubscriptionSection = document.querySelector('.add-subscription');
     const subscriptionListSection = document.querySelector('.subscription-list');
     
     // Log found elements
     console.log('Navigation elements found:', {
         navHome: !!navHome,
-        navSettings: !!navSettings,
+        settingsButton: !!settingsButton,
+        settingsPanel: !!settingsPanel,
+        closeSettings: !!closeSettings,
         addSubscriptionSection: !!addSubscriptionSection,
         subscriptionListSection: !!subscriptionListSection
     });
@@ -2046,17 +2050,23 @@ function setupNavigation() {
         });
     }
     
-    if (navSettings) {
-        navSettings.addEventListener('click', e => {
-            e.preventDefault();
-            // Show settings panel
-            const settingsPanel = document.getElementById('settingsPanel');
-            if (settingsPanel) {
-                settingsPanel.classList.add('open');
-                
-                // Haptic feedback
-                if (navigator.vibrate) navigator.vibrate(30);
-            }
+    // Setup settings button
+    if (settingsButton && settingsPanel) {
+        settingsButton.addEventListener('click', () => {
+            settingsPanel.classList.add('open');
+            
+            // Haptic feedback
+            if (navigator.vibrate) navigator.vibrate(30);
+        });
+    }
+    
+    // Setup close settings button
+    if (closeSettings && settingsPanel) {
+        closeSettings.addEventListener('click', () => {
+            settingsPanel.classList.remove('open');
+            
+            // Haptic feedback
+            if (navigator.vibrate) navigator.vibrate(30);
         });
     }
 }
