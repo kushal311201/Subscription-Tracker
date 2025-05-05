@@ -852,10 +852,13 @@ function loadThemePreference() {
     const useSystemTheme = localStorage.getItem('useSystemTheme') !== 'false';
     
     // Set toggle states
-    document.getElementById('darkMode').checked = darkMode;
-    if (document.getElementById('systemTheme')) {
-        document.getElementById('systemTheme').checked = useSystemTheme;
-    }
+    const darkModeToggle = document.getElementById('darkMode');
+    const topDarkModeToggle = document.getElementById('topDarkMode');
+    const systemThemeToggle = document.getElementById('systemTheme');
+    
+    if (darkModeToggle) darkModeToggle.checked = darkMode;
+    if (topDarkModeToggle) topDarkModeToggle.checked = darkMode;
+    if (systemThemeToggle) systemThemeToggle.checked = useSystemTheme;
     
     // Apply theme
     if (useSystemTheme) {
@@ -863,13 +866,44 @@ function loadThemePreference() {
         const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
         if (prefersDark) {
             document.body.classList.add('dark-mode');
+            if (darkModeToggle) darkModeToggle.checked = true;
+            if (topDarkModeToggle) topDarkModeToggle.checked = true;
         } else {
             document.body.classList.remove('dark-mode');
+            if (darkModeToggle) darkModeToggle.checked = false;
+            if (topDarkModeToggle) topDarkModeToggle.checked = false;
         }
     } else if (darkMode) {
         document.body.classList.add('dark-mode');
     } else {
         document.body.classList.remove('dark-mode');
+    }
+    
+    // Setup top dark mode toggle
+    if (topDarkModeToggle) {
+        topDarkModeToggle.addEventListener('change', () => {
+            const isDarkMode = topDarkModeToggle.checked;
+            localStorage.setItem('darkMode', isDarkMode);
+            
+            // Sync with settings toggle
+            if (darkModeToggle) darkModeToggle.checked = isDarkMode;
+            
+            // If system theme is enabled, disable it
+            if (systemThemeToggle && systemThemeToggle.checked) {
+                systemThemeToggle.checked = false;
+                localStorage.setItem('useSystemTheme', false);
+            }
+            
+            // Apply theme
+            if (isDarkMode) {
+                document.body.classList.add('dark-mode');
+            } else {
+                document.body.classList.remove('dark-mode');
+            }
+            
+            // Haptic feedback
+            if (navigator.vibrate) navigator.vibrate(30);
+        });
     }
 }
 
@@ -1047,6 +1081,10 @@ function setupSettingsPanel() {
             const darkMode = darkModeToggle.checked;
             localStorage.setItem('darkMode', darkMode);
             
+            // Sync with top dark mode toggle
+            const topDarkModeToggle = document.getElementById('topDarkMode');
+            if (topDarkModeToggle) topDarkModeToggle.checked = darkMode;
+            
             if (systemThemeToggle.checked) {
                 // If system theme is enabled, disable it
                 systemThemeToggle.checked = false;
@@ -1076,9 +1114,17 @@ function setupSettingsPanel() {
                 if (prefersDark) {
                     document.body.classList.add('dark-mode');
                     if (darkModeToggle) darkModeToggle.checked = true;
+                    
+                    // Sync with top dark mode toggle
+                    const topDarkModeToggle = document.getElementById('topDarkMode');
+                    if (topDarkModeToggle) topDarkModeToggle.checked = true;
                 } else {
                     document.body.classList.remove('dark-mode');
                     if (darkModeToggle) darkModeToggle.checked = false;
+                    
+                    // Sync with top dark mode toggle
+                    const topDarkModeToggle = document.getElementById('topDarkMode');
+                    if (topDarkModeToggle) topDarkModeToggle.checked = false;
                 }
             }
             

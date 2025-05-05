@@ -34,11 +34,88 @@
     <script src="https://cdn.jsdelivr.net/npm/luxon@2.4.0/build/global/luxon.min.js"></script>
     <!-- Custom CSS -->
     <link rel="stylesheet" href="css/style.css">
+    <style>
+        .header-actions {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+            margin-bottom: 15px;
+        }
+        .top-dark-mode-toggle {
+            display: flex;
+            align-items: center;
+            background-color: #f8f9fa;
+            border-radius: 20px;
+            padding: 5px 15px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            margin-left: auto;
+        }
+        .dark-mode .top-dark-mode-toggle {
+            background-color: #333;
+        }
+        .top-dark-mode-toggle label {
+            margin-right: 10px;
+            font-size: 0.9rem;
+            color: #333;
+        }
+        .dark-mode .top-dark-mode-toggle label {
+            color: #fff;
+        }
+        .top-dark-mode-toggle .switch {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 20px;
+        }
+        .top-dark-mode-toggle .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .top-dark-mode-toggle .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 20px;
+        }
+        .top-dark-mode-toggle .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        .top-dark-mode-toggle input:checked + .slider {
+            background-color: #4a6bdf;
+        }
+        .top-dark-mode-toggle input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+    </style>
 </head>
 <body>
     <div class="container">
         <header>
             <h1><i class="fas fa-calendar-check"></i> <span data-i18n="appTitle">Subscription Manager</span></h1>
+            
+            <div class="header-actions">
+                <div class="top-dark-mode-toggle">
+                    <label for="topDarkMode"><i class="fas fa-moon"></i> Dark Mode</label>
+                    <label class="switch">
+                        <input type="checkbox" id="topDarkMode">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+            </div>
             
             <div class="summary-box">
                 <div class="total-box">
