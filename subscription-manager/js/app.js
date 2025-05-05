@@ -1,29 +1,13 @@
 // Subscription Manager - Main JavaScript File
 //
-// IMPORTANT: Before using this app, you need to:
-// 1. Create an Airtable account at https://airtable.com
-// 2. Create a base with a table named "Subscriptions"
-// 3. Get your API key from https://airtable.com/account
-// 4. Get your Base ID from https://airtable.com/api
-// 5. Replace the values below with your actual keys
-//
-// The Subscriptions table should have these fields:
-// - name (Single line text)
-// - amount (Number)
-// - billingCycle (Single select: monthly, yearly, quarterly)
-// - dueDate (Date)
-// - category (Single select: streaming, fitness, productivity, music, cloud, other)
+// This app is designed to work completely offline and stores all your
+// subscription data locally on your device using IndexedDB storage.
 //
 // To install this app as a PWA (Progressive Web App):
 // 1. Open the app in Chrome or Edge browser
 // 2. Click the install icon in the address bar (or find "Install app" in the menu)
 // 3. Follow the prompts to install
 // 4. The app will appear on your home screen or Start menu
-
-// Initialize Airtable API
-// Replace with your Airtable API key and base ID
-let airtableApiKey = 'YOUR_API_KEY';
-let airtableBaseId = 'YOUR_BASE_ID';
 
 // Temporary ID for test data
 let tempIdCounter = 1;
@@ -88,17 +72,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Handle online/offline status changes
 function handleOnlineStatusChange() {
-    const wasOffline = !isOnline;
     isOnline = navigator.onLine;
-    
     updateOnlineStatus();
     
-    // If we just came back online, try to sync data
-    if (isOnline && wasOffline) {
-        showToast('Back online! Syncing your data...');
-        syncData();
-    } else if (!isOnline) {
-        showToast('You are offline. Changes will be saved locally and synced when you reconnect.');
+    if (!isOnline) {
+        showToast('You are offline. Changes will be saved locally.');
+    } else {
+        showToast('Back online!');
     }
 }
 
@@ -115,7 +95,7 @@ function updateOnlineStatus() {
         
         // Auto-hide after 3 seconds if we're online
         setTimeout(() => {
-            if (isOnline && !syncInProgress) {
+            if (isOnline) {
                 status.classList.remove('visible');
             }
         }, 3000);
@@ -174,13 +154,15 @@ function syncData() {
         });
 }
 
-// Load subscriptions from IndexedDB and Airtable
+// Load subscriptions from IndexedDB
 function loadSubscriptions() {
     // Clear existing cards
     const container = document.getElementById('subscriptionCards');
-    container.innerHTML = '';
+    if (container) {
+        container.innerHTML = '';
+    }
     
-    // First load from IndexedDB (fast, works offline)
+    // Load from IndexedDB
     SubscriptionDB.getAll()
         .then(subscriptions => {
             // Display subscriptions from IndexedDB
@@ -196,70 +178,27 @@ function loadSubscriptions() {
                 updateCategoryChart(subscriptions);
                 
                 // Hide empty state
-                document.querySelector('.empty-state').style.display = 'none';
+                const emptyState = document.querySelector('.empty-state');
+                if (emptyState) {
+                    emptyState.style.display = 'none';
+                }
             } else {
                 // Show empty state
-                document.querySelector('.empty-state').style.display = 'flex';
-            }
-            
-            // If online, also try to fetch from Airtable to ensure we have the latest data
-            if (isOnline && airtableApiKey !== 'YOUR_API_KEY' && airtableBaseId !== 'YOUR_BASE_ID') {
-                fetchFromAirtable();
+                const emptyState = document.querySelector('.empty-state');
+                if (emptyState) {
+                    emptyState.style.display = 'flex';
+                }
             }
         })
         .catch(error => {
             console.error('Error loading subscriptions from IndexedDB:', error);
-            // Fallback to Airtable if possible
-            if (isOnline && airtableApiKey !== 'YOUR_API_KEY' && airtableBaseId !== 'YOUR_BASE_ID') {
-                fetchFromAirtable();
-            } else {
-                showToast('Error loading subscriptions. Please try again.');
-            }
+            showToast('Error loading subscriptions. Please try again.');
         });
 }
 
-// Fetch subscriptions from Airtable
-function fetchFromAirtable() {
-    // Initialize Airtable
-    const base = new Airtable({ apiKey: airtableApiKey }).base(airtableBaseId);
-    
-    base('Subscriptions').select({
-        view: 'Grid view'
-    }).eachPage((records, fetchNextPage) => {
-        // Process each record from Airtable
-        records.forEach(record => {
-            const subscription = {
-                id: record.id,
-                name: record.get('Name'),
-                amount: record.get('Amount'),
-                billingCycle: record.get('Billing Cycle'),
-                dueDate: record.get('Due Date'),
-                category: record.get('Category'),
-                updatedAt: record.get('Last Updated') || new Date().toISOString()
-            };
-            
-            // Update IndexedDB with the latest data from Airtable
-            SubscriptionDB.update(subscription)
-                .catch(error => console.error('Error updating subscription from Airtable:', error));
-            
-            // Update UI if this card doesn't exist yet
-            if (!document.getElementById(`subscription-${subscription.id}`)) {
-                createSubscriptionCard(subscription);
-            }
-        });
-        
-        // Fetch next page if there are more records
-        fetchNextPage();
-    }, error => {
-        if (error) {
-            console.error('Error fetching from Airtable:', error);
-        }
-    });
-}
-
-// Save subscription to IndexedDB and Airtable
+// Save subscription to IndexedDB
 function saveSubscription(subscription) {
-    // First save to IndexedDB (works offline)
+    // Save to IndexedDB
     SubscriptionDB.add(subscription)
         .then(savedSubscription => {
             // Update the UI with the new subscription
@@ -273,36 +212,6 @@ function saveSubscription(subscription) {
             
             // Show toast
             showToast('Subscription added successfully');
-            
-            // If online, also save to Airtable
-            if (isOnline && airtableApiKey !== 'YOUR_API_KEY' && airtableBaseId !== 'YOUR_BASE_ID') {
-                // Initialize Airtable
-                const base = new Airtable({ apiKey: airtableApiKey }).base(airtableBaseId);
-                
-                // Save to Airtable
-                base('Subscriptions').create({
-                    'Name': subscription.name,
-                    'Amount': subscription.amount,
-                    'Billing Cycle': subscription.billingCycle,
-                    'Due Date': subscription.dueDate,
-                    'Category': subscription.category
-                }, (err, record) => {
-                    if (err) {
-                        console.error('Error saving to Airtable:', err);
-                        return;
-                    }
-                    
-                    // Update local ID with Airtable ID
-                    const updatedSubscription = { 
-                        ...savedSubscription,
-                        id: record.getId()
-                    };
-                    
-                    // Update in IndexedDB
-                    SubscriptionDB.update(updatedSubscription)
-                        .catch(error => console.error('Error updating subscription ID:', error));
-                });
-            }
         })
         .catch(error => {
             console.error('Error saving subscription to IndexedDB:', error);
@@ -327,17 +236,6 @@ function deleteSubscription(id) {
                 
                 // Show toast
                 showToast('Subscription deleted');
-                
-                // If online, also delete from Airtable
-                if (isOnline && airtableApiKey !== 'YOUR_API_KEY' && airtableBaseId !== 'YOUR_BASE_ID') {
-                    // Delete from Airtable
-                    const base = new Airtable({ apiKey: airtableApiKey }).base(airtableBaseId);
-                    base('Subscriptions').destroy(id, (err) => {
-                        if (err) {
-                            console.error('Error deleting from Airtable:', err);
-                        }
-                    });
-                }
             })
             .catch(error => {
                 console.error('Error deleting subscription from IndexedDB:', error);
@@ -461,8 +359,11 @@ function openEditModal(subscription) {
     const dueDateInput = document.getElementById('editDueDate');
     const categoryInput = document.getElementById('editCategory');
     const enableReminderInput = document.getElementById('editEnableReminder');
+    const enableEmailReminderInput = document.getElementById('editEnableEmailReminder');
     const reminderDaysInput = document.getElementById('editReminderDays');
     const reminderDaysContainer = document.getElementById('editReminderDaysContainer');
+    const editEmailAddressGroup = document.getElementById('editEmailAddressGroup');
+    const editReminderEmail = document.getElementById('editReminderEmail');
     
     // Populate form with subscription data
     idInput.value = subscription.id;
@@ -480,17 +381,25 @@ function openEditModal(subscription) {
     categoryInput.value = subscription.category;
     
     // Set reminder toggle and days
-    enableReminderInput.checked = subscription.reminderEnabled !== false;
+    enableReminderInput.checked = subscription.reminderEnabled || false;
+    enableEmailReminderInput.checked = subscription.reminderEmailEnabled || false;
     reminderDaysInput.value = subscription.reminderDays || "3";
+    
+    // Set email address if available
+    if (subscription.reminderEmail) {
+        editReminderEmail.value = subscription.reminderEmail;
+    } else {
+        editReminderEmail.value = '';
+    }
     
     // Set reminder days container visibility
     if (reminderDaysContainer) {
-        reminderDaysContainer.style.display = enableReminderInput.checked ? 'flex' : 'none';
-        
-        // Add event listener for toggle
-        enableReminderInput.addEventListener('change', () => {
-            reminderDaysContainer.style.display = enableReminderInput.checked ? 'flex' : 'none';
-        });
+        reminderDaysContainer.style.display = (enableReminderInput.checked || enableEmailReminderInput.checked) ? 'flex' : 'none';
+    }
+    
+    // Set email address group visibility
+    if (editEmailAddressGroup) {
+        editEmailAddressGroup.style.display = enableEmailReminderInput.checked ? 'block' : 'none';
     }
     
     // Show the modal
@@ -507,7 +416,9 @@ function setupEditFormListeners() {
     const closeBtn = document.getElementById('closeEditModal');
     const cancelBtn = document.getElementById('cancelEditBtn');
     const enableReminderToggle = document.getElementById('editEnableReminder');
+    const enableEmailReminderToggle = document.getElementById('editEnableEmailReminder');
     const reminderDaysContainer = document.getElementById('editReminderDaysContainer');
+    const editEmailAddressGroup = document.getElementById('editEmailAddressGroup');
     
     // Close modal when clicking close or cancel buttons
     const closeModal = () => {
@@ -521,11 +432,21 @@ function setupEditFormListeners() {
     // Toggle reminder days visibility
     if (enableReminderToggle && reminderDaysContainer) {
         enableReminderToggle.addEventListener('change', () => {
-            reminderDaysContainer.style.display = enableReminderToggle.checked ? 'flex' : 'none';
+            reminderDaysContainer.style.display = (enableReminderToggle.checked || enableEmailReminderToggle.checked) ? 'flex' : 'none';
+            if (navigator.vibrate) navigator.vibrate(30);
         });
         
-        // Set initial state
-        reminderDaysContainer.style.display = enableReminderToggle.checked ? 'flex' : 'none';
+        reminderDaysContainer.style.display = (enableReminderToggle.checked || enableEmailReminderToggle.checked) ? 'flex' : 'none';
+    }
+    
+    if (enableEmailReminderToggle && editEmailAddressGroup) {
+        enableEmailReminderToggle.addEventListener('change', () => {
+            editEmailAddressGroup.style.display = enableEmailReminderToggle.checked ? 'block' : 'none';
+            reminderDaysContainer.style.display = (enableReminderToggle.checked || enableEmailReminderToggle.checked) ? 'flex' : 'none';
+            if (navigator.vibrate) navigator.vibrate(30);
+        });
+        
+        editEmailAddressGroup.style.display = enableEmailReminderToggle.checked ? 'block' : 'none';
     }
     
     // Handle form submission
@@ -549,6 +470,8 @@ function handleEditFormSubmit(event) {
         
         // Get reminder settings
         const reminderEnabled = document.getElementById('editEnableReminder').checked;
+        const reminderEmailEnabled = document.getElementById('editEnableEmailReminder').checked;
+        const reminderEmail = reminderEmailEnabled ? document.getElementById('editReminderEmail').value : '';
         const reminderDays = document.getElementById('editReminderDays').value;
         
         // Validate inputs
@@ -569,6 +492,13 @@ function handleEditFormSubmit(event) {
             return;
         }
         
+        // Validate email if email notification is enabled
+        if (reminderEmailEnabled && (!reminderEmail || !isValidEmail(reminderEmail))) {
+            showToast('Please enter a valid email address');
+            document.getElementById('editReminderEmail').focus();
+            return;
+        }
+        
         // Create updated subscription object
         const updatedSubscription = {
             id,
@@ -578,8 +508,9 @@ function handleEditFormSubmit(event) {
             dueDate,
             category,
             reminderEnabled,
+            reminderEmailEnabled,
             reminderDays,
-            reminderType: localStorage.getItem('defaultReminderType') || 'push',
+            reminderEmail: reminderEmailEnabled ? reminderEmail : undefined,
             updatedAt: new Date().toISOString()
         };
         
@@ -618,26 +549,6 @@ function updateSubscription(subscription) {
             
             // Show toast
             showToast('Subscription updated successfully');
-            
-            // If online, also update in Airtable
-            if (isOnline && airtableApiKey !== 'YOUR_API_KEY' && airtableBaseId !== 'YOUR_BASE_ID') {
-                // Initialize Airtable
-                const base = new Airtable({ apiKey: airtableApiKey }).base(airtableBaseId);
-                
-                // Update in Airtable
-                base('Subscriptions').update(subscription.id, {
-                    'Name': subscription.name,
-                    'Amount': subscription.amount,
-                    'Billing Cycle': subscription.billingCycle,
-                    'Due Date': subscription.dueDate,
-                    'Category': subscription.category,
-                    'Last Updated': subscription.updatedAt
-                }, (err) => {
-                    if (err) {
-                        console.error('Error updating in Airtable:', err);
-                    }
-                });
-            }
         })
         .catch(error => {
             console.error('Error updating subscription in IndexedDB:', error);
@@ -708,6 +619,8 @@ function setupFormListener() {
             
             // Get reminder settings
             const reminderEnabled = document.getElementById('enableReminder').checked;
+            const reminderEmailEnabled = document.getElementById('enableEmailReminder').checked;
+            const reminderEmail = reminderEmailEnabled ? document.getElementById('reminderEmailAdd').value : '';
             const reminderDays = document.getElementById('reminderDays').value;
             
             // Validate inputs
@@ -728,17 +641,26 @@ function setupFormListener() {
                 return;
             }
             
+            // Validate email if email notification is enabled
+            if (reminderEmailEnabled && (!reminderEmail || !isValidEmail(reminderEmail))) {
+                showToast('Please enter a valid email address');
+                document.getElementById('reminderEmailAdd').focus();
+                return;
+            }
+            
             // Create subscription object
             const subscription = {
+                id: generateUUID(),
                 name,
                 amount,
                 billingCycle,
                 dueDate,
                 category,
                 reminderEnabled,
+                reminderEmailEnabled,
                 reminderDays,
-                reminderType: localStorage.getItem('defaultReminderType') || 'push',
-                updatedAt: new Date().toISOString()
+                reminderEmail: reminderEmailEnabled ? reminderEmail : undefined,
+                createdAt: new Date().toISOString()
             };
             
             console.log('Saving subscription:', subscription);
@@ -764,15 +686,27 @@ function setupFormListener() {
     
     // Set up reminder toggle visibility
     const enableReminder = document.getElementById('enableReminder');
+    const enableEmailReminder = document.getElementById('enableEmailReminder');
     const reminderDaysContainer = document.getElementById('reminderDaysContainer');
+    const emailAddressGroupAdd = document.getElementById('emailAddressGroupAdd');
     
     if (enableReminder && reminderDaysContainer) {
         enableReminder.addEventListener('change', () => {
-            reminderDaysContainer.style.display = enableReminder.checked ? 'flex' : 'none';
+            reminderDaysContainer.style.display = (enableReminder.checked || enableEmailReminder.checked) ? 'flex' : 'none';
+            if (navigator.vibrate) navigator.vibrate(30);
         });
         
-        // Set initial state
-        reminderDaysContainer.style.display = enableReminder.checked ? 'flex' : 'none';
+        reminderDaysContainer.style.display = (enableReminder.checked || enableEmailReminder.checked) ? 'flex' : 'none';
+    }
+    
+    if (enableEmailReminder && emailAddressGroupAdd) {
+        enableEmailReminder.addEventListener('change', () => {
+            emailAddressGroupAdd.style.display = enableEmailReminder.checked ? 'block' : 'none';
+            reminderDaysContainer.style.display = (enableReminder.checked || enableEmailReminder.checked) ? 'flex' : 'none';
+            if (navigator.vibrate) navigator.vibrate(30);
+        });
+        
+        emailAddressGroupAdd.style.display = enableEmailReminder.checked ? 'block' : 'none';
     }
 }
 
@@ -1402,4 +1336,18 @@ function showToast(message, duration = 3000) {
             toast.remove();
         }, 300);
     }, duration);
+}
+
+// Helper function to generate a UUID
+function generateUUID() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+    });
+}
+
+// Helper function to validate an email address
+function isValidEmail(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
 } 

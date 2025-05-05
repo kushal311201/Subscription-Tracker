@@ -15,9 +15,6 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Initialize UI based on saved preferences
     initPreferences();
-    
-    // Setup notification option selectors
-    setupNotificationOptions();
 });
 
 // Setup event listeners for reminders page
@@ -45,14 +42,7 @@ function setupEventListeners() {
     }
     
     // Default preferences change handlers
-    const defaultReminderType = document.getElementById('defaultReminderType');
     const defaultReminderDays = document.getElementById('defaultReminderDays');
-    
-    if (defaultReminderType) {
-        defaultReminderType.addEventListener('change', () => {
-            if (navigator.vibrate) navigator.vibrate(30);
-        });
-    }
     
     if (defaultReminderDays) {
         defaultReminderDays.addEventListener('change', () => {
@@ -66,26 +56,21 @@ function setupEventListeners() {
 
 // Initialize preferences from localStorage
 function initPreferences() {
-    const defaultReminderType = document.getElementById('defaultReminderType');
     const defaultReminderDays = document.getElementById('defaultReminderDays');
     
     // Load saved preferences from localStorage
-    const savedType = localStorage.getItem('defaultReminderType') || 'push';
     const savedDays = localStorage.getItem('defaultReminderDays') || '3';
     
     // Set values in UI
-    if (defaultReminderType) defaultReminderType.value = savedType;
     if (defaultReminderDays) defaultReminderDays.value = savedDays;
 }
 
 // Save current preferences as defaults
 function saveDefaultPreferences() {
-    const defaultReminderType = document.getElementById('defaultReminderType');
     const defaultReminderDays = document.getElementById('defaultReminderDays');
     
-    if (defaultReminderType && defaultReminderDays) {
+    if (defaultReminderDays) {
         // Save preferences to localStorage
-        localStorage.setItem('defaultReminderType', defaultReminderType.value);
         localStorage.setItem('defaultReminderDays', defaultReminderDays.value);
         
         // Show confirmation
@@ -114,8 +99,8 @@ function loadReminders() {
     // Get all subscriptions from IndexedDB
     SubscriptionDB.getAll()
         .then(subscriptions => {
-            // Filter to get only subscriptions with reminders enabled
-            reminders = subscriptions.filter(sub => sub.reminderEnabled !== false);
+            // Filter to get only subscriptions with reminders enabled (either push or email)
+            reminders = subscriptions.filter(sub => sub.reminderEnabled || sub.reminderEmailEnabled);
             
             // Update counter
             document.getElementById('totalReminders').textContent = reminders.length;
@@ -173,12 +158,15 @@ function createReminderCard(subscription) {
     const isActive = diffDays > 0;
     
     // Get reminder type label
-    const reminderType = subscription.reminderType || 'push';
-    let reminderTypeLabel = 'Push notification';
-    if (reminderType === 'email') {
-        reminderTypeLabel = 'Email';
-    } else if (reminderType === 'both') {
-        reminderTypeLabel = 'Push & Email';
+    let notificationTypeText = "";
+    if (subscription.reminderEnabled && subscription.reminderEmailEnabled) {
+        notificationTypeText = "Push & Email";
+    } else if (subscription.reminderEnabled) {
+        notificationTypeText = "Push notification";
+    } else if (subscription.reminderEmailEnabled) {
+        notificationTypeText = "Email";
+    } else {
+        notificationTypeText = "None";
     }
     
     // Create card element
@@ -209,7 +197,7 @@ function createReminderCard(subscription) {
         </div>
         <div class="reminder-info">
             <span class="reminder-label">Reminder Via:</span>
-            <span class="reminder-value">${reminderTypeLabel}</span>
+            <span class="reminder-value">${notificationTypeText}</span>
         </div>
         <div class="reminder-status">
             <span class="status-indicator ${isActive ? 'status-active' : 'status-inactive'}"></span>
@@ -288,6 +276,7 @@ function disableAllReminders() {
     // Update reminders locally
     const updatePromises = reminders.map(subscription => {
         subscription.reminderEnabled = false;
+        subscription.reminderEmailEnabled = false;
         return SubscriptionDB.update(subscription);
     });
     
@@ -312,8 +301,8 @@ function openReminderEditModal(subscription) {
     const form = document.getElementById('editReminderForm');
     const idInput = document.getElementById('editReminderSubscriptionId');
     const enabledInput = document.getElementById('reminderEnabled');
+    const emailEnabledInput = document.getElementById('reminderEmailEnabled');
     const daysInput = document.getElementById('reminderDays');
-    const typeInput = document.getElementById('reminderType');
     const emailInput = document.getElementById('reminderEmail');
     const emailGroup = document.getElementById('emailAddressGroup');
     
@@ -321,23 +310,12 @@ function openReminderEditModal(subscription) {
     
     // Set form values
     idInput.value = subscription.id;
-    enabledInput.checked = subscription.reminderEnabled !== false;
+    enabledInput.checked = subscription.reminderEnabled || false;
+    emailEnabledInput.checked = subscription.reminderEmailEnabled || false;
     daysInput.value = subscription.reminderDays || '3';
     
-    // Set reminder type and update UI
-    const reminderType = subscription.reminderType || 'push';
-    typeInput.value = reminderType;
-    
-    // Select the correct notification option
-    document.querySelectorAll('.notification-option').forEach(option => {
-        option.classList.remove('selected');
-        if (option.dataset.value === reminderType) {
-            option.classList.add('selected');
-        }
-    });
-    
-    // Show/hide email field based on reminder type
-    emailGroup.style.display = (reminderType === 'email' || reminderType === 'both') ? 'block' : 'none';
+    // Show/hide email field based on email notification toggle
+    emailGroup.style.display = emailEnabledInput.checked ? 'block' : 'none';
     
     // Set email if available
     if (subscription.reminderEmail) {
@@ -356,8 +334,7 @@ function setupReminderModalListeners() {
     const form = document.getElementById('editReminderForm');
     const closeBtn = document.getElementById('closeReminderModal');
     const cancelBtn = document.getElementById('cancelReminderBtn');
-    const enabledToggle = document.getElementById('reminderEnabled');
-    const typeInput = document.getElementById('reminderType');
+    const emailEnabledToggle = document.getElementById('reminderEmailEnabled');
     const emailGroup = document.getElementById('emailAddressGroup');
     
     // Close modal when clicking close or cancel buttons
@@ -368,66 +345,22 @@ function setupReminderModalListeners() {
     if (closeBtn) closeBtn.addEventListener('click', closeModal);
     if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
     
-    // Setup notification options
-    document.querySelectorAll('.notification-option').forEach(option => {
-        option.addEventListener('click', () => {
-            // Remove selected class from all options
-            document.querySelectorAll('.notification-option').forEach(opt => {
-                opt.classList.remove('selected');
-            });
-            
-            // Add selected class to clicked option
-            option.classList.add('selected');
-            
-            // Update hidden input value
-            if (typeInput) typeInput.value = option.dataset.value;
-            
-            // Show/hide email field based on selection
+    // Toggle email field visibility based on email notification toggle
+    if (emailEnabledToggle) {
+        emailEnabledToggle.addEventListener('change', () => {
             if (emailGroup) {
-                emailGroup.style.display = 
-                    (option.dataset.value === 'email' || option.dataset.value === 'both') 
-                    ? 'block' : 'none';
+                emailGroup.style.display = emailEnabledToggle.checked ? 'block' : 'none';
             }
             
             // Haptic feedback
             if (navigator.vibrate) navigator.vibrate(30);
         });
-    });
+    }
     
     // Form submission
     if (form) {
         form.addEventListener('submit', handleReminderFormSubmit);
     }
-}
-
-// Setup notification options in the edit modal
-function setupNotificationOptions() {
-    document.querySelectorAll('.notification-option').forEach(option => {
-        option.addEventListener('click', () => {
-            // Remove selected class from all options
-            document.querySelectorAll('.notification-option').forEach(opt => {
-                opt.classList.remove('selected');
-            });
-            
-            // Add selected class to clicked option
-            option.classList.add('selected');
-            
-            // Update hidden input value
-            const typeInput = document.getElementById('reminderType');
-            if (typeInput) typeInput.value = option.dataset.value;
-            
-            // Show/hide email field based on selection
-            const emailGroup = document.getElementById('emailAddressGroup');
-            if (emailGroup) {
-                emailGroup.style.display = 
-                    (option.dataset.value === 'email' || option.dataset.value === 'both') 
-                    ? 'block' : 'none';
-            }
-            
-            // Haptic feedback
-            if (navigator.vibrate) navigator.vibrate(30);
-        });
-    });
 }
 
 // Handle reminder form submission
@@ -438,12 +371,12 @@ function handleReminderFormSubmit(event) {
         // Get form values
         const id = document.getElementById('editReminderSubscriptionId').value;
         const enabled = document.getElementById('reminderEnabled').checked;
+        const emailEnabled = document.getElementById('reminderEmailEnabled').checked;
         const days = document.getElementById('reminderDays').value;
-        const type = document.getElementById('reminderType').value;
         const email = document.getElementById('reminderEmail').value;
         
-        // Validate email if email reminder is selected
-        if ((type === 'email' || type === 'both') && (!email || !isValidEmail(email))) {
+        // Validate email if email reminder is enabled
+        if (emailEnabled && (!email || !isValidEmail(email))) {
             showToast('Please enter a valid email address');
             document.getElementById('reminderEmail').focus();
             return;
@@ -458,11 +391,11 @@ function handleReminderFormSubmit(event) {
                 
                 // Update reminder settings
                 subscription.reminderEnabled = enabled;
+                subscription.reminderEmailEnabled = emailEnabled;
                 subscription.reminderDays = days;
-                subscription.reminderType = type;
                 
                 // Only include email if needed
-                if (type === 'email' || type === 'both') {
+                if (emailEnabled) {
                     subscription.reminderEmail = email;
                 } else {
                     delete subscription.reminderEmail;
@@ -496,34 +429,21 @@ function handleReminderFormSubmit(event) {
 
 // Send a test reminder
 function sendTestReminder() {
-    // Get preferences
-    const type = document.getElementById('defaultReminderType').value;
+    // Determine if email is required
     const emailInput = document.getElementById('reminderEmail');
     let email = '';
+    let useEmail = false;
     
-    // Check if we need an email address
-    if ((type === 'email' || type === 'both')) {
-        // First check if user provided an email in the form
-        if (emailInput && emailInput.value && isValidEmail(emailInput.value)) {
-            email = emailInput.value;
-        } else {
-            // Ask for email if not provided
-            email = prompt('Please enter your email address for the test reminder:');
-            
-            // Validate email
-            if (!email || !isValidEmail(email)) {
-                showToast('Please enter a valid email address');
-                return;
-            }
-        }
-    }
+    // Prompt for email address if needed for testing
+    email = prompt('Enter your email for test reminder (leave empty for push notification only):');
+    useEmail = email && isValidEmail(email);
     
     // Create a test reminder
     const testReminder = {
         title: 'Test Reminder',
         message: 'This is a test reminder from Subscription Manager',
-        type: type,
-        email: email
+        useEmail: useEmail,
+        email: useEmail ? email : ''
     };
     
     // Show sending indicator
@@ -533,15 +453,14 @@ function sendTestReminder() {
     setTimeout(() => {
         console.log('Test reminder sent:', testReminder);
         
-        // Show different messages based on type
-        if (type === 'push') {
-            showTestPushNotification(testReminder);
-            showToast('Test push notification sent');
-        } else if (type === 'email') {
-            showToast(`Test email would be sent to ${email}`);
-        } else if (type === 'both') {
-            showTestPushNotification(testReminder);
+        // Show test push notification
+        showTestPushNotification(testReminder);
+        
+        // Show confirmation based on what was sent
+        if (useEmail) {
             showToast(`Test notification sent and email would be sent to ${email}`);
+        } else {
+            showToast('Test push notification sent');
         }
         
         // Haptic feedback

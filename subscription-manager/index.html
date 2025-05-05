@@ -40,15 +40,6 @@
         <header>
             <h1><i class="fas fa-calendar-check"></i> <span data-i18n="appTitle">Subscription Manager</span></h1>
             
-            <div id="airtableNotification" class="notification-banner">
-                <div class="notification-content">
-                    <div class="notification-title" data-i18n="setupTitle">Airtable Setup Required</div>
-                    <p data-i18n="setupDesc">Before using this app, you need to set up your Airtable database for storing subscriptions.</p>
-                </div>
-                <a href="airtable-setup.html" class="btn" data-i18n="setupGuide">Setup Guide</a>
-                <button class="close-btn" onclick="dismissNotification()"><i class="fas fa-times"></i></button>
-            </div>
-            
             <div class="summary-box">
                 <div class="total-box">
                     <h3 data-i18n="monthlyBurn">Monthly Burn Rate</h3>
@@ -111,11 +102,22 @@
                     </div>
                     <div class="form-group">
                         <div class="reminder-toggle">
-                            <label for="enableReminder" data-i18n="enableReminder">Enable Reminder</label>
+                            <label for="enableReminder" data-i18n="enablePushNotification">Push Notification</label>
                             <label class="switch">
                                 <input type="checkbox" id="enableReminder" checked>
                                 <span class="slider round"></span>
                             </label>
+                        </div>
+                        <div class="reminder-toggle">
+                            <label for="enableEmailReminder" data-i18n="enableEmailNotification">Email Notification</label>
+                            <label class="switch">
+                                <input type="checkbox" id="enableEmailReminder">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                        <div class="form-group" id="emailAddressGroupAdd" style="display: none;">
+                            <label for="reminderEmailAdd" data-i18n="emailAddress">Email Address</label>
+                            <input type="email" id="reminderEmailAdd" placeholder="your@email.com">
                         </div>
                         <div class="reminder-days" id="reminderDaysContainer">
                             <label for="reminderDays" data-i18n="reminderDays">Remind me</label>
@@ -280,10 +282,10 @@
                 <a href="#" id="exportDataLink" class="btn secondary-btn touch-target" data-i18n="exportData">Export Data</a>
                 <a href="#" id="importDataLink" class="btn secondary-btn touch-target" data-i18n="importData">Import Data</a>
                 <a href="#" id="resetDataLink" class="btn danger-btn touch-target" data-i18n="resetData">Reset Data</a>
-                <a href="airtable-setup.html" class="btn secondary-btn touch-target" data-i18n="databaseSetup">Database Setup</a>
                 <div class="app-info">
                     <p>Version 1.2.0</p>
                     <p>&copy; 2023 Subscription Manager</p>
+                    <p><strong>All data is stored locally on your device</strong></p>
                 </div>
             </div>
         </div>
@@ -339,11 +341,22 @@
                     </div>
                     <div class="form-group">
                         <div class="reminder-toggle">
-                            <label for="editEnableReminder" data-i18n="enableReminder">Enable Reminder</label>
+                            <label for="editEnableReminder" data-i18n="enablePushNotification">Push Notification</label>
                             <label class="switch">
                                 <input type="checkbox" id="editEnableReminder" checked>
                                 <span class="slider round"></span>
                             </label>
+                        </div>
+                        <div class="reminder-toggle">
+                            <label for="editEnableEmailReminder" data-i18n="enableEmailNotification">Email Notification</label>
+                            <label class="switch">
+                                <input type="checkbox" id="editEnableEmailReminder">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                        <div class="form-group" id="editEmailAddressGroup" style="display: none;">
+                            <label for="editReminderEmail" data-i18n="emailAddress">Email Address</label>
+                            <input type="email" id="editReminderEmail" placeholder="your@email.com">
                         </div>
                         <div class="reminder-days" id="editReminderDaysContainer">
                             <label for="editReminderDays" data-i18n="reminderDays">Remind me</label>
@@ -368,8 +381,6 @@
         <input type="file" id="importFileInput" accept=".json" style="display: none;">
     </div>
 
-    <!-- Airtable API -->
-    <script src="https://cdn.jsdelivr.net/npm/airtable@0.12.2/build/airtable.browser.js"></script>
     <!-- IndexedDB Manager -->
     <script src="js/db.js"></script>
     <!-- Language Translations -->
@@ -390,27 +401,11 @@
             });
         }
         
-        // Notification dismissal function
-        function dismissNotification() {
-            document.getElementById('airtableNotification').style.display = 'none';
-            localStorage.setItem('notificationDismissed', 'true');
-            
-            // Add haptic feedback for better mobile experience
-            if (navigator.vibrate) {
-                navigator.vibrate(50);
-            }
-        }
-        
         // Initialize translations after the DOM is loaded
         document.addEventListener('DOMContentLoaded', () => {
             // Initialize i18n
             if (window.i18n && typeof window.i18n.init === 'function') {
                 window.i18n.init();
-            }
-            
-            // Check if notification was previously dismissed
-            if (localStorage.getItem('notificationDismissed') === 'true') {
-                document.getElementById('airtableNotification').style.display = 'none';
             }
         });
     </script>

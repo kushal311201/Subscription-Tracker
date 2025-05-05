@@ -145,38 +145,6 @@
             margin-top: 5px;
             font-family: inherit;
         }
-        
-        .remind-via {
-            margin-top: 15px;
-        }
-        
-        .notification-options {
-            display: flex;
-            gap: 10px;
-            margin-top: 8px;
-        }
-        
-        .notification-option {
-            flex: 1;
-            padding: 10px;
-            border-radius: 8px;
-            border: 1px solid #ddd;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            font-size: 0.9rem;
-        }
-        
-        .notification-option.selected {
-            background-color: #e8f0ff;
-            border-color: #4a6bdf;
-            color: #4a6bdf;
-        }
-        
-        .notification-option i {
-            margin-right: 5px;
-        }
     </style>
 </head>
 <body>
@@ -191,14 +159,6 @@
                 </div>
                 <div class="reminder-preferences">
                     <h3 data-i18n="preferences">Preferences</h3>
-                    <div class="settings-group">
-                        <label for="defaultReminderType" data-i18n="defaultReminderType">Default Reminder Type</label>
-                        <select id="defaultReminderType" class="touch-target">
-                            <option value="push" data-i18n="pushNotification">Push Notification</option>
-                            <option value="email" data-i18n="email">Email</option>
-                            <option value="both" data-i18n="both">Both</option>
-                        </select>
-                    </div>
                     <div class="settings-group">
                         <label for="defaultReminderDays" data-i18n="defaultReminderDays">Default Reminder Days</label>
                         <select id="defaultReminderDays" class="touch-target">
@@ -349,10 +309,10 @@
                 <a href="#" id="exportDataLink" class="btn secondary-btn touch-target" data-i18n="exportData">Export Data</a>
                 <a href="#" id="importDataLink" class="btn secondary-btn touch-target" data-i18n="importData">Import Data</a>
                 <a href="#" id="resetDataLink" class="btn danger-btn touch-target" data-i18n="resetData">Reset Data</a>
-                <a href="airtable-setup.html" class="btn secondary-btn touch-target" data-i18n="databaseSetup">Database Setup</a>
                 <div class="app-info">
                     <p>Version 1.2.0</p>
                     <p>&copy; 2023 Subscription Manager</p>
+                    <p><strong>All data is stored locally on your device</strong></p>
                 </div>
             </div>
         </div>
@@ -367,11 +327,22 @@
                 <form id="editReminderForm">
                     <input type="hidden" id="editReminderSubscriptionId">
                     <div class="form-group">
-                        <label for="reminderEnabled" data-i18n="enableReminder">Enable Reminder</label>
+                        <label for="reminderEnabled" data-i18n="enablePushNotification">Push Notification</label>
                         <label class="switch">
                             <input type="checkbox" id="reminderEnabled" checked>
                             <span class="slider round"></span>
                         </label>
+                    </div>
+                    <div class="form-group">
+                        <label for="reminderEmailEnabled" data-i18n="enableEmailNotification">Email Notification</label>
+                        <label class="switch">
+                            <input type="checkbox" id="reminderEmailEnabled">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                    <div class="form-group" id="emailAddressGroup" style="display: none;">
+                        <label for="reminderEmail" data-i18n="emailAddress">Email Address</label>
+                        <input type="email" id="reminderEmail" placeholder="your@email.com">
                     </div>
                     <div class="form-group">
                         <label for="reminderDays" data-i18n="reminderTimeframe">Reminder Timeframe</label>
@@ -383,28 +354,6 @@
                             <option value="14" data-i18n="twoWeeksBefore">2 weeks before</option>
                         </select>
                     </div>
-                    <div class="form-group remind-via">
-                        <label data-i18n="remindVia">Remind via</label>
-                        <div class="notification-options">
-                            <div class="notification-option selected" data-value="push">
-                                <i class="fas fa-mobile-alt"></i>
-                                <span data-i18n="pushNotification">Push</span>
-                            </div>
-                            <div class="notification-option" data-value="email">
-                                <i class="fas fa-envelope"></i>
-                                <span data-i18n="email">Email</span>
-                            </div>
-                            <div class="notification-option" data-value="both">
-                                <i class="fas fa-bell"></i>
-                                <span data-i18n="both">Both</span>
-                            </div>
-                        </div>
-                        <input type="hidden" id="reminderType" value="push">
-                    </div>
-                    <div class="form-group" id="emailAddressGroup" style="display: none;">
-                        <label for="reminderEmail" data-i18n="emailAddress">Email Address</label>
-                        <input type="email" id="reminderEmail" placeholder="your@email.com">
-                    </div>
                     <div class="modal-actions">
                         <button type="button" id="cancelReminderBtn" class="btn secondary-btn touch-target" data-i18n="cancel">Cancel</button>
                         <button type="submit" class="btn primary-btn touch-target" data-i18n="saveChanges">Save Changes</button>
@@ -414,8 +363,6 @@
         </div>
     </div>
 
-    <!-- Airtable API -->
-    <script src="https://cdn.jsdelivr.net/npm/airtable@0.12.2/build/airtable.browser.js"></script>
     <!-- IndexedDB Manager -->
     <script src="js/db.js"></script>
     <!-- Language Translations -->
