@@ -1,3 +1,9 @@
+/*
+ * Subscription Tracker App
+ * Version: 1.1.0
+ * Last Updated: Force Vercel redeploy
+ */
+
 /**
  * Subscription Tracker App - Performance Optimized
  * App initialization and performance enhancements
