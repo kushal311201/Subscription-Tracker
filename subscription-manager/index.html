@@ -215,7 +215,7 @@
             </div>
         </div>
 
-        <!-- Budget Planning Section -->
+        <!-- Budget Planner -->
         <div class="budget-planner animate-in">
             <div class="budget-header">
                 <h2>Budget Planning</h2>
@@ -228,10 +228,11 @@
             <!-- Current Budget Display -->
             <div class="budget-display">
                 <div class="current-budget">
-                    <div class="budget-heading">Current Budget</div>
+                    <div class="budget-heading">Monthly Budget</div>
                     <div class="budget-value" id="currentBudgetDisplay">
                         <span id="budgetValueDisplay">₹0.00</span>
                         <span class="budget-period">/month</span>
+                        <span class="alternate-period-info">(₹0.00/year)</span>
                     </div>
                 </div>
                 <button class="edit-budget-btn" id="editBudgetBtn">
@@ -246,8 +247,10 @@
                     <span class="budget-currency-symbol" id="budgetCurrencySymbol">₹</span>
                     <input type="number" id="budgetLimit" placeholder="Enter your budget limit" step="0.01" min="0">
                 </div>
-                <button id="saveBudgetBtn" class="btn primary-btn">Save</button>
-                <button id="cancelBudgetBtn" class="btn secondary-btn">Cancel</button>
+                <div class="budget-actions">
+                    <button id="saveBudgetBtn" class="btn primary-btn">Save</button>
+                    <button id="cancelBudgetBtn" class="btn secondary-btn">Cancel</button>
+                </div>
             </div>
             
             <div class="budget-progress">

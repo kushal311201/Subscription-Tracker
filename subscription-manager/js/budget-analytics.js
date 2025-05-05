@@ -74,8 +74,8 @@ function initializeBudgetPlanner() {
     const yearlyProjection = document.getElementById('yearlyProjection');
     const currencySymbolElements = document.querySelectorAll('.budget-currency-symbol');
     
-    if (!budgetDisplay || !budgetValueDisplay || !editBudgetBtn) {
-        console.error('Budget elements not found in the DOM');
+    if (!budgetDisplay) {
+        console.error('Budget display element not found in the DOM');
         return;
     }
     
@@ -101,27 +101,67 @@ function initializeBudgetPlanner() {
             
             // Update budget display with current period
             updateBudgetDisplay();
+            
+            // Also update the input field with the new period's value
+            if (budgetLimitInput && currentBudget.currentPeriod) {
+                const currentBudgetValue = currentBudget[currentBudget.currentPeriod];
+                budgetLimitInput.value = currentBudgetValue > 0 ? currentBudgetValue : '';
+            }
         });
     });
     
     // Edit button event listener
-    editBudgetBtn.addEventListener('click', () => {
-        const currentBudgetValue = currentBudget[currentBudget.currentPeriod];
-        budgetLimitInput.value = currentBudgetValue > 0 ? currentBudgetValue : '';
-        
-        budgetDisplay.style.display = 'none';
-        budgetInputForm.style.display = 'flex';
-        budgetLimitInput.focus();
-    });
+    if (editBudgetBtn) {
+        editBudgetBtn.addEventListener('click', () => {
+            if (!budgetDisplay || !budgetInputForm || !budgetLimitInput) {
+                console.error('Budget form elements not found');
+                return;
+            }
+            
+            const currentBudgetValue = currentBudget[currentBudget.currentPeriod];
+            budgetLimitInput.value = currentBudgetValue > 0 ? currentBudgetValue : '';
+            
+            // Show the budget period in the label
+            const periodLabel = document.querySelector('label[for="budgetLimit"]');
+            if (periodLabel) {
+                periodLabel.textContent = `Set ${currentBudget.currentPeriod.charAt(0).toUpperCase() + currentBudget.currentPeriod.slice(1)} Budget Limit:`;
+            }
+            
+            budgetDisplay.style.display = 'none';
+            budgetInputForm.style.display = 'flex';
+            budgetLimitInput.focus();
+        });
+    }
     
     // Cancel button event listener
-    cancelBudgetBtn.addEventListener('click', () => {
-        budgetInputForm.style.display = 'none';
-        budgetDisplay.style.display = 'flex';
-    });
+    if (cancelBudgetBtn) {
+        cancelBudgetBtn.addEventListener('click', () => {
+            if (!budgetInputForm || !budgetDisplay) return;
+            
+            budgetInputForm.style.display = 'none';
+            budgetDisplay.style.display = 'flex';
+        });
+    }
     
     // Save button event listener
-    saveBudgetBtn.addEventListener('click', () => {
+    if (saveBudgetBtn) {
+        saveBudgetBtn.addEventListener('click', handleBudgetSave);
+    }
+    
+    // Also allow form submission with Enter key
+    if (budgetInputForm) {
+        budgetInputForm.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                handleBudgetSave();
+            }
+        });
+    }
+    
+    // Handle budget save functionality
+    function handleBudgetSave() {
+        if (!budgetLimitInput) return;
+        
         const newBudget = parseFloat(budgetLimitInput.value) || 0;
         
         if (currentBudget.currentPeriod === 'monthly') {
@@ -133,28 +173,53 @@ function initializeBudgetPlanner() {
                 currentBudget.yearly = newBudget * 12;
                 localStorage.setItem('yearlyBudget', currentBudget.yearly.toString());
             }
-        } else {
+        } else if (currentBudget.currentPeriod === 'yearly') {
             currentBudget.yearly = newBudget;
             localStorage.setItem('yearlyBudget', newBudget.toString());
             localStorage.setItem('yearlyBudgetManuallySet', 'true');
+            
+            // Optionally update monthly budget for consistency
+            if (newBudget > 0) {
+                currentBudget.monthly = newBudget / 12;
+                localStorage.setItem('monthlyBudget', currentBudget.monthly.toString());
+            }
         }
         
-        budgetInputForm.style.display = 'none';
-        budgetDisplay.style.display = 'flex';
+        if (budgetInputForm && budgetDisplay) {
+            budgetInputForm.style.display = 'none';
+            budgetDisplay.style.display = 'flex';
+        }
+        
         updateBudgetDisplay();
         
+        // Show toast confirmation
+        if (typeof showToast === 'function') {
+            showToast(`${currentBudget.currentPeriod.charAt(0).toUpperCase() + currentBudget.currentPeriod.slice(1)} budget updated successfully!`, 3000, 'success');
+        }
+        
+        // Haptic feedback on success
+        if (navigator.vibrate) {
+            navigator.vibrate(50);
+        }
+        
         // Load subscriptions to update budget calculations
-        SubscriptionDB.getAll().then(subscriptions => {
-            updateBudgetCalculations(subscriptions);
-        });
-    });
+        if (typeof SubscriptionDB !== 'undefined') {
+            SubscriptionDB.getAll().then(subscriptions => {
+                updateBudgetCalculations(subscriptions);
+            }).catch(error => {
+                console.error('Error loading subscriptions for budget update:', error);
+            });
+        }
+    }
     
     // Initial load of subscriptions to update budget calculations
-    SubscriptionDB.getAll().then(subscriptions => {
-        updateBudgetCalculations(subscriptions);
-    }).catch(error => {
-        console.error('Error loading subscriptions for budget calculations:', error);
-    });
+    if (typeof SubscriptionDB !== 'undefined') {
+        SubscriptionDB.getAll().then(subscriptions => {
+            updateBudgetCalculations(subscriptions);
+        }).catch(error => {
+            console.error('Error loading subscriptions for budget calculations:', error);
+        });
+    }
 }
 
 // Load saved budget values from localStorage
@@ -198,17 +263,41 @@ function updateBudgetDisplay() {
     const budgetValueDisplay = document.getElementById('budgetValueDisplay');
     const budgetPeriodDisplay = document.querySelector('.budget-period');
     
-    if (!budgetValueDisplay || !budgetPeriodDisplay) return;
+    if (!budgetValueDisplay || !budgetPeriodDisplay) {
+        console.warn('Budget display elements not found');
+        return;
+    }
     
     const currencySymbol = getCurrencySymbol();
-    const budgetValue = currentBudget[currentBudget.currentPeriod];
+    const budgetValue = currentBudget[currentBudget.currentPeriod] || 0;
     const periodText = currentBudget.currentPeriod === 'monthly' ? '/month' : '/year';
     
     budgetValueDisplay.textContent = `${currencySymbol}${budgetValue.toLocaleString('en-US', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
     })}`;
+    
     budgetPeriodDisplay.textContent = periodText;
+    
+    // Update any other elements that display budget information
+    const budgetHeading = document.querySelector('.budget-heading');
+    if (budgetHeading) {
+        const periodName = currentBudget.currentPeriod.charAt(0).toUpperCase() + currentBudget.currentPeriod.slice(1);
+        budgetHeading.textContent = `${periodName} Budget`;
+    }
+    
+    // Update alternate period info if available
+    const alternatePeriodInfo = document.querySelector('.alternate-period-info');
+    if (alternatePeriodInfo) {
+        const alternatePeriod = currentBudget.currentPeriod === 'monthly' ? 'yearly' : 'monthly';
+        const alternateBudgetValue = currentBudget[alternatePeriod] || 0;
+        const alternatePeriodText = alternatePeriod === 'monthly' ? '/month' : '/year';
+        
+        alternatePeriodInfo.textContent = `(${currencySymbol}${alternateBudgetValue.toLocaleString('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        })}${alternatePeriodText})`;
+    }
 }
 
 // Update budget calculations based on subscriptions

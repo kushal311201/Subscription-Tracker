@@ -2639,4 +2639,290 @@ body.dark-mode .switch-small input:checked + .slider {
 @keyframes fadeout {
     from {bottom: 20px; opacity: 1;}
     to {bottom: 0; opacity: 0;}
+}
+
+/* Budget Planner Styles */
+.budget-planner {
+    background-color: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.budget-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.budget-period-selector {
+    display: flex;
+    background-color: #f5f5f5;
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+.period-option {
+    padding: 8px 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.period-option.active {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.budget-display {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.current-budget {
+    display: flex;
+    flex-direction: column;
+}
+
+.budget-heading {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 5px;
+}
+
+.budget-value {
+    font-size: 2rem;
+    font-weight: 600;
+    color: var(--primary-color);
+    display: flex;
+    align-items: baseline;
+}
+
+.budget-period {
+    font-size: 1rem;
+    color: #666;
+    margin-left: 4px;
+}
+
+.alternate-period-info {
+    font-size: 0.9rem;
+    color: #888;
+    margin-left: 10px;
+    font-weight: normal;
+}
+
+.edit-budget-btn {
+    background-color: transparent;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    padding: 6px 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.edit-budget-btn:hover {
+    background-color: #f5f5f5;
+    border-color: #ccc;
+}
+
+.budget-limit-wrapper {
+    background-color: #f9f9f9;
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+.budget-limit-wrapper label {
+    margin-bottom: 10px;
+    font-weight: 500;
+}
+
+.budget-input-wrapper {
+    display: flex;
+    align-items: center;
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 0 10px;
+    margin-bottom: 15px;
+}
+
+.budget-currency-symbol {
+    font-weight: 500;
+    padding-right: 5px;
+    color: #555;
+}
+
+.budget-input-wrapper input {
+    border: none;
+    outline: none;
+    padding: 10px 5px;
+    width: 100%;
+    font-size: 1.1rem;
+}
+
+.budget-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.budget-progress {
+    margin-bottom: 20px;
+}
+
+.label-flex {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 5px;
+}
+
+.progress-container {
+    height: 10px;
+    background-color: #eee;
+    border-radius: 5px;
+    overflow: hidden;
+    margin-bottom: 10px;
+}
+
+.progress-bar {
+    height: 100%;
+    background-color: var(--primary-color);
+    transition: width 0.5s ease;
+}
+
+.progress-bar.good {
+    background-color: #4caf50;
+}
+
+.progress-bar.caution {
+    background-color: #ff9800;
+}
+
+.progress-bar.warning {
+    background-color: #f44336;
+}
+
+.budget-details {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.budget-alert {
+    display: flex;
+    align-items: center;
+    background-color: #fff4e5;
+    border-left: 4px solid #ff9800;
+    padding: 12px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+}
+
+.budget-alert i {
+    color: #ff9800;
+    margin-right: 10px;
+    font-size: 1.2rem;
+}
+
+.budget-prediction {
+    background-color: #f9f9f9;
+    border-radius: 10px;
+    padding: 15px;
+}
+
+.prediction-title {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    font-weight: 500;
+}
+
+.prediction-title i {
+    margin-right: 8px;
+    color: var(--primary-color);
+}
+
+.projection-amount {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--primary-color);
+    margin: 10px 0;
+}
+
+.annual-projection {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #eee;
+}
+
+.annual-projection p {
+    margin-bottom: 5px;
+}
+
+/* Dark mode adjustments */
+body.dark-mode .budget-planner {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+}
+
+body.dark-mode .budget-period-selector {
+    background-color: var(--bg-input);
+}
+
+body.dark-mode .budget-heading {
+    color: var(--text-secondary);
+}
+
+body.dark-mode .budget-value {
+    color: var(--primary-color-light);
+}
+
+body.dark-mode .budget-period,
+body.dark-mode .alternate-period-info {
+    color: var(--text-light);
+}
+
+body.dark-mode .edit-budget-btn {
+    border-color: var(--border-color);
+}
+
+body.dark-mode .edit-budget-btn:hover {
+    background-color: var(--bg-input);
+}
+
+body.dark-mode .budget-limit-wrapper,
+body.dark-mode .budget-prediction {
+    background-color: var(--bg-input);
+}
+
+body.dark-mode .budget-input-wrapper {
+    background-color: var(--bg-card);
+    border-color: var(--border-color);
+}
+
+body.dark-mode .budget-currency-symbol {
+    color: var(--text-secondary);
+}
+
+body.dark-mode .progress-container {
+    background-color: var(--bg-input);
+}
+
+body.dark-mode .budget-details {
+    color: var(--text-light);
+}
+
+body.dark-mode .budget-alert {
+    background-color: rgba(255, 152, 0, 0.1);
+    border-left-color: #ff9800;
 } 
