@@ -2405,4 +2405,238 @@ body.dark-mode .switch-small .slider {
 
 body.dark-mode .switch-small input:checked + .slider {
     background-color: var(--primary-color);
+}
+
+/* Analytics Dashboard */
+.analytics-dashboard {
+    background-color: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    margin-top: 20px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.analytics-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.time-period-selector {
+    display: flex;
+    gap: 10px;
+}
+
+.time-period-btn {
+    padding: 6px 12px;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    background-color: transparent;
+    color: #666;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.time-period-btn.active {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.analytics-tabs {
+    display: flex;
+    border-bottom: 1px solid #eee;
+    margin-bottom: 20px;
+}
+
+.analytics-tab {
+    padding: 10px 20px;
+    cursor: pointer;
+    color: #666;
+    position: relative;
+    transition: color 0.2s ease;
+}
+
+.analytics-tab.active {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.analytics-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background-color: var(--primary-color);
+}
+
+.analytics-tab-content {
+    display: none;
+}
+
+.analytics-tab-content.active {
+    display: block;
+}
+
+.chart-container-large {
+    height: 300px;
+    margin-bottom: 20px;
+}
+
+.comparison-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 15px;
+    margin-top: 10px;
+}
+
+.comparison-card {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.comparison-title {
+    font-weight: 600;
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 10px;
+}
+
+.comparison-value {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+.comparison-change {
+    font-size: 12px;
+    font-weight: normal;
+    margin-left: 5px;
+}
+
+.comparison-change.positive {
+    color: #28a745;
+}
+
+.comparison-change.negative {
+    color: #dc3545;
+}
+
+.comparison-change.neutral {
+    color: #6c757d;
+}
+
+.export-section {
+    margin-top: 20px;
+    text-align: right;
+}
+
+.export-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.export-btn {
+    padding: 8px 15px;
+    background-color: #f8f9fa;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.export-options {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background-color: white;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+    padding: 10px 0;
+    min-width: 150px;
+    display: none;
+    z-index: 10;
+}
+
+.export-dropdown:hover .export-options {
+    display: block;
+}
+
+.export-option {
+    padding: 8px 15px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.export-option:hover {
+    background-color: #f8f9fa;
+}
+
+.empty-analytics {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 50px 20px;
+    color: #aaa;
+    text-align: center;
+}
+
+.empty-analytics i {
+    font-size: 48px;
+    margin-bottom: 15px;
+    opacity: 0.7;
+}
+
+/* Analytics Toast Notification */
+.analytics-toast {
+    visibility: hidden;
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: #333;
+    color: white;
+    padding: 15px 20px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    font-size: 14px;
+    z-index: 9999;
+}
+
+.analytics-toast.show {
+    visibility: visible;
+    animation: fadein 0.5s, fadeout 0.5s 2.5s;
+}
+
+.analytics-toast.error {
+    background-color: #dc3545;
+}
+
+.analytics-toast.success {
+    background-color: #28a745;
+}
+
+.analytics-toast.warning {
+    background-color: #ffc107;
+    color: #333;
+}
+
+@keyframes fadein {
+    from {bottom: 0; opacity: 0;}
+    to {bottom: 20px; opacity: 1;}
+}
+
+@keyframes fadeout {
+    from {bottom: 20px; opacity: 1;}
+    to {bottom: 0; opacity: 0;}
 } 

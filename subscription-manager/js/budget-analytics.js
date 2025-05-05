@@ -336,12 +336,16 @@ function initializeAnalyticsDashboard() {
         return;
     }
     
+    console.log('Setting up analytics dashboard with', periodButtons.length, 'period buttons and', analyticsTabs.length, 'tabs');
+    
     // Set up period buttons
     periodButtons.forEach(button => {
         button.addEventListener('click', () => {
             // Update active state
             periodButtons.forEach(b => b.classList.remove('active'));
             button.classList.add('active');
+            
+            console.log('Period button clicked:', button.dataset.period);
             
             // Update charts with new period
             SubscriptionDB.getAll().then(subscriptions => {
@@ -355,6 +359,8 @@ function initializeAnalyticsDashboard() {
     // Set up analytics tabs
     analyticsTabs.forEach(tab => {
         tab.addEventListener('click', () => {
+            console.log('Analytics tab clicked:', tab.dataset.tab);
+            
             // Update active state
             analyticsTabs.forEach(t => t.classList.remove('active'));
             tab.classList.add('active');
@@ -368,9 +374,21 @@ function initializeAnalyticsDashboard() {
             const activeContent = document.getElementById(`${tab.dataset.tab}Tab`);
             if (activeContent) {
                 activeContent.style.display = 'block';
+                console.log('Showing tab content:', tab.dataset.tab);
+            } else {
+                console.error('Tab content not found for:', tab.dataset.tab);
             }
         });
     });
+    
+    // Make sure the first tab is active on initialization
+    const firstTab = document.querySelector('.analytics-tab');
+    if (firstTab) {
+        const firstTabContent = document.getElementById(`${firstTab.dataset.tab}Tab`);
+        if (firstTabContent) {
+            firstTabContent.style.display = 'block';
+        }
+    }
     
     // Initial load of analytics
     SubscriptionDB.getAll().then(subscriptions => {
@@ -407,7 +425,7 @@ function updateAnalyticsDashboard(subscriptions, period = '6m') {
 }
 
 // Update the spending trend chart
-function updateTrendChart(subscriptions, period = '6m') {
+function updateTrendChart(subscriptions, period) {
     const canvas = document.getElementById('trendChart');
     if (!canvas) return;
     

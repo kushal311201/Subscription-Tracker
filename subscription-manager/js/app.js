@@ -389,6 +389,9 @@ function setupEventListeners() {
     setupSearch();
     setupSettingsPanel();
     setupRemindersSection();
+    
+    // Ensure budget and analytics are initialized
+    loadBudgetAnalytics();
 }
 
 // Setup reminders section event listeners
@@ -1581,6 +1584,15 @@ function updateTotalAmount(subscriptions) {
             maximumFractionDigits: 2
         })}`;
     }
+    
+    // Update app state
+    appState.totalMonthlyAmount = total;
+    
+    // Dispatch a custom event that analytics can listen to
+    const event = new CustomEvent('total-amount-updated', { detail: { total } });
+    document.dispatchEvent(event);
+    
+    return total;
 }
 
 // Update category chart - optimized with requestAnimationFrame
@@ -2867,4 +2879,79 @@ function debounce(func, wait) {
         clearTimeout(timeout);
         timeout = setTimeout(() => func.apply(context, args), wait);
     };
+}
+
+// Load budget analytics functionality
+function loadBudgetAnalytics() {
+    // Check if Chart.js is loaded
+    if (typeof Chart === 'undefined') {
+        console.error('Chart.js is not loaded. Attempting to load it dynamically...');
+        const chartScript = document.createElement('script');
+        chartScript.src = 'https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js';
+        chartScript.onload = function() {
+            console.log('Chart.js loaded successfully');
+            // Now we can initialize the budget analytics
+            initializeBudgetAnalyticsComponents();
+        };
+        chartScript.onerror = function() {
+            console.error('Failed to load Chart.js dynamically');
+            showToast('Failed to load analytics components. Please refresh the page.', 5000, 'error');
+        };
+        document.head.appendChild(chartScript);
+    } else {
+        // Chart.js is already loaded, just initialize
+        initializeBudgetAnalyticsComponents();
+    }
+}
+
+// Initialize budget analytics components
+function initializeBudgetAnalyticsComponents() {
+    if (typeof initializeBudgetPlanner === 'function' && typeof initializeAnalyticsDashboard === 'function') {
+        console.log('Initializing budget planner and analytics dashboard');
+        initializeBudgetPlanner();
+        initializeAnalyticsDashboard();
+        
+        // Ensure current data is loaded
+        SubscriptionDB.getAll().then(subscriptions => {
+            if (typeof updateBudgetCalculations === 'function') {
+                updateBudgetCalculations(subscriptions);
+            }
+            if (typeof updateAnalyticsDashboard === 'function') {
+                updateAnalyticsDashboard(subscriptions);
+            }
+            showToast('Analytics dashboard loaded successfully', 2000);
+        }).catch(error => {
+            console.error('Error loading data for analytics:', error);
+        });
+    } else {
+        console.error('Budget analytics functions not found. Trying to load the script...');
+        // Try to load the script dynamically
+        const budgetScript = document.createElement('script');
+        budgetScript.src = 'js/budget-analytics.js';
+        budgetScript.onload = function() {
+            console.log('Budget analytics script loaded successfully');
+            // Wait a bit for functions to be defined
+            setTimeout(() => {
+                if (typeof initializeBudgetPlanner === 'function' && typeof initializeAnalyticsDashboard === 'function') {
+                    initializeBudgetPlanner();
+                    initializeAnalyticsDashboard();
+                    
+                    // Load data for analytics
+                    SubscriptionDB.getAll().then(subscriptions => {
+                        if (typeof updateBudgetCalculations === 'function') {
+                            updateBudgetCalculations(subscriptions);
+                        }
+                        if (typeof updateAnalyticsDashboard === 'function') {
+                            updateAnalyticsDashboard(subscriptions);
+                        }
+                    });
+                }
+            }, 500);
+        };
+        budgetScript.onerror = function() {
+            console.error('Failed to load budget analytics script');
+            showToast('Failed to load analytics components. Please refresh the page.', 5000, 'error');
+        };
+        document.head.appendChild(budgetScript);
+    }
 }
