@@ -3,15 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="theme-color" content="#8B5A2B">
+    <meta name="theme-color" content="#4361ee">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Subscription Tracker</title>
-    <!-- Preload critical fonts and resources -->
+    
+    <!-- Performance optimizations -->
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com">
+    <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
+    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+    
+    <!-- Preload critical resources -->
     <link rel="preload" href="fonts/inter-var.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="css/style.css" as="style">
-    <link rel="preload" href="css/theme-enhancements.css" as="style">
-    <link rel="preload" href="css/budget-analytics.css" as="style">
+    <link rel="preload" href="js/app.js" as="script">
     <link rel="preload" href="js/db.js" as="script">
     
     <!-- Favicon -->
@@ -21,20 +27,32 @@
     <!-- PWA manifest -->
     <link rel="manifest" href="manifest.json">
     
-    <!-- Critical CSS inline for faster rendering -->
+    <!-- Improved critical CSS -->
     <style>
         /* Critical CSS for initial paint */
         :root {
-            --primary-color: #8B5A2B;
-            --bg-primary: #F8F3E9;
-            --text-primary: #3A2C1F;
+            --primary-color: #4361ee;
+            --primary-light: #738aff;
+            --bg-primary: #ffffff;
+            --text-primary: #1a202c;
+            --border-color: rgba(0, 0, 0, 0.08);
+            --shadow-md: 0 4px 15px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.08);
+            --radius-md: 14px;
+            --spacing-md: 16px;
+            --transition-normal: 0.25s ease;
         }
         body {
             margin: 0;
             padding: 0;
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background-color: var(--bg-primary);
             color: var(--text-primary);
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
         }
         .app-loader {
             position: fixed;
@@ -64,8 +82,8 @@
             width: 100%;
             height: 100%;
             border: 2px solid var(--primary-color);
-            background: rgba(139, 90, 43, 0.1);
-            box-shadow: 0 0 20px rgba(139, 90, 43, 0.2);
+            background: rgba(67, 97, 238, 0.1);
+            box-shadow: 0 0 20px rgba(67, 97, 238, 0.2);
             border-radius: 2px;
         }
         .loader-cube-front { transform: translateZ(40px); }
@@ -78,24 +96,77 @@
             0% { transform: rotateY(0deg) rotateX(0deg); }
             100% { transform: rotateY(360deg) rotateX(360deg); }
         }
+        /* Basic layout containers */
+        header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        .subscription-list, .add-subscription, .budget-planner, .summary-box {
+            background-color: var(--bg-primary);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-md);
+            padding: var(--spacing-md);
+            margin-bottom: var(--spacing-md);
+            border: 1px solid var(--border-color);
+            transition: all var(--transition-normal);
+        }
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: var(--bg-primary);
+            z-index: 30;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-around;
+            padding-bottom: env(safe-area-inset-bottom, 0px);
+        }
+        h1, h2 {
+            color: var(--primary-color);
+        }
+        .connection-status {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            text-align: center;
+            padding: 8px;
+            z-index: 1000;
+            transform: translateY(-100%);
+            transition: transform 0.3s;
+        }
+        .connection-status.visible {
+            transform: translateY(0);
+        }
     </style>
     
-    <!-- Non-critical CSS loaded asynchronously -->
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/theme-enhancements.css">
-    <link rel="stylesheet" href="css/budget-analytics.css">
+    <!-- Non-critical CSS with loading optimizations -->
+    <link rel="stylesheet" href="css/style.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="css/theme-enhancements.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="css/budget-analytics.css" media="print" onload="this.media='all'">
+    <noscript>
+        <link rel="stylesheet" href="css/style.css">
+        <link rel="stylesheet" href="css/theme-enhancements.css">
+        <link rel="stylesheet" href="css/budget-analytics.css">
+    </noscript>
     
-    <!-- Preconnect to external resources -->
+    <!-- Optimized font loading -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600&display=swap" 
+          media="print" onload="this.media='all'"
+          rel="stylesheet">
     
-    <!-- Fonts loaded properly -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
-    
-    <!-- Font Awesome properly loaded -->
+    <!-- Optimized Font Awesome loading -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" 
           integrity="sha512-1ycn6IcaQQ40/MKBW2W4Rhis/DbILU74C1vSrLJxCq57o941Ym01SwNsOMqvEBFlcgUa6xLiPY/NS5R+E6ztJQ==" 
-          crossorigin="anonymous" referrerpolicy="no-referrer">
+          crossorigin="anonymous" referrerpolicy="no-referrer"
+          media="print" onload="this.media='all'">
+    <noscript>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    </noscript>
 </head>
 <body>
     <!-- App Loader -->
@@ -154,13 +225,29 @@
                 </div>
             </div>
             
-            <div class="budget-limit-wrapper">
+            <!-- Current Budget Display -->
+            <div class="budget-display">
+                <div class="current-budget">
+                    <div class="budget-heading">Current Budget</div>
+                    <div class="budget-value" id="currentBudgetDisplay">
+                        <span id="budgetValueDisplay">₹0.00</span>
+                        <span class="budget-period">/month</span>
+                    </div>
+                </div>
+                <button class="edit-budget-btn" id="editBudgetBtn">
+                    <i class="fas fa-pencil-alt"></i> Edit
+                </button>
+            </div>
+            
+            <!-- Budget Input Form (hidden by default) -->
+            <div class="budget-limit-wrapper" id="budgetInputForm" style="display: none;">
                 <label for="budgetLimit">Set Budget Limit:</label>
                 <div class="budget-input-wrapper">
                     <span class="budget-currency-symbol" id="budgetCurrencySymbol">₹</span>
                     <input type="number" id="budgetLimit" placeholder="Enter your budget limit" step="0.01" min="0">
                 </div>
                 <button id="saveBudgetBtn" class="btn primary-btn">Save</button>
+                <button id="cancelBudgetBtn" class="btn secondary-btn">Cancel</button>
             </div>
             
             <div class="budget-progress">
@@ -196,6 +283,9 @@
                 </div>
             </div>
         </div>
+
+        <!-- Subscription Container Fallback - Will only be used if the main one is not found -->
+        <div id="subscriptionCardsFallback" style="display: none;"></div>
 
         <!-- Analytics Dashboard -->
         <div class="analytics-dashboard animate-in">
@@ -292,7 +382,7 @@
                     <div class="form-group">
                         <label for="subscriptionAmount">Amount</label>
                         <div class="amount-input-wrapper">
-                            <span id="amountCurrencySymbol">₹</span>
+                            <span id="amountCurrencySymbol" class="currency-prefix">₹</span>
                             <input type="number" id="subscriptionAmount" placeholder="0.00" step="0.01" min="0" required>
                         </div>
                     </div>
@@ -368,11 +458,17 @@
             <div class="subscription-list animate-in">
                 <div class="list-header">
                     <h2>Your Subscriptions</h2>
-                    <div class="filter-section">
-                        <div class="search-wrapper">
-                            <i class="search-icon fas fa-search"></i>
-                            <input type="text" id="searchInput" placeholder="Search subscriptions...">
-                        </div>
+                </div>
+                
+                <div class="search-and-filter">
+                    <div class="search-wrapper">
+                        <i class="search-icon fas fa-search"></i>
+                        <input type="text" id="searchInput" placeholder="Search subscriptions...">
+                        <button class="clear-search" id="clearSearch">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="filter-container">
                         <select id="filterCategory">
                             <option value="all">All Categories</option>
                             <option value="streaming">Streaming</option>
@@ -384,6 +480,7 @@
                         </select>
                     </div>
                 </div>
+                
                 <div id="subscriptionCards" class="cards-container">
                     <!-- Cards will be added here -->
                 </div>
@@ -597,7 +694,7 @@
                 <div class="form-group">
                     <label for="editSubscriptionAmount">Amount</label>
                     <div class="amount-input-wrapper">
-                        <span id="editAmountCurrencySymbol">₹</span>
+                        <span id="editAmountCurrencySymbol" class="currency-prefix">₹</span>
                         <input type="number" id="editSubscriptionAmount" placeholder="0.00" step="0.01" min="0" required>
                     </div>
                 </div>
@@ -698,25 +795,19 @@
         </div>
     </div>
 
-    <!-- Load scripts in the proper order -->
-    <!-- Core library first - no defer on critical libraries -->
-    <script src="js/db.js"></script>
+    <!-- Improved script loading strategy -->
+    <!-- Core libraries first - DB and basic functionality -->
+    <script src="js/db.js" defer></script>
     
-    <!-- Chart.js before any scripts that depend on it -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+    <!-- External libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js" defer></script>
     
-    <!-- GSAP after Chart.js -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
+    <!-- App scripts -->
+    <script src="js/app.js" defer></script>
+    <script src="js/budget-analytics.js" defer></script>
     
-    <!-- App script after libraries -->
-    <script src="js/app.js"></script>
-    
-    <!-- Budget analytics after app.js -->
-    <script src="js/budget-analytics.js"></script>
-    
-    <!-- Service worker last -->
+    <!-- Service worker registration -->
     <script>
-        // Register service worker for PWA
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', function() {
                 navigator.serviceWorker.register('service-worker.js')

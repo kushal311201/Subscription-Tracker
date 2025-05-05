@@ -1,3 +1,285 @@
+/**
+ * Subscription Tracker App - Performance Optimized
+ * App initialization and performance enhancements
+ */
+
+// Performance optimizations
+(function() {
+  // Cache important DOM selectors to avoid repetitive queries
+  window.domCache = {};
+  
+  // Defer non-critical tasks until page is fully loaded and idle
+  const deferredTasks = [];
+  
+  // Add task to deferred queue
+  function deferTask(task, priority = 'low') {
+    deferredTasks.push({ task, priority });
+  }
+  
+  // Execute deferred tasks when browser is idle
+  function executeDeferredTasks() {
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(function(deadline) {
+        while (deadline.timeRemaining() > 0 && deferredTasks.length > 0) {
+          // Execute high priority tasks first
+          const highPriorityTaskIndex = deferredTasks.findIndex(item => item.priority === 'high');
+          const taskIndex = highPriorityTaskIndex !== -1 ? highPriorityTaskIndex : 0;
+          const { task } = deferredTasks.splice(taskIndex, 1)[0];
+          
+          try {
+            task();
+          } catch (error) {
+            console.error('Error in deferred task:', error);
+          }
+        }
+        
+        // If we still have tasks, request another callback
+        if (deferredTasks.length > 0) {
+          executeDeferredTasks();
+        }
+      }, { timeout: 1000 });
+    } else {
+      // Fallback for browsers without requestIdleCallback
+      setTimeout(() => {
+        deferredTasks.forEach(({ task }) => {
+          try {
+            task();
+          } catch (error) {
+            console.error('Error in deferred task:', error);
+          }
+        });
+        deferredTasks.length = 0;
+      }, 200);
+    }
+  }
+  
+  // Optimization: Cache critical DOM elements on load
+  function cacheDOMElements() {
+    const elementsToCache = [
+      'totalMonthly',
+      'budgetProgressBar', 
+      'budgetValueDisplay',
+      'budgetPercentage',
+      'currentSpending',
+      'budgetRemaining',
+      'budgetAlert',
+      'subscriptionCards',
+      'searchInput',
+      'filterCategory',
+      'categoryChart',
+      'connectionStatus',
+      'connectionText'
+    ];
+    
+    elementsToCache.forEach(id => {
+      const element = document.getElementById(id);
+      if (element) {
+        domCache[id] = element;
+      }
+    });
+    
+    // Cache form elements
+    domCache.subscriptionForm = document.getElementById('subscriptionForm');
+    domCache.editSubscriptionForm = document.getElementById('editSubscriptionForm');
+  }
+  
+  // Optimize animations by checking if animation API is supported
+  function setupPerformantAnimations() {
+    if (!window.gsap && 'animate' in Element.prototype) {
+      // Web Animation API as fallback when GSAP is not loaded
+      window.animateElement = function(element, initialDelay = 0) {
+        if (!element) return;
+        
+        element.animate([
+          { opacity: 0, transform: 'translateY(20px)' },
+          { opacity: 1, transform: 'translateY(0)' }
+        ], {
+          duration: 400,
+          easing: 'ease-out',
+          delay: initialDelay,
+          fill: 'forwards'
+        });
+      };
+    }
+  }
+  
+  // Optimize image loading by using IntersectionObserver
+  function setupLazyLoading() {
+    if ('IntersectionObserver' in window) {
+      const imageObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const img = entry.target;
+            const src = img.getAttribute('data-src');
+            
+            if (src) {
+              img.src = src;
+              img.removeAttribute('data-src');
+            }
+            
+            observer.unobserve(img);
+          }
+        });
+      });
+      
+      // Get all images with data-src attribute
+      document.querySelectorAll('img[data-src]').forEach(img => {
+        imageObserver.observe(img);
+      });
+    } else {
+      // Fallback for older browsers
+      document.querySelectorAll('img[data-src]').forEach(img => {
+        img.src = img.getAttribute('data-src');
+      });
+    }
+  }
+  
+  // Set up performance monitoring
+  function initPerformanceMonitoring() {
+    if ('performance' in window && 'mark' in performance) {
+      // Mark key moments
+      performance.mark('app-init-start');
+      
+      window.addEventListener('load', () => {
+        performance.mark('app-load-complete');
+        performance.measure('app-init-to-load', 'app-init-start', 'app-load-complete');
+      });
+      
+      // Custom metric for time to interactive
+      deferTask(() => {
+        performance.mark('app-interactive');
+        performance.measure('time-to-interactive', 'app-init-start', 'app-interactive');
+      }, 'high');
+    }
+  }
+  
+  // Initialize all performance optimizations
+  function initializePerformanceOptimizations() {
+    // Initialize performance monitoring
+    initPerformanceMonitoring();
+    
+    // Cache DOM elements (high priority)
+    cacheDOMElements();
+    
+    // Add remaining tasks to defer queue
+    deferTask(setupPerformantAnimations, 'medium');
+    deferTask(setupLazyLoading, 'medium');
+    
+    // Start executing deferred tasks when page is loaded
+    if (document.readyState === 'complete') {
+      executeDeferredTasks();
+    } else {
+      window.addEventListener('load', executeDeferredTasks);
+    }
+  }
+  
+  // Provide these functions globally
+  window.appPerformance = {
+    deferTask,
+    executeDeferredTasks,
+    cacheDOMElements
+  };
+  
+  // Initialize performance optimizations
+  initializePerformanceOptimizations();
+})();
+
+// Optimized debounce function
+function debounce(func, wait = 200, immediate = false) {
+  let timeout;
+  return function(...args) {
+    const context = this;
+    const later = function() {
+      timeout = null;
+      if (!immediate) func.apply(context, args);
+    };
+    const callNow = immediate && !timeout;
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+    if (callNow) func.apply(context, args);
+  };
+}
+
+// Throttle function to limit execution frequency
+function throttle(func, limit = 100) {
+  let inThrottle;
+  return function(...args) {
+    const context = this;
+    if (!inThrottle) {
+      func.apply(context, args);
+      inThrottle = true;
+      setTimeout(() => {
+        inThrottle = false;
+      }, limit);
+    }
+  };
+}
+
+// Constants for billing cycle conversions (cached to avoid recalculation)
+// This variable is also referenced in budget-analytics.js
+window.BILLING_CYCLE_FACTORS = {
+  'monthly': 1,
+  'yearly': 1/12,
+  'quarterly': 1/3,
+  'weekly': 4.33, // Average weeks in a month
+  'biweekly': 2.17, // Average bi-weekly periods in a month
+  'daily': 30.42 // Average days in a month
+};
+
+// Application state management (to avoid excessive DOM manipulation)
+const appState = {
+  subscriptions: [],
+  filteredSubscriptions: [],
+  currentFilter: 'all',
+  searchQuery: '',
+  isDarkMode: false,
+  currency: '₹',
+  budget: {
+    monthly: 0,
+    yearly: 0,
+    currentPeriod: 'monthly'
+  },
+  
+  // Update state and trigger UI update only when needed
+  updateSubscriptions(newSubscriptions) {
+    this.subscriptions = newSubscriptions;
+    this.applyFilters();
+    this.notifySubscriptionChange();
+  },
+  
+  // Apply filters and search
+  applyFilters() {
+    let filtered = [...this.subscriptions];
+    
+    // Apply category filter
+    if (this.currentFilter !== 'all') {
+      filtered = filtered.filter(sub => sub.category === this.currentFilter);
+    }
+    
+    // Apply search filter
+    if (this.searchQuery) {
+      const query = this.searchQuery.toLowerCase();
+      filtered = filtered.filter(sub => {
+        return sub.name.toLowerCase().includes(query) || 
+               sub.category.toLowerCase().includes(query);
+      });
+    }
+    
+    this.filteredSubscriptions = filtered;
+    return filtered;
+  },
+  
+  // Notify subscription change
+  notifySubscriptionChange() {
+    document.dispatchEvent(new CustomEvent('subscriptions-updated', {
+      detail: {
+        subscriptions: this.subscriptions,
+        filteredSubscriptions: this.filteredSubscriptions
+      }
+    }));
+  }
+};
+
 // Subscription Manager - Main JavaScript File
 //
 // This app is designed to work completely offline and stores all your
@@ -37,83 +319,64 @@ let syncInProgress = false;
   }
   
   function initializeApp() {
-    // Start the loading sequence
+    // Show app loader while initializing
     showAppLoader();
     
-    // Check browser support first
-    if (!SubscriptionDB.isSupported()) {
-      console.error('IndexedDB is not supported in this browser');
-      showDatabaseError('Your browser does not support offline storage. Try using a modern browser like Chrome or Edge.');
-      hideAppLoader();
-      return;
+    // Set up performance monitoring
+    if ('performance' in window && 'mark' in performance) {
+        performance.mark('app-init');
     }
     
-    // Initialize critical features first
-    setupNavigation();
-    loadThemePreference();
-    updateOnlineStatus();
-    
-    // Initialize IndexedDB
-    SubscriptionDB.init()
-      .then(() => {
-        console.log('IndexedDB initialized');
-        
-        // Load subscriptions - most important task first
-        loadSubscriptions();
-        
-        // Setup event listeners after DB initialization
-        setupEventListeners();
-        
-        // Register for notifications - background task
-        setTimeout(() => {
-          setupNotifications();
-        }, 1000);
-        
-        // Hide loader after initialization
-        hideAppLoader();
-      })
-      .catch(error => {
-        console.error('Failed to initialize IndexedDB:', error);
-        
-        // Try to determine the specific error cause for better error messages
-        let errorMessage = 'Failed to initialize offline storage. Some features may not work correctly.';
-        let errorDetails = '';
-        
-        if (error.name === 'QuotaExceededError' || error.message.includes('quota')) {
-          errorDetails = 'This may happen in private browsing mode or if your device is low on storage.';
-        } else if (error.name === 'SecurityError' || error.message.includes('security')) {
-          errorDetails = 'This may be due to browser security restrictions.';
-        } else if (error.message.includes('timed out')) {
-          errorDetails = 'Database initialization timed out. Try refreshing the page.';
-        }
-        
-        // Display a more user-friendly error message
-        showDatabaseError(errorMessage, errorDetails);
-        
-        // Hide loader even if there's an error
-        hideAppLoader();
-        
-        // Setup the app in limited mode (read-only)
+    // Initialize the subscription database
+    if (window.SubscriptionDB) {
+        SubscriptionDB.init()
+            .then(() => {
+                // Load and display subscriptions
+                return loadSubscriptions();
+            })
+            .then(() => {
+                // Set up event listeners only after data is loaded
+                setupEventListeners();
+                
+                // Set up other UI components in parallel
+                setupSearch();
+                setupCategoryFilter();
+                setupFormListener();
+                setupEditFormListeners();
+                setupNotifications();
+                setupNavigation();
+                
+                // UI-related initializations that can be deferred
+                window.appPerformance.deferTask(() => {
+                    loadThemePreference();
+                    initializeSettings();
+                    setupSettingsPanel();
+                    startPageAnimations();
+                    validateAppDOM();
+                }, 'medium');
+                
+                // Online status management
+                handleOnlineStatusChange();
+                
+                // Hide loader with slight delay for smoother transition
+                setTimeout(hideAppLoader, 400);
+                
+                // Performance mark for app ready
+                if ('performance' in window && 'mark' in performance) {
+                    performance.mark('app-ready');
+                    performance.measure('app-initialization', 'app-init', 'app-ready');
+                }
+            })
+            .catch(error => {
+                console.error('Initialization error:', error);
+                handleDbError(error);
+                hideAppLoader();
+            });
+    } else {
+        // Fallback when DB is not available
+        console.error('SubscriptionDB not available. Trying to recover...');
         setupLimitedMode();
-      });
-    
-    // Listen for online/offline events
-    window.addEventListener('online', handleOnlineStatusChange);
-    window.addEventListener('offline', handleOnlineStatusChange);
-    
-    // Listen for sync messages from service worker
-    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-      navigator.serviceWorker.addEventListener('message', event => {
-        if (event.data.type === 'SYNC_STARTED') {
-          syncInProgress = true;
-          showSyncIndicator(true, 'Syncing data...');
-        } else if (event.data.type === 'SYNC_COMPLETED') {
-          syncInProgress = false;
-          showSyncIndicator(false, 'Sync completed');
-          // Reload subscriptions to get the latest data
-          loadSubscriptions();
-        }
-      });
+        hideAppLoader();
     }
   }
 })();
@@ -297,99 +560,88 @@ function syncData() {
         });
 }
 
-// Load subscriptions from IndexedDB with progressive loading
+// Load subscriptions with optimized rendering
 function loadSubscriptions() {
-    // First, check if IndexedDB is supported
-    if (!SubscriptionDB.isSupported()) {
-        console.error('IndexedDB is not supported in this browser');
-        showToast('Your browser does not support offline storage. Some features may not work correctly.', 4000, 'warning');
-        hideAppLoader();
-        return;
-    }
-    
-    // Show loading indicator
-    const container = document.getElementById('subscriptionCards');
-    if (container) {
-        // Clear existing cards
-        container.innerHTML = '';
+    return new Promise((resolve, reject) => {
+        // Cache DOM elements for better performance
+        const subscriptionCards = document.getElementById('subscriptionCards');
+        const emptyState = document.querySelector('.empty-state');
         
-        // Show loading indicator in container
-        const loadingEl = document.createElement('div');
-        loadingEl.className = 'loading-indicator';
-        loadingEl.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
-        loadingEl.style.textAlign = 'center';
-        loadingEl.style.padding = '30px';
-        loadingEl.style.color = 'var(--text-secondary)';
-        container.appendChild(loadingEl);
-    }
-    
-    // Set a timeout for slow database operations
-    const timeoutID = setTimeout(() => {
-        console.warn('Loading subscriptions is taking longer than expected');
-        if (container && container.querySelector('.loading-indicator')) {
-            container.querySelector('.loading-indicator').innerHTML = 
-                '<i class="fas fa-spinner fa-spin"></i> Still loading... taking longer than expected';
+        if (!subscriptionCards) {
+            reject(new Error('Subscription cards container not found'));
+            return;
         }
-    }, 3000);
-    
-    // Get all subscriptions from IndexedDB
-    SubscriptionDB.getAll()
-        .then(subscriptions => {
-            clearTimeout(timeoutID);
-            
-            // Sort subscriptions by due date
-            subscriptions.sort((a, b) => {
-                const dateA = new Date(a.dueDate || '3000-01-01');
-                const dateB = new Date(b.dueDate || '3000-01-01');
-                return dateA - dateB;
-            });
-            
-            // First fast update the UI with the data
-            updateUI(subscriptions);
-            
-            // Then update charts and other visualizations progressively
-            // to avoid blocking the main thread
-            setTimeout(() => {
-                updateCategoryChart(subscriptions);
+        
+        // Clear existing cards
+        subscriptionCards.innerHTML = '';
+        
+        // Get subscriptions from DB
+        SubscriptionDB.getAll()
+            .then(subscriptions => {
+                // Update app state
+                appState.subscriptions = subscriptions;
+                appState.filteredSubscriptions = appState.applyFilters();
                 
-                // After charts, load reminders
-                setTimeout(() => {
-                    loadUpcomingReminders(subscriptions);
-                    
-                    // Start animations last
-                    setTimeout(startPageAnimations, 100);
-                }, 100);
-            }, 100);
-        })
-        .catch(error => {
-            clearTimeout(timeoutID);
-            console.error('Error loading subscriptions:', error);
-            
-            // Display error in the container
-            if (container) {
-                container.innerHTML = `
-                    <div class="subscription-error">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        <p>Error loading subscriptions: ${error.message || 'Unknown error'}</p>
-                        <button id="retryLoadBtn" class="btn primary-btn">Try Again</button>
-                    </div>
-                `;
-                
-                // Add retry button functionality
-                const retryBtn = document.getElementById('retryLoadBtn');
-                if (retryBtn) {
-                    retryBtn.addEventListener('click', () => {
-                        loadSubscriptions();
-                    });
+                // Handle empty state
+                if (subscriptions.length === 0) {
+                    if (emptyState) {
+                        emptyState.style.display = 'flex';
+                    }
+                    resolve(subscriptions);
+                    return;
                 }
-            }
-            
-            // Show error toast
-            showToast('Error loading subscriptions. Please try again.', 4000, 'error');
-            
-            // Still update the chart with empty data
-            updateCategoryChart([]);
-        });
+                
+                // Hide empty state
+                if (emptyState) {
+                    emptyState.style.display = 'none';
+                }
+                
+                // Use document fragment for better performance
+                const fragment = document.createDocumentFragment();
+                
+                // Process in batches for better responsiveness if there are many subscriptions
+                const batchSize = 10;
+                let currentIndex = 0;
+                
+                function processBatch() {
+                    const endIndex = Math.min(currentIndex + batchSize, appState.filteredSubscriptions.length);
+                    
+                    for (let i = currentIndex; i < endIndex; i++) {
+                        const subscription = appState.filteredSubscriptions[i];
+                        const card = createSubscriptionCard(subscription);
+                        fragment.appendChild(card);
+                    }
+                    
+                    currentIndex = endIndex;
+                    
+                    if (currentIndex < appState.filteredSubscriptions.length) {
+                        // Process next batch asynchronously for better performance
+                        setTimeout(processBatch, 0);
+                    } else {
+                        // Done processing all subscriptions
+                        subscriptionCards.appendChild(fragment);
+                        
+                        // Update budget and analytics after subscriptions are loaded
+                        updateTotalAmount(subscriptions);
+                        updateCategoryChart(subscriptions);
+                        
+                        // Dispatch event for other modules
+                        document.dispatchEvent(new CustomEvent('subscriptions-loaded', { 
+                            detail: { subscriptions } 
+                        }));
+                        
+                        resolve(subscriptions);
+                    }
+                }
+                
+                // Start processing batches
+                processBatch();
+            })
+            .catch(error => {
+                console.error('Error loading subscriptions:', error);
+                reject(error);
+            });
+    });
 }
 
 // Load upcoming reminders for the main page
@@ -474,10 +726,39 @@ function saveSubscription(subscription) {
     SubscriptionDB.add(subscription)
         .then(savedSubscription => {
             // Update the UI with the new subscription
-            createSubscriptionCard(savedSubscription);
+            try {
+                const card = createSubscriptionCard(savedSubscription);
+                
+                // Try to get the main container, fall back to the fallback container if needed
+                let container = document.getElementById('subscriptionCards');
+                
+                // If main container not found, try to use the fallback
+                if (!container) {
+                    console.warn('Main subscriptionCards container not found in saveSubscription, trying fallback');
+                    container = document.getElementById('subscriptionCardsFallback');
+                    
+                    // Make the fallback visible if it exists
+                    if (container) {
+                        container.style.display = 'block';
+                    }
+                }
+                
+                // Append to the container if it exists
+                if (container) {
+                    container.appendChild(card);
+                    console.log('Subscription card added to the container');
+                } else {
+                    console.error('No container found for adding the subscription card');
+                }
+            } catch (error) {
+                console.error('Error creating or appending subscription card:', error);
+            }
             
             // Clear the form
-            document.getElementById('subscriptionForm').reset();
+            const subscriptionForm = document.getElementById('subscriptionForm');
+            if (subscriptionForm) {
+                subscriptionForm.reset();
+            }
             
             // Update total amount and chart
             loadSubscriptions();
@@ -521,20 +802,60 @@ function deleteSubscription(id) {
  * @param {Array} subscriptions - The list of subscriptions to display
  */
 function updateUI(subscriptions) {
-    // Clear current subscriptions
-    const subscriptionsList = document.getElementById('subscriptionsList');
+    console.log('updateUI called with', subscriptions ? subscriptions.length : 0, 'subscriptions');
+    
+    // Try to get the main container, fall back to the fallback container if needed
+    let subscriptionsList = document.getElementById('subscriptionCards');
+    
+    // If main container not found, try to use the fallback
+    if (!subscriptionsList) {
+        console.warn('Main subscriptionCards container not found in updateUI, trying fallback');
+        subscriptionsList = document.getElementById('subscriptionCardsFallback');
+        
+        // Make the fallback visible if it exists
+        if (subscriptionsList) {
+            subscriptionsList.style.display = 'block';
+        }
+    }
+    
+    console.log('subscriptionCards element in updateUI:', subscriptionsList);
+    
+    if (!subscriptionsList) {
+        console.error('subscriptionCards element not found in the DOM in updateUI!');
+        showToast('Error: Cannot display subscriptions. Please refresh the page.', 5000, 'error');
+        hideAppLoader();
+        return; // Exit early to avoid the error
+    }
+    
     subscriptionsList.innerHTML = '';
 
-    // Add message if no subscriptions
+    // Get the empty state element
+    const emptyState = document.querySelector('.empty-state');
+    console.log('emptyState element:', emptyState);
+
+    // Show or hide empty state based on subscriptions
     if (subscriptions.length === 0) {
-        const message = document.createElement('div');
-        message.className = 'no-subscriptions-message';
-        message.innerHTML = `
-            <i class="fas fa-info-circle"></i>
-            <p>You haven't added any subscriptions yet. Add your first subscription to get started!</p>
-        `;
-        subscriptionsList.appendChild(message);
+        // Show the empty state message
+        if (emptyState) {
+            emptyState.style.display = 'flex';
+        } else {
+            // Create a temporary empty state if the main one doesn't exist
+            const tempEmptyState = document.createElement('div');
+            tempEmptyState.className = 'temporary-empty-state';
+            tempEmptyState.innerHTML = `
+                <div style="text-align: center; padding: 30px;">
+                    <i class="fas fa-bookmark" style="font-size: 48px; opacity: 0.5;"></i>
+                    <p>No subscriptions added yet. Add your first subscription to track it.</p>
+                </div>
+            `;
+            subscriptionsList.appendChild(tempEmptyState);
+        }
     } else {
+        // Hide the empty state message
+        if (emptyState) {
+            emptyState.style.display = 'none';
+        }
+        
         // Sort subscriptions by due date
         subscriptions.sort((a, b) => {
             const dateA = new Date(a.dueDate);
@@ -544,20 +865,28 @@ function updateUI(subscriptions) {
 
         // Render each subscription
         subscriptions.forEach(subscription => {
-            const card = createSubscriptionCard(subscription);
-            subscriptionsList.appendChild(card);
-            
-            // Setup swipe actions for mobile
-            setupSwipeActions(card, subscription.id);
-            
-            // Animate the card
-            animateElement(card);
+            try {
+                const card = createSubscriptionCard(subscription);
+                subscriptionsList.appendChild(card);
+                
+                // Setup swipe actions for mobile
+                setupSwipeActions(card, subscription.id);
+                
+                // Animate the card
+                animateElement(card);
+            } catch (error) {
+                console.error('Error creating card for subscription:', error, subscription);
+            }
         });
     }
 
-    // Update analytics
-    updateTotalAmount(subscriptions);
-    updateCategoryChart(subscriptions);
+    // Update analytics if the elements exist
+    try {
+        updateTotalAmount(subscriptions);
+        updateCategoryChart(subscriptions);
+    } catch (error) {
+        console.error('Error updating analytics:', error);
+    }
     
     // Dispatch an event to notify that subscriptions have been updated
     document.dispatchEvent(new CustomEvent('subscriptions-updated', { detail: { subscriptions } }));
@@ -1269,155 +1598,141 @@ function hashCode(str) {
     return hash;
 }
 
-// Setup category filter
+// Set up category filter with performance optimizations
 function setupCategoryFilter() {
     const filterSelect = document.getElementById('filterCategory');
     
+    if (!filterSelect) return;
+    
     filterSelect.addEventListener('change', () => {
-        const category = filterSelect.value;
-        const cards = document.querySelectorAll('.subscription-card');
+        // Update app state with the selected category
+        appState.currentFilter = filterSelect.value;
         
-        cards.forEach(card => {
-            const cardCategory = card.querySelector('.card-category').textContent;
-            
-            if (category === 'all' || cardCategory === category) {
-                card.style.display = 'block';
-            } else {
-                card.style.display = 'none';
-            }
-        });
+        // Apply filters and update UI
+        const filteredSubscriptions = appState.applyFilters();
+        updateUIWithFilteredSubscriptions(filteredSubscriptions);
+        
+        // Store preference
+        localStorage.setItem('lastCategoryFilter', appState.currentFilter);
         
         // Haptic feedback
-        if (navigator.vibrate) navigator.vibrate(30);
+        if (navigator.vibrate) {
+            navigator.vibrate(20);
+        }
     });
+    
+    // Load saved filter preference
+    const savedFilter = localStorage.getItem('lastCategoryFilter');
+    if (savedFilter) {
+        filterSelect.value = savedFilter;
+        appState.currentFilter = savedFilter;
+    }
 }
 
-// Setup search functionality with debouncing
+// Setup search functionality with optimized performance
 function setupSearch() {
     const searchInput = document.getElementById('searchInput');
+    const clearSearchBtn = document.getElementById('clearSearch');
     
     if (!searchInput) return;
     
-    // Implement debouncing for better performance
-    let debounceTimeout;
-    
-    searchInput.addEventListener('input', () => {
-        // Clear previous timeout
-        clearTimeout(debounceTimeout);
+    // Optimize search by using debounce to avoid excessive filtering
+    searchInput.addEventListener('input', debounce((e) => {
+        const query = e.target.value.toLowerCase().trim();
         
-        // Show loading indicator
-        const container = document.getElementById('subscriptionCards');
-        if (container) {
-            const loadingIndicator = container.querySelector('.search-loading');
-            if (!loadingIndicator && searchInput.value.trim() !== '') {
-                const indicator = document.createElement('div');
-                indicator.className = 'search-loading';
-                indicator.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Searching...';
-                indicator.style.textAlign = 'center';
-                indicator.style.padding = '20px';
-                indicator.style.color = 'var(--text-light)';
-                
-                // Only add if container has cards
-                if (container.querySelectorAll('.subscription-card').length > 0) {
-                    container.prepend(indicator);
-                }
-            }
+        // Update app state
+        appState.searchQuery = query;
+        const filteredSubscriptions = appState.applyFilters();
+        
+        // Update UI with filtered subscriptions
+        updateUIWithFilteredSubscriptions(filteredSubscriptions);
+        
+        // Show/hide clear button based on search input
+        if (clearSearchBtn) {
+            clearSearchBtn.style.display = query ? 'block' : 'none';
         }
         
-        // Set debounced search after 300ms
-        debounceTimeout = setTimeout(() => {
-            // Use optimized search function instead of filtering DOM
-            const searchTerm = searchInput.value.trim().toLowerCase();
-            
-            if (searchTerm === '') {
-                // If search is cleared, show all subscriptions
-                document.querySelectorAll('.subscription-card').forEach(card => {
-                    card.style.display = 'block';
-                });
-                
-                // Remove loading indicator
-                const loadingIndicator = document.querySelector('.search-loading');
-                if (loadingIndicator) {
-                    loadingIndicator.remove();
-                }
-                return;
-            }
-            
-            // Use database search for better performance
-            SubscriptionDB.search(searchTerm)
-                .then(results => {
-                    // Get all cards and first hide them all
-                    const cards = document.querySelectorAll('.subscription-card');
-                    cards.forEach(card => {
-                        card.style.display = 'none';
-                    });
-                    
-                    // Show matching cards
-                    if (results.length > 0) {
-                        const matchingIds = results.map(sub => sub.id);
-                        cards.forEach(card => {
-                            const cardId = card.id.replace('subscription-', '');
-                            if (matchingIds.includes(cardId)) {
-                                card.style.display = 'block';
-                            }
-                        });
-                    }
-                    
-                    // Show no results message if needed
-                    const noResultsEl = document.querySelector('.no-search-results');
-                    if (results.length === 0 && !noResultsEl) {
-                        const noResults = document.createElement('div');
-                        noResults.className = 'no-search-results';
-                        noResults.innerHTML = `
-                            <i class="fas fa-search"></i>
-                            <p>No subscriptions matching "${searchTerm}"</p>
-                            <button id="clearSearchBtn" class="btn secondary-btn">Clear Search</button>
-                        `;
-                        container.appendChild(noResults);
-                        
-                        // Add clear search button handler
-                        document.getElementById('clearSearchBtn').addEventListener('click', () => {
-                            searchInput.value = '';
-                            // Trigger the input event to update the search
-                            searchInput.dispatchEvent(new Event('input'));
-                        });
-                    } else if (results.length > 0 && noResultsEl) {
-                        noResultsEl.remove();
-                    }
-                    
-                    // Remove loading indicator
-                    const loadingIndicator = document.querySelector('.search-loading');
-                    if (loadingIndicator) {
-                        loadingIndicator.remove();
-                    }
-                })
-                .catch(error => {
-                    console.error('Search error:', error);
-                    // Remove loading indicator
-                    const loadingIndicator = document.querySelector('.search-loading');
-                    if (loadingIndicator) {
-                        loadingIndicator.remove();
-                    }
-                });
-        }, 300);
-    });
+        // Haptic feedback on input - only on first character for better performance
+        if (navigator.vibrate && query.length === 1) {
+            navigator.vibrate(20);
+        }
+    }, 200));
     
-    // Add clear button to search input
-    const searchWrapper = searchInput.parentElement;
-    if (searchWrapper && searchWrapper.classList.contains('search-wrapper')) {
-        const clearBtn = document.createElement('button');
-        clearBtn.className = 'clear-search';
-        clearBtn.innerHTML = '<i class="fas fa-times-circle"></i>';
-        clearBtn.setAttribute('aria-label', 'Clear search');
+    // Clear search button functionality
+    if (clearSearchBtn) {
+        // Initially hide the clear button
+        clearSearchBtn.style.display = 'none';
         
-        clearBtn.addEventListener('click', () => {
+        clearSearchBtn.addEventListener('click', () => {
             searchInput.value = '';
-            // Trigger the input event to update the search
-            searchInput.dispatchEvent(new Event('input'));
             searchInput.focus();
+            
+            // Update app state
+            appState.searchQuery = '';
+            const filteredSubscriptions = appState.applyFilters();
+            
+            // Update UI with all subscriptions (filtered by category if applicable)
+            updateUIWithFilteredSubscriptions(filteredSubscriptions);
+            
+            // Hide clear button
+            clearSearchBtn.style.display = 'none';
+            
+            // Haptic feedback
+            if (navigator.vibrate) {
+                navigator.vibrate(20);
+            }
+        });
+    }
+}
+
+// Update UI with filtered subscriptions
+function updateUIWithFilteredSubscriptions(filteredSubscriptions) {
+    const subscriptionCards = document.getElementById('subscriptionCards');
+    const emptyState = document.querySelector('.empty-state');
+    
+    if (!subscriptionCards) return;
+    
+    // Clear current cards
+    subscriptionCards.innerHTML = '';
+    
+    if (filteredSubscriptions.length === 0) {
+        // Show empty state with appropriate message
+        if (emptyState) {
+            emptyState.style.display = 'flex';
+            
+            // Change message based on if we're filtering or not
+            if (appState.searchQuery || appState.currentFilter !== 'all') {
+                emptyState.innerHTML = `
+                    <i class="fas fa-search"></i>
+                    <p>No subscriptions match your search or filter criteria.</p>
+                `;
+            } else {
+                emptyState.innerHTML = `
+                    <i class="fas fa-bookmark"></i>
+                    <p>No subscriptions added yet. Add your first subscription to track it.</p>
+                `;
+            }
+        }
+    } else {
+        // Hide empty state
+        if (emptyState) {
+            emptyState.style.display = 'none';
+        }
+        
+        // Add subscription cards with efficient fragment for better performance
+        const fragment = document.createDocumentFragment();
+        
+        filteredSubscriptions.forEach(subscription => {
+            const card = createSubscriptionCard(subscription);
+            fragment.appendChild(card);
         });
         
-        searchWrapper.appendChild(clearBtn);
+        subscriptionCards.appendChild(fragment);
+    }
+    
+    // Update budget calculations with filtered subscriptions
+    if (typeof updateBudgetCalculations === 'function') {
+        updateBudgetCalculations(appState.subscriptions);
     }
 }
 
@@ -1572,13 +1887,24 @@ function urlBase64ToUint8Array(base64String) {
 
 // Setup bottom navigation
 function setupNavigation() {
+    console.log('Setting up navigation');
+    
     const navHome = document.getElementById('nav-home');
     const navAdd = document.getElementById('nav-add');
     const navSettings = document.getElementById('nav-settings');
     const addSubscriptionSection = document.querySelector('.add-subscription');
     const subscriptionListSection = document.querySelector('.subscription-list');
     
-    if (navHome) {
+    // Log found elements
+    console.log('Navigation elements found:', {
+        navHome: !!navHome,
+        navAdd: !!navAdd,
+        navSettings: !!navSettings,
+        addSubscriptionSection: !!addSubscriptionSection,
+        subscriptionListSection: !!subscriptionListSection
+    });
+    
+    if (navHome && addSubscriptionSection && subscriptionListSection) {
         navHome.addEventListener('click', e => {
             e.preventDefault();
             // Show subscription list, hide add form
@@ -1594,7 +1920,7 @@ function setupNavigation() {
         });
     }
     
-    if (navAdd) {
+    if (navAdd && addSubscriptionSection && subscriptionListSection) {
         navAdd.addEventListener('click', e => {
             e.preventDefault();
             // Show add form, hide subscription list
@@ -2381,4 +2707,54 @@ function resetDatabase() {
             resolve();
         };
     });
-} 
+}
+
+// Add this function to the beginning of the file, right after the app initialization
+// DOM validation to ensure required elements exist
+function validateAppDOM() {
+    console.log('Validating app DOM elements');
+    const requiredElements = {
+        'subscriptionCards': document.getElementById('subscriptionCards'),
+        'empty-state': document.querySelector('.empty-state'),
+        'totalMonthly': document.getElementById('totalMonthly'),
+        'categoryChart': document.getElementById('categoryChart'),
+        'upcomingRemindersList': document.getElementById('upcomingRemindersList'),
+        'nav-home': document.getElementById('nav-home'),
+        'nav-add': document.getElementById('nav-add'),
+        'nav-settings': document.getElementById('nav-settings'),
+        'add-subscription': document.querySelector('.add-subscription'),
+        'subscription-list': document.querySelector('.subscription-list')
+    };
+    
+    // Log found and missing elements
+    const foundElements = {};
+    const missingElements = [];
+    
+    for (const [name, element] of Object.entries(requiredElements)) {
+        foundElements[name] = !!element;
+        if (!element) {
+            missingElements.push(name);
+        }
+    }
+    
+    console.log('DOM Validation - Elements found:', foundElements);
+    
+    if (missingElements.length > 0) {
+        console.error('Critical elements missing:', missingElements);
+        // Show error to user
+        showToast('Application error: Some UI elements are missing. Please refresh the page.', 6000, 'error');
+        return false;
+    }
+    
+    return true;
+}
+
+// Utility function for debouncing 
+function debounce(func, wait) {
+    let timeout;
+    return function(...args) {
+        const context = this;
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(context, args), wait);
+    };
+}

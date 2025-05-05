@@ -3,90 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="theme-color" content="#4a89dc">
-    <title>You're Offline - Subscription Tracker</title>
+    <meta name="theme-color" content="#4361ee">
+    <title>Currently Offline - Subscription Tracker</title>
     <style>
         :root {
-            --primary-color: #4a89dc;
-            --primary-light: #75a5e4;
-            --primary-dark: #3a6cb5;
-            --primary-gradient: linear-gradient(135deg, #4a89dc, #5b9ce6);
-            --bg-primary: #f5f7fa;
-            --bg-secondary: #ffffff;
-            --text-primary: #2c3e50;
-            --text-secondary: #5d6d7e;
-            --text-light: #95a5a6;
+            --primary-color: #4361ee;
+            --primary-light: #738aff;
+            --bg-primary: #ffffff;
+            --text-primary: #1a202c;
+            --text-secondary: #4a5568;
+            --text-light: #718096;
+            --border-color: rgba(0, 0, 0, 0.08);
+            --shadow-md: 0 4px 15px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.08);
             --radius-md: 14px;
-            --shadow-md: 0 5px 15px rgba(0, 0, 0, 0.1);
-            --spacing-sm: 8px;
             --spacing-md: 16px;
             --spacing-lg: 24px;
-            --spacing-xl: 32px;
+            --transition-normal: 0.25s ease;
         }
         
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --bg-primary: #1a1f25;
-                --bg-secondary: #2c3e50;
-                --text-primary: #ecf0f1;
-                --text-secondary: #bdc3c7;
-                --text-light: #7f8c8d;
-            }
-        }
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        body.dark-mode {
+            --bg-primary: #0f172a;
+            --text-primary: #f8fafc;
+            --text-secondary: #e2e8f0;
+            --text-light: #cbd5e1;
+            --border-color: rgba(255, 255, 255, 0.1);
         }
         
         body {
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background-color: var(--bg-primary);
-            background-image: url('img/backgrounds/bg-pattern.svg');
-            background-attachment: fixed;
-            background-size: cover;
             color: var(--text-primary);
             line-height: 1.6;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
+            justify-content: center;
             min-height: 100vh;
-            padding: var(--spacing-lg);
+            text-align: center;
         }
         
         .offline-container {
-            background-color: var(--bg-secondary);
+            max-width: 85%;
+            width: 500px;
+            background-color: var(--bg-primary);
             border-radius: var(--radius-md);
             box-shadow: var(--shadow-md);
-            padding: var(--spacing-xl);
-            max-width: 500px;
-            width: 100%;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .offline-container::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: var(--primary-gradient);
-        }
-        
-        .offline-icon {
-            font-size: 60px;
-            color: var(--primary-color);
-            margin-bottom: var(--spacing-lg);
+            padding: var(--spacing-lg);
+            margin: var(--spacing-md);
+            border: 1px solid var(--border-color);
         }
         
         h1 {
-            color: var(--text-primary);
+            color: var(--primary-color);
+            font-size: 1.8rem;
             margin-bottom: var(--spacing-md);
-            font-size: 24px;
         }
         
         p {
@@ -94,103 +66,101 @@
             margin-bottom: var(--spacing-lg);
         }
         
+        .offline-icon {
+            font-size: 4rem;
+            color: var(--primary-color);
+            margin-bottom: var(--spacing-md);
+        }
+        
         .btn {
             display: inline-block;
-            padding: 12px 20px;
-            background: var(--primary-gradient);
+            padding: 12px 24px;
+            background-color: var(--primary-color);
             color: white;
             border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 16px;
+            border-radius: var(--radius-md);
             font-weight: 500;
+            cursor: pointer;
             text-decoration: none;
-            margin-top: var(--spacing-md);
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: all var(--transition-normal);
         }
         
-        .btn:hover, .btn:focus {
+        .btn:hover {
+            background-color: var(--primary-light);
             transform: translateY(-2px);
-            box-shadow: 0 7px 14px rgba(50, 50, 93, 0.1), 0 3px 6px rgba(0, 0, 0, 0.08);
         }
         
-        .suggestions {
-            margin-top: var(--spacing-xl);
-            padding-top: var(--spacing-lg);
-            border-top: 1px solid rgba(0,0,0,0.05);
+        .tips {
+            margin-top: var(--spacing-lg);
+            padding-top: var(--spacing-md);
+            border-top: 1px solid var(--border-color);
+            color: var(--text-light);
+            font-size: 0.9rem;
         }
         
-        .subtitle {
-            font-weight: 600;
-            margin-bottom: var(--spacing-md);
-            color: var(--text-primary);
-        }
-        
-        .suggestion-list {
-            list-style: none;
-            text-align: left;
-            padding-left: var(--spacing-md);
-        }
-        
-        .suggestion-list li {
-            margin-bottom: var(--spacing-sm);
+        .tips h3 {
             color: var(--text-secondary);
-            display: flex;
-            align-items: center;
+            font-size: 1.1rem;
+            margin-bottom: var(--spacing-md);
         }
         
-        .suggestion-list li::before {
-            content: "•";
+        .tip-list {
+            text-align: left;
+            list-style: none;
+            padding: 0;
+        }
+        
+        .tip-list li {
+            margin-bottom: var(--spacing-md);
+            padding-left: 24px;
+            position: relative;
+        }
+        
+        .tip-list li:before {
+            content: '•';
             color: var(--primary-color);
+            position: absolute;
+            left: 8px;
             font-weight: bold;
-            display: inline-block;
-            width: 1em;
-            margin-left: -1em;
         }
         
-        .logo {
-            font-weight: bold;
-            font-size: 18px;
-            color: var(--primary-color);
-            margin-bottom: var(--spacing-xl);
-            display: inline-block;
-            padding: 8px 16px;
-            background-color: rgba(74, 137, 220, 0.1);
-            border-radius: 20px;
-        }
-        
+        /* Check system dark mode */
         @media (prefers-color-scheme: dark) {
-            .suggestions {
-                border-top-color: rgba(255,255,255,0.05);
-            }
-            
-            .btn {
-                background: var(--primary-gradient);
-            }
-            
-            .logo {
-                background-color: rgba(74, 137, 220, 0.15);
+            body:not(.light-mode) {
+                --bg-primary: #0f172a;
+                --text-primary: #f8fafc;
+                --text-secondary: #e2e8f0;
+                --text-light: #cbd5e1;
+                --border-color: rgba(255, 255, 255, 0.1);
             }
         }
     </style>
 </head>
 <body>
     <div class="offline-container">
-        <div class="logo">Subscription Tracker</div>
-        <div class="offline-icon">📶</div>
-        <h1>You're Offline</h1>
-        <p>It looks like you don't have an internet connection right now.</p>
-        <p>Some features of Subscription Tracker are still available offline, but you'll need to reconnect to use all features.</p>
+        <div class="offline-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="1" y1="1" x2="23" y2="23"></line>
+                <path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"></path>
+                <path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"></path>
+                <path d="M10.71 5.05A16 16 0 0 1 22.58 9"></path>
+                <path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"></path>
+                <path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path>
+                <line x1="12" y1="20" x2="12.01" y2="20"></line>
+            </svg>
+        </div>
+        <h1>You're currently offline</h1>
+        <p>You need an internet connection to access the full functionality of Subscription Tracker. Some features may be limited while offline.</p>
         
-        <button class="btn" id="retryBtn">Try Again</button>
+        <button class="btn" onclick="window.location.reload()">Try Again</button>
         
-        <div class="suggestions">
-            <div class="subtitle">While you're offline, you can still:</div>
-            <ul class="suggestion-list">
-                <li>View your saved subscriptions</li>
-                <li>Check upcoming renewal dates</li>
-                <li>Add new subscriptions (they'll sync when you're back online)</li>
-                <li>View your monthly spending summary</li>
+        <div class="tips">
+            <h3>Offline Tips:</h3>
+            <ul class="tip-list">
+                <li>Check your internet connection</li>
+                <li>Previously loaded subscriptions may still be viewable</li>
+                <li>Any changes made while offline will be synced when you reconnect</li>
+                <li>Enable notifications to get reminders even when offline</li>
             </ul>
         </div>
     </div>
@@ -199,22 +169,36 @@
         // Check network status periodically
         function checkOnlineStatus() {
             if (navigator.onLine) {
-                window.location.reload();
+                // Try to load the main page if connection restored
+                fetch('index.html', { method: 'HEAD' })
+                    .then(response => {
+                        if (response.ok) {
+                            window.location.replace('index.html');
+                        }
+                    })
+                    .catch(error => {
+                        console.log('Still offline or unable to connect:', error);
+                    });
             }
         }
         
-        // Check every 5 seconds
+        // Check initially and every 5 seconds
+        checkOnlineStatus();
         setInterval(checkOnlineStatus, 5000);
         
-        // Manual retry
-        document.getElementById('retryBtn').addEventListener('click', function() {
-            window.location.reload();
-        });
+        // Respect system dark mode
+        function setColorScheme() {
+            const darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+            const savedMode = localStorage.getItem('darkMode');
+            
+            if (savedMode === 'true' || (darkModeMediaQuery.matches && savedMode !== 'false')) {
+                document.body.classList.add('dark-mode');
+            } else {
+                document.body.classList.remove('dark-mode');
+            }
+        }
         
-        // Listen for online event
-        window.addEventListener('online', function() {
-            window.location.reload();
-        });
+        setColorScheme();
     </script>
 </body>
 </html> 

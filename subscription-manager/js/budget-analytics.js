@@ -3,8 +3,8 @@
  * Adds budget management and spending visualization to Subscription Tracker
  */
 
-// Cached conversion factors for recurring billing (copy from app.js)
-const BILLING_CYCLE_FACTORS = {
+// Use the billing cycle factors from app.js or define them if not available
+const BILLING_CYCLE_FACTORS = window.BILLING_CYCLE_FACTORS || {
   'monthly': 1,
   'yearly': 1/12,
   'quarterly': 1/3,
@@ -45,12 +45,255 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// Budget variables
-let currentBudget = {
-    monthly: parseFloat(localStorage.getItem('budgetLimitMonthly') || 0),
-    yearly: parseFloat(localStorage.getItem('budgetLimitYearly') || 0),
-    currentPeriod: localStorage.getItem('budgetPeriod') || 'monthly'
-};
+// Budget Analytics JavaScript
+document.addEventListener('DOMContentLoaded', function() {
+    // Budget variables
+    let monthlyBudget = 0;
+    let yearlyBudget = 0;
+    let currentPeriod = 'monthly'; // Default period
+    let totalMonthlySpending = 0;
+    let totalYearlySpending = 0;
+    
+    // DOM Elements
+    const budgetDisplay = document.getElementById('currentBudgetDisplay');
+    const budgetValueDisplay = document.getElementById('budgetValueDisplay');
+    const budgetPeriodDisplay = document.querySelector('.budget-period');
+    const editBudgetBtn = document.getElementById('editBudgetBtn');
+    const budgetInputForm = document.getElementById('budgetInputForm');
+    const budgetLimitInput = document.getElementById('budgetLimit');
+    const saveBudgetBtn = document.getElementById('saveBudgetBtn');
+    const cancelBudgetBtn = document.getElementById('cancelBudgetBtn');
+    const budgetProgressBar = document.getElementById('budgetProgressBar');
+    const budgetPercentage = document.getElementById('budgetPercentage');
+    const currentSpending = document.getElementById('currentSpending');
+    const budgetRemaining = document.getElementById('budgetRemaining');
+    const budgetAlert = document.getElementById('budgetAlert');
+    const budgetPlannerElement = document.querySelector('.budget-planner');
+    const periodOptions = document.querySelectorAll('.period-option');
+    const monthlyProjection = document.getElementById('monthlyProjection');
+    const yearlyProjection = document.getElementById('yearlyProjection');
+    const currencySymbolElements = document.querySelectorAll('.budget-currency-symbol');
+    
+    // Load budgets from localStorage
+    function loadBudgets() {
+        const savedMonthlyBudget = localStorage.getItem('monthlyBudget');
+        const savedYearlyBudget = localStorage.getItem('yearlyBudget');
+        const savedPeriod = localStorage.getItem('budgetPeriod');
+        
+        if (savedMonthlyBudget) {
+            monthlyBudget = parseFloat(savedMonthlyBudget);
+        }
+        
+        if (savedYearlyBudget) {
+            yearlyBudget = parseFloat(savedYearlyBudget);
+        } else if (savedMonthlyBudget) {
+            // Default yearly budget as 12x monthly if not set
+            yearlyBudget = monthlyBudget * 12;
+            localStorage.setItem('yearlyBudget', yearlyBudget.toString());
+        }
+        
+        if (savedPeriod) {
+            currentPeriod = savedPeriod;
+            // Set active period option
+            periodOptions.forEach(option => {
+                option.classList.toggle('active', option.dataset.period === currentPeriod);
+            });
+            
+            // Set class on budget planner for CSS targeting
+            budgetPlannerElement.classList.toggle('yearly-active', currentPeriod === 'yearly');
+        }
+        
+        updateBudgetDisplay();
+    }
+    
+    // Update budget display based on current period
+    function updateBudgetDisplay() {
+        const currencySymbol = getSelectedCurrencySymbol();
+        let budgetValue = currentPeriod === 'monthly' ? monthlyBudget : yearlyBudget;
+        let periodText = currentPeriod === 'monthly' ? '/month' : '/year';
+        let actualSpending = currentPeriod === 'monthly' ? totalMonthlySpending : totalYearlySpending;
+        
+        // Update budget display value
+        budgetValueDisplay.textContent = `${currencySymbol}${budgetValue.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        budgetPeriodDisplay.textContent = periodText;
+        
+        // Update progress bar and details
+        updateBudgetProgress(budgetValue, actualSpending);
+    }
+    
+    // Update budget progress bar and details
+    function updateBudgetProgress(budget, spending) {
+        const currencySymbol = getSelectedCurrencySymbol();
+        
+        if (budget <= 0) {
+            // No budget set
+            budgetProgressBar.style.width = '0%';
+            budgetPercentage.textContent = 'No budget set';
+            currentSpending.textContent = `${currencySymbol}${spending.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})} spent`;
+            budgetRemaining.textContent = 'Set a budget limit';
+            budgetAlert.style.display = 'none';
+            return;
+        }
+        
+        // Calculate percentage
+        const percent = Math.min((spending / budget) * 100, 100);
+        const remaining = Math.max(budget - spending, 0);
+        
+        // Update progress bar
+        budgetProgressBar.style.width = `${percent}%`;
+        budgetPercentage.textContent = `${Math.round(percent)}%`;
+        
+        // Update status text
+        currentSpending.textContent = `${currencySymbol}${spending.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})} spent`;
+        budgetRemaining.textContent = `${currencySymbol}${remaining.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})} remaining`;
+        
+        // Update progress bar color
+        if (percent < 60) {
+            budgetProgressBar.className = 'progress-bar good';
+            budgetAlert.style.display = 'none';
+        } else if (percent < 85) {
+            budgetProgressBar.className = 'progress-bar caution';
+            budgetAlert.style.display = 'none';
+        } else {
+            budgetProgressBar.className = 'progress-bar warning';
+            budgetAlert.style.display = 'flex';
+        }
+    }
+    
+    // Calculate total spending from subscriptions
+    function calculateTotalSpending() {
+        // Get all subscriptions from DB
+        DB.getAllSubscriptions().then(subscriptions => {
+            totalMonthlySpending = 0;
+            
+            // Calculate total monthly spending
+            subscriptions.forEach(subscription => {
+                const amount = parseFloat(subscription.amount);
+                const billingCycle = subscription.billingCycle;
+                
+                if (billingCycle === 'monthly') {
+                    totalMonthlySpending += amount;
+                } else if (billingCycle === 'yearly') {
+                    totalMonthlySpending += amount / 12;
+                } else if (billingCycle === 'quarterly') {
+                    totalMonthlySpending += amount / 3;
+                } else if (billingCycle === 'biannually') {
+                    totalMonthlySpending += amount / 6;
+                } else if (billingCycle === 'weekly') {
+                    totalMonthlySpending += amount * 4.33; // Average weeks per month
+                }
+            });
+            
+            // Calculate yearly spending
+            totalYearlySpending = totalMonthlySpending * 12;
+            
+            // Update projections
+            const currencySymbol = getSelectedCurrencySymbol();
+            monthlyProjection.textContent = `${currencySymbol}${totalMonthlySpending.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})} / month`;
+            yearlyProjection.textContent = `${currencySymbol}${totalYearlySpending.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})} / year`;
+            
+            // Update budget display with new spending values
+            updateBudgetDisplay();
+        });
+    }
+    
+    // Get selected currency symbol
+    function getSelectedCurrencySymbol() {
+        // Default to Rupee symbol if not found
+        return localStorage.getItem('selectedCurrency') || '₹';
+    }
+    
+    // Initialize currency symbols
+    function initializeCurrencySymbols() {
+        const currencySymbol = getSelectedCurrencySymbol();
+        currencySymbolElements.forEach(element => {
+            element.textContent = currencySymbol;
+        });
+    }
+    
+    // Event: Show budget input form
+    editBudgetBtn.addEventListener('click', function() {
+        const currentBudget = currentPeriod === 'monthly' ? monthlyBudget : yearlyBudget;
+        budgetLimitInput.value = currentBudget > 0 ? currentBudget : '';
+        budgetDisplay.style.display = 'none';
+        budgetInputForm.style.display = 'flex';
+        budgetLimitInput.focus();
+    });
+    
+    // Event: Cancel budget edit
+    cancelBudgetBtn.addEventListener('click', function() {
+        budgetInputForm.style.display = 'none';
+        budgetDisplay.style.display = 'flex';
+    });
+    
+    // Event: Save budget
+    saveBudgetBtn.addEventListener('click', function() {
+        const newBudget = parseFloat(budgetLimitInput.value) || 0;
+        
+        if (currentPeriod === 'monthly') {
+            monthlyBudget = newBudget;
+            localStorage.setItem('monthlyBudget', monthlyBudget.toString());
+            
+            // Update yearly budget proportionally unless it was manually set
+            if (!localStorage.getItem('yearlyBudgetManuallySet')) {
+                yearlyBudget = newBudget * 12;
+                localStorage.setItem('yearlyBudget', yearlyBudget.toString());
+            }
+        } else {
+            yearlyBudget = newBudget;
+            localStorage.setItem('yearlyBudget', yearlyBudget.toString());
+            localStorage.setItem('yearlyBudgetManuallySet', 'true');
+        }
+        
+        budgetInputForm.style.display = 'none';
+        budgetDisplay.style.display = 'flex';
+        updateBudgetDisplay();
+    });
+    
+    // Event: Toggle budget period
+    periodOptions.forEach(option => {
+        option.addEventListener('click', function() {
+            if (this.classList.contains('active')) return;
+            
+            // Update active state
+            periodOptions.forEach(opt => opt.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Set current period
+            currentPeriod = this.dataset.period;
+            localStorage.setItem('budgetPeriod', currentPeriod);
+            
+            // Update budget planner class
+            budgetPlannerElement.classList.toggle('yearly-active', currentPeriod === 'yearly');
+            
+            // Update display
+            updateBudgetDisplay();
+        });
+    });
+    
+    // Initialize budget analytics
+    function initBudgetAnalytics() {
+        initializeCurrencySymbols();
+        loadBudgets();
+        calculateTotalSpending();
+        
+        // Listen for subscription changes to update totals
+        document.addEventListener('subscriptionChanged', calculateTotalSpending);
+        document.addEventListener('currencyChanged', function() {
+            initializeCurrencySymbols();
+            updateBudgetDisplay();
+        });
+    }
+    
+    // Initialize when document is loaded
+    initBudgetAnalytics();
+    
+    // Export functions for other modules
+    window.BudgetAnalytics = {
+        calculateTotalSpending,
+        updateBudgetDisplay
+    };
+});
 
 // Initialize budget planner UI and functionality
 function initializeBudgetPlanner() {

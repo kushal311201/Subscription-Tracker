@@ -118,18 +118,17 @@ body {
   transform: rotate(10deg);
 }
 
-/* Beautiful gradient card styling */
+/* Enhanced card styling */
 .subscription-card {
-  background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(250, 246, 241, 0.95) 100%);
-  border-radius: var(--card-border-radius);
+  background-color: var(--bg-card);
+  border-radius: var(--radius-lg);
   box-shadow: var(--shadow-md);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  padding: var(--spacing-lg);
+  margin-bottom: var(--spacing-md);
   position: relative;
+  transition: all var(--transition-normal);
   overflow: hidden;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  border: 1px solid rgba(var(--primary-color-rgb), 0.08);
-  padding: var(--card-padding);
+  border: 1px solid var(--border-light);
 }
 
 .subscription-card::before {
@@ -137,10 +136,9 @@ body {
   position: absolute;
   top: 0;
   left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, var(--primary-color), var(--primary-color-light));
-  opacity: 0.9;
+  width: 4px;
+  height: 100%;
+  background: var(--primary-gradient);
 }
 
 .subscription-card:hover {
@@ -148,55 +146,158 @@ body {
   box-shadow: var(--shadow-lg);
 }
 
-/* Category-based card styling */
-.subscription-card[data-category="streaming"]::before {
-  background: linear-gradient(90deg, var(--streaming-color), rgba(var(--streaming-color-rgb), 0.7));
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--spacing-md);
 }
 
-.subscription-card[data-category="fitness"]::before {
-  background: linear-gradient(90deg, var(--fitness-color), rgba(var(--fitness-color-rgb), 0.7));
+.card-title-container {
+  flex: 1;
+  padding-right: var(--spacing-sm);
 }
 
-.subscription-card[data-category="productivity"]::before {
-  background: linear-gradient(90deg, var(--productivity-color), rgba(var(--productivity-color-rgb), 0.7));
-}
-
-.subscription-card[data-category="music"]::before {
-  background: linear-gradient(90deg, var(--music-color), rgba(var(--music-color-rgb), 0.7));
-}
-
-.subscription-card[data-category="cloud"]::before {
-  background: linear-gradient(90deg, var(--cloud-color), rgba(var(--cloud-color-rgb), 0.7));
-}
-
-.subscription-card[data-category="saas"]::before {
-  background: linear-gradient(90deg, var(--saas-color), rgba(var(--saas-color-rgb), 0.7));
-}
-
-.subscription-card[data-category="other"]::before {
-  background: linear-gradient(90deg, var(--other-color), rgba(var(--other-color-rgb), 0.7));
-}
-
-/* Subscription name styling */
-.subscription-name {
+.card-title {
   font-size: 1.2rem;
-  font-weight: 600;
-  margin-bottom: 8px;
+  font-weight: var(--font-semibold);
   color: var(--text-primary);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  margin-bottom: 4px;
+  line-height: 1.3;
 }
 
-/* Subscription amount styling */
+.card-category {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  font-size: 0.7rem;
+  font-weight: var(--font-medium);
+  text-transform: capitalize;
+  border-radius: 100px;
+  color: white;
+  background: var(--primary-gradient);
+  margin-bottom: var(--spacing-sm);
+}
+
+/* Category-specific colors */
+.card-category.streaming {
+  background: linear-gradient(135deg, #e91e63, #f06292);
+}
+
+.card-category.fitness {
+  background: linear-gradient(135deg, #4caf50, #81c784);
+}
+
+.card-category.productivity {
+  background: linear-gradient(135deg, #ff9800, #ffb74d);
+}
+
+.card-category.music {
+  background: linear-gradient(135deg, #9c27b0, #ba68c8);
+}
+
+.card-category.cloud {
+  background: linear-gradient(135deg, #2196f3, #64b5f6);
+}
+
+.card-category.other {
+  background: linear-gradient(135deg, #607d8b, #90a4ae);
+}
+
 .subscription-amount {
-  font-size: 1.3rem;
-  font-weight: 700;
-  margin: 10px 0;
-  background: linear-gradient(90deg, var(--primary-color), var(--primary-color-light));
+  font-size: 1.4rem;
+  font-weight: var(--font-bold);
+  color: var(--primary-color);
+  margin-bottom: var(--spacing-sm);
+  background: var(--primary-gradient);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  background-clip: text;
+  text-shadow: 0 2px 10px rgba(var(--primary-color-rgb), 0.1);
+}
+
+.card-details {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.detail-label {
+  font-size: 0.8rem;
+  color: var(--text-light);
+  margin-bottom: 4px;
+}
+
+.detail-value {
+  font-size: 0.95rem;
+  font-weight: var(--font-medium);
+  color: var(--text-primary);
+}
+
+.days-left {
+  color: var(--text-secondary);
+  font-weight: var(--font-medium);
+  display: flex;
+  align-items: center;
+}
+
+.days-left.warning {
+  color: var(--warning-color);
+}
+
+.days-left.urgent {
+  color: var(--danger-color);
+}
+
+.days-left i {
+  margin-right: 6px;
+}
+
+.card-actions {
+  display: flex;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-sm);
+}
+
+.action-btn {
+  padding: 10px 16px;
+  border-radius: var(--radius-md);
+  font-size: 0.9rem;
+  font-weight: var(--font-medium);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  border: none;
+  background-color: transparent;
+}
+
+.action-btn.edit {
+  color: var(--primary-color);
+  background-color: rgba(var(--primary-color-rgb), 0.1);
+}
+
+.action-btn.edit:hover {
+  background-color: rgba(var(--primary-color-rgb), 0.15);
+}
+
+.action-btn.delete {
+  color: var(--danger-color);
+  background-color: rgba(var(--danger-color-rgb), 0.1);
+}
+
+.action-btn.delete:hover {
+  background-color: rgba(var(--danger-color-rgb), 0.15);
+}
+
+.action-btn i {
+  margin-right: 8px;
 }
 
 /* Category badge styling */
@@ -353,24 +454,30 @@ body {
   box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb), 0.15);
 }
 
-.amount-input-wrapper span {
-  display: flex;
-  align-items: center;
-  padding: 0 15px;
-  font-weight: 600;
-  color: var(--primary-color);
-  background-color: rgba(var(--primary-color-rgb), 0.05);
-  border-right: 1px solid var(--border-color);
-  height: 100%;
+/* New style for currency prefix */
+.currency-prefix {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-weight: 500;
+  color: var(--text-light);
+  pointer-events: none;
+  z-index: 2;
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: var(--text-base);
 }
 
 .amount-input-wrapper input {
   flex: 1;
   border: none;
-  padding: 12px 15px;
+  padding: 12px 15px 12px 30px;
   background-color: transparent;
   color: var(--text-primary);
   font-size: 0.95rem;
+  width: 100%;
 }
 
 .amount-input-wrapper input:focus {
@@ -988,4 +1095,48 @@ header h1, .app-header h1, .app-title {
 
 body.dark-mode .remember-email-group {
   color: var(--dark-text-secondary);
+}
+
+/* Enhanced Subscription Cards for mobile */
+@media (max-width: 767px) {
+  .subscription-card {
+    padding: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+    border-radius: var(--radius-md);
+  }
+  
+  .card-actions {
+    flex-wrap: wrap;
+    gap: var(--spacing-sm);
+  }
+  
+  .card-header {
+    margin-bottom: var(--spacing-sm);
+  }
+  
+  .card-title {
+    font-size: 1.1rem;
+  }
+  
+  .subscription-amount {
+    font-size: 1.2rem;
+  }
+  
+  .card-details {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-sm);
+  }
+  
+  .action-btn {
+    flex: 1;
+    padding: 10px;
+    font-size: 0.9rem;
+    justify-content: center;
+    min-width: 0;
+  }
+  
+  /* If there are more than 2 action buttons, make them full width */
+  .card-actions:has(> .action-btn:nth-child(3)) .action-btn {
+    flex-basis: 100%;
+  }
 }
