@@ -99,6 +99,12 @@
             padding: 15px;
             margin-bottom: 15px;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .reminder-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
         }
         
         .reminder-card-header {
@@ -175,6 +181,11 @@
         
         .quick-action-btn:hover {
             background-color: #e5ecff;
+            transform: translateY(-2px);
+        }
+        
+        .quick-action-btn:active {
+            transform: translateY(0);
         }
         
         .quick-action-btn i {
@@ -210,6 +221,142 @@
             border: 1px solid #ddd;
             margin-top: 5px;
             font-family: inherit;
+        }
+        
+        /* New Category and Monthly sections */
+        .reminders-by-category, .coming-this-month {
+            margin-top: 30px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+        
+        .reminders-by-category h3, .coming-this-month h3 {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            color: #4a6bdf;
+        }
+        
+        .category-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .category-tag {
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            background-color: #f0f4ff;
+            color: #4a6bdf;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .category-tag:hover {
+            background-color: #e5ecff;
+        }
+        
+        .category-tag.active {
+            background-color: #4a6bdf;
+            color: white;
+        }
+        
+        .monthly-reminders-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 15px;
+        }
+        
+        .monthly-reminder-item {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .monthly-reminder-date {
+            font-size: 0.8rem;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .monthly-reminder-name {
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .monthly-reminder-amount {
+            margin-top: auto;
+            font-weight: 500;
+            color: #4a6bdf;
+        }
+        
+        /* Dark mode adjustments */
+        .dark-mode .reminders-by-category,
+        .dark-mode .coming-this-month {
+            background-color: #1e1e1e;
+        }
+        
+        .dark-mode .category-tag {
+            background-color: #2d2d2d;
+            color: #90caf9;
+        }
+        
+        .dark-mode .category-tag.active {
+            background-color: #3a59c7;
+            color: white;
+        }
+        
+        .dark-mode .monthly-reminder-item {
+            background-color: #2d2d2d;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        
+        .dark-mode .monthly-reminder-date {
+            color: #aaa;
+        }
+        
+        .dark-mode .monthly-reminder-amount {
+            color: #90caf9;
+        }
+        
+        /* Mobile Improvements */
+        @media (max-width: 767px) {
+            .container {
+                padding: 15px 10px 80px 10px;
+            }
+            
+            .summary-box {
+                padding: 15px;
+                flex-direction: column;
+            }
+            
+            .reminder-preferences {
+                margin-top: 20px;
+            }
+            
+            .quick-actions {
+                grid-template-columns: 1fr 1fr;
+            }
+            
+            .quick-action-btn {
+                min-height: 110px;
+            }
+            
+            .reminders-by-category, .coming-this-month {
+                padding: 15px;
+            }
+            
+            .monthly-reminders-list {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -274,6 +421,25 @@
                 <div class="no-reminders" id="noReminders">
                     <i class="fas fa-bell-slash"></i>
                     <p data-i18n="noReminders">No reminders set up yet. Add subscriptions with reminders enabled to see them here.</p>
+                </div>
+            </div>
+            
+            <!-- Reminders by Category -->
+            <div class="reminders-by-category">
+                <h3><i class="fas fa-tags"></i> Reminders by Category</h3>
+                <div class="category-tags" id="categoryTags">
+                    <!-- Category tags will be added here dynamically -->
+                </div>
+                <div class="category-reminders" id="categoryReminders">
+                    <!-- Category specific reminders will be shown here -->
+                </div>
+            </div>
+            
+            <!-- Coming This Month -->
+            <div class="coming-this-month">
+                <h3><i class="fas fa-calendar-day"></i> Due This Month</h3>
+                <div id="monthlyRemindersList" class="monthly-reminders-list">
+                    <!-- This month's reminders will be added here dynamically -->
                 </div>
             </div>
         </div>

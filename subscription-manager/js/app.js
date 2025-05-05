@@ -177,6 +177,9 @@ function loadSubscriptions() {
                 // Update category chart
                 updateCategoryChart(subscriptions);
                 
+                // Load upcoming reminders
+                loadUpcomingReminders(subscriptions);
+                
                 // Hide empty state
                 const emptyState = document.querySelector('.empty-state');
                 if (emptyState) {
@@ -194,6 +197,82 @@ function loadSubscriptions() {
             console.error('Error loading subscriptions from IndexedDB:', error);
             showToast('Error loading subscriptions. Please try again.');
         });
+}
+
+// Load upcoming reminders for the main page
+function loadUpcomingReminders(subscriptions) {
+    const remindersList = document.getElementById('upcomingRemindersList');
+    if (!remindersList) return;
+    
+    // Clear existing reminders
+    remindersList.innerHTML = '';
+    
+    // Filter subscriptions with reminders enabled
+    const remindersEnabled = subscriptions.filter(sub => sub.reminderEnabled || sub.reminderEmailEnabled);
+    
+    if (remindersEnabled.length === 0) {
+        // Show empty state if no reminders
+        remindersList.innerHTML = `
+            <div class="empty-reminders">
+                <i class="fas fa-bell-slash"></i>
+                <p>No upcoming reminders. Add subscriptions with reminders enabled to see them here.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    // Sort subscriptions by due date
+    const sortedSubs = remindersEnabled.sort((a, b) => {
+        return new Date(a.dueDate) - new Date(b.dueDate);
+    });
+    
+    // Display only the first 5 upcoming reminders
+    const today = new Date();
+    
+    // Take just the first 5 upcoming reminders
+    sortedSubs.slice(0, 5).forEach(sub => {
+        const dueDate = new Date(sub.dueDate);
+        const diffTime = dueDate - today;
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        // Format date for display
+        const formattedDate = dueDate.toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric'
+        });
+        
+        // Determine status tag
+        let tagClass, tagText;
+        if (diffDays <= 3) {
+            tagClass = 'tag-urgent';
+            tagText = diffDays <= 0 ? 'Due Today' : diffDays === 1 ? 'Tomorrow' : `${diffDays} Days Left`;
+        } else if (diffDays <= 7) {
+            tagClass = 'tag-upcoming';
+            tagText = `${diffDays} Days Left`;
+        } else {
+            tagClass = 'tag-far';
+            tagText = `${diffDays} Days Left`;
+        }
+        
+        // Create reminder item
+        const reminderItem = document.createElement('div');
+        reminderItem.className = 'reminder-item';
+        reminderItem.innerHTML = `
+            <div class="reminder-item-content">
+                <div class="reminder-item-title">${sub.name}</div>
+                <div class="reminder-item-date">${formattedDate} (${sub.billingCycle})</div>
+            </div>
+            <div class="reminder-status-tag ${tagClass}">${tagText}</div>
+        `;
+        
+        // Add click event to navigate to reminders page
+        reminderItem.addEventListener('click', () => {
+            window.location.href = 'reminders.html';
+        });
+        
+        remindersList.appendChild(reminderItem);
+    });
 }
 
 // Save subscription to IndexedDB

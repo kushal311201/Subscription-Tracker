@@ -114,6 +114,12 @@ function loadReminders() {
                 
                 // Sort reminders by due date (closest first)
                 sortReminderCards();
+                
+                // Load reminders by category
+                loadRemindersByCategory(reminders);
+                
+                // Load monthly reminders
+                loadMonthlyReminders(reminders);
             } else {
                 if (noReminders) noReminders.style.display = 'flex';
             }
@@ -522,4 +528,175 @@ function showToast(message, duration = 3000) {
             toast.remove();
         }, 300);
     }, duration);
+}
+
+// Load reminders by category
+function loadRemindersByCategory(reminders) {
+    const categoryTags = document.getElementById('categoryTags');
+    const categoryReminders = document.getElementById('categoryReminders');
+    
+    if (!categoryTags || !categoryReminders) return;
+    
+    // Clear existing tags
+    categoryTags.innerHTML = '';
+    categoryReminders.innerHTML = '';
+    
+    // Get unique categories
+    const categories = {};
+    reminders.forEach(reminder => {
+        if (!categories[reminder.category]) {
+            categories[reminder.category] = 0;
+        }
+        categories[reminder.category]++;
+    });
+    
+    // Create "All" tag
+    const allTag = document.createElement('div');
+    allTag.className = 'category-tag active';
+    allTag.textContent = 'All Categories';
+    allTag.dataset.category = 'all';
+    categoryTags.appendChild(allTag);
+    
+    // Create category tags
+    Object.keys(categories).forEach(category => {
+        const tag = document.createElement('div');
+        tag.className = 'category-tag';
+        tag.textContent = `${category} (${categories[category]})`;
+        tag.dataset.category = category;
+        categoryTags.appendChild(tag);
+    });
+    
+    // Add click event to category tags
+    const tags = categoryTags.querySelectorAll('.category-tag');
+    tags.forEach(tag => {
+        tag.addEventListener('click', () => {
+            // Remove active class from all tags
+            tags.forEach(t => t.classList.remove('active'));
+            
+            // Add active class to clicked tag
+            tag.classList.add('active');
+            
+            // Filter reminders by category
+            filterRemindersByCategory(tag.dataset.category);
+            
+            // Haptic feedback
+            if (navigator.vibrate) navigator.vibrate(30);
+        });
+    });
+    
+    // Show all reminders initially
+    filterRemindersByCategory('all');
+}
+
+// Filter reminders by category
+function filterRemindersByCategory(category) {
+    const reminderCards = document.querySelectorAll('.reminder-card');
+    
+    if (category === 'all') {
+        // Show all reminders
+        reminderCards.forEach(card => {
+            card.style.display = 'block';
+        });
+    } else {
+        // Show only reminders in the selected category
+        reminderCards.forEach(card => {
+            const subscription = reminders.find(r => `reminder-${r.id}` === card.id);
+            if (subscription && subscription.category === category) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+}
+
+// Load monthly reminders
+function loadMonthlyReminders(reminders) {
+    const monthlyRemindersList = document.getElementById('monthlyRemindersList');
+    
+    if (!monthlyRemindersList) return;
+    
+    // Clear existing reminders
+    monthlyRemindersList.innerHTML = '';
+    
+    // Get current month
+    const today = new Date();
+    const currentMonth = today.getMonth();
+    const currentYear = today.getFullYear();
+    
+    // Filter reminders due this month
+    const thisMonthReminders = reminders.filter(reminder => {
+        const dueDate = new Date(reminder.dueDate);
+        return dueDate.getMonth() === currentMonth && dueDate.getFullYear() === currentYear;
+    });
+    
+    // Sort by due date (ascending)
+    thisMonthReminders.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+    
+    if (thisMonthReminders.length === 0) {
+        // Show empty message
+        monthlyRemindersList.innerHTML = `
+            <div class="no-reminders">
+                <i class="fas fa-calendar-times"></i>
+                <p>No subscriptions due this month.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    // Create reminder items
+    thisMonthReminders.forEach(subscription => {
+        const dueDate = new Date(subscription.dueDate);
+        
+        // Format date
+        const formattedDate = dueDate.toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric'
+        });
+        
+        // Create reminder item
+        const reminderItem = document.createElement('div');
+        reminderItem.className = 'monthly-reminder-item';
+        
+        // Get currency symbol
+        const currencySymbol = getCurrencySymbol();
+        
+        reminderItem.innerHTML = `
+            <div class="monthly-reminder-date">${formattedDate}</div>
+            <div class="monthly-reminder-name">${subscription.name}</div>
+            <div class="monthly-reminder-amount">${currencySymbol}${subscription.amount}</div>
+        `;
+        
+        // Add click event to navigate to edit
+        reminderItem.addEventListener('click', () => {
+            openReminderEditModal(subscription);
+        });
+        
+        monthlyRemindersList.appendChild(reminderItem);
+    });
+}
+
+// Helper function to get currency symbol
+function getCurrencySymbol() {
+    // Default to ₹ (INR)
+    let symbol = '₹';
+    
+    // Get currency from localStorage
+    const currency = localStorage.getItem('currency') || 'INR';
+    
+    // Map currency code to symbol
+    const symbols = {
+        'INR': '₹',
+        'USD': '$',
+        'EUR': '€',
+        'GBP': '£',
+        'JPY': '¥',
+        'CAD': '$',
+        'AUD': '$',
+        'CNY': '¥',
+        'SGD': '$',
+        'RUB': '₽'
+    };
+    
+    return symbols[currency] || symbol;
 } 
