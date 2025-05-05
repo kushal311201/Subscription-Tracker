@@ -2018,7 +2018,6 @@ function setupNavigation() {
     console.log('Setting up navigation');
     
     const navHome = document.getElementById('nav-home');
-    const navAdd = document.getElementById('nav-add');
     const navSettings = document.getElementById('nav-settings');
     const addSubscriptionSection = document.querySelector('.add-subscription');
     const subscriptionListSection = document.querySelector('.subscription-list');
@@ -2026,38 +2025,21 @@ function setupNavigation() {
     // Log found elements
     console.log('Navigation elements found:', {
         navHome: !!navHome,
-        navAdd: !!navAdd,
         navSettings: !!navSettings,
         addSubscriptionSection: !!addSubscriptionSection,
         subscriptionListSection: !!subscriptionListSection
     });
     
-    if (navHome && addSubscriptionSection && subscriptionListSection) {
+    if (navHome) {
         navHome.addEventListener('click', e => {
             e.preventDefault();
-            // Show subscription list, hide add form
-            subscriptionListSection.style.display = 'block';
-            addSubscriptionSection.style.display = 'none';
+            // Show all content
+            if (subscriptionListSection) subscriptionListSection.style.display = 'block';
+            if (addSubscriptionSection) addSubscriptionSection.style.display = 'block';
             
             // Update active nav
             document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
             navHome.classList.add('active');
-            
-            // Haptic feedback
-            if (navigator.vibrate) navigator.vibrate(30);
-        });
-    }
-    
-    if (navAdd && addSubscriptionSection && subscriptionListSection) {
-        navAdd.addEventListener('click', e => {
-            e.preventDefault();
-            // Show add form, hide subscription list
-            addSubscriptionSection.style.display = 'block';
-            subscriptionListSection.style.display = 'none';
-            
-            // Update active nav
-            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-            navAdd.classList.add('active');
             
             // Haptic feedback
             if (navigator.vibrate) navigator.vibrate(30);
