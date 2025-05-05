@@ -4,7 +4,7 @@
  */
 
 // Use the billing cycle factors from app.js or define them if not available
-const BILLING_CYCLE_FACTORS = window.BILLING_CYCLE_FACTORS || {
+const BILLING_CYCLE_FACTORS = {
   'monthly': 1,
   'yearly': 1/12,
   'quarterly': 1/3,
@@ -45,15 +45,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// Budget Analytics JavaScript
-document.addEventListener('DOMContentLoaded', function() {
-    // Budget variables
-    let monthlyBudget = 0;
-    let yearlyBudget = 0;
-    let currentPeriod = 'monthly'; // Default period
-    let totalMonthlySpending = 0;
-    let totalYearlySpending = 0;
-    
+// Current budget state
+const currentBudget = {
+    monthly: 0,
+    yearly: 0,
+    currentPeriod: 'monthly'
+};
+
+// Initialize the Budget Planner
+function initializeBudgetPlanner() {
     // DOM Elements
     const budgetDisplay = document.getElementById('currentBudgetDisplay');
     const budgetValueDisplay = document.getElementById('budgetValueDisplay');
@@ -74,308 +74,141 @@ document.addEventListener('DOMContentLoaded', function() {
     const yearlyProjection = document.getElementById('yearlyProjection');
     const currencySymbolElements = document.querySelectorAll('.budget-currency-symbol');
     
-    // Load budgets from localStorage
-    function loadBudgets() {
-        const savedMonthlyBudget = localStorage.getItem('monthlyBudget');
-        const savedYearlyBudget = localStorage.getItem('yearlyBudget');
-        const savedPeriod = localStorage.getItem('budgetPeriod');
-        
-        if (savedMonthlyBudget) {
-            monthlyBudget = parseFloat(savedMonthlyBudget);
-        }
-        
-        if (savedYearlyBudget) {
-            yearlyBudget = parseFloat(savedYearlyBudget);
-        } else if (savedMonthlyBudget) {
-            // Default yearly budget as 12x monthly if not set
-            yearlyBudget = monthlyBudget * 12;
-            localStorage.setItem('yearlyBudget', yearlyBudget.toString());
-        }
-        
-        if (savedPeriod) {
-            currentPeriod = savedPeriod;
-            // Set active period option
-            periodOptions.forEach(option => {
-                option.classList.toggle('active', option.dataset.period === currentPeriod);
-            });
-            
-            // Set class on budget planner for CSS targeting
-            budgetPlannerElement.classList.toggle('yearly-active', currentPeriod === 'yearly');
-        }
-        
-        updateBudgetDisplay();
+    if (!budgetDisplay || !budgetValueDisplay || !editBudgetBtn) {
+        console.error('Budget elements not found in the DOM');
+        return;
     }
     
-    // Update budget display based on current period
-    function updateBudgetDisplay() {
-        const currencySymbol = getSelectedCurrencySymbol();
-        let budgetValue = currentPeriod === 'monthly' ? monthlyBudget : yearlyBudget;
-        let periodText = currentPeriod === 'monthly' ? '/month' : '/year';
-        let actualSpending = currentPeriod === 'monthly' ? totalMonthlySpending : totalYearlySpending;
-        
-        // Update budget display value
-        budgetValueDisplay.textContent = `${currencySymbol}${budgetValue.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-        budgetPeriodDisplay.textContent = periodText;
-        
-        // Update progress bar and details
-        updateBudgetProgress(budgetValue, actualSpending);
-    }
-    
-    // Update budget progress bar and details
-    function updateBudgetProgress(budget, spending) {
-        const currencySymbol = getSelectedCurrencySymbol();
-        
-        if (budget <= 0) {
-            // No budget set
-            budgetProgressBar.style.width = '0%';
-            budgetPercentage.textContent = 'No budget set';
-            currentSpending.textContent = `${currencySymbol}${spending.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})} spent`;
-            budgetRemaining.textContent = 'Set a budget limit';
-            budgetAlert.style.display = 'none';
-            return;
-        }
-        
-        // Calculate percentage
-        const percent = Math.min((spending / budget) * 100, 100);
-        const remaining = Math.max(budget - spending, 0);
-        
-        // Update progress bar
-        budgetProgressBar.style.width = `${percent}%`;
-        budgetPercentage.textContent = `${Math.round(percent)}%`;
-        
-        // Update status text
-        currentSpending.textContent = `${currencySymbol}${spending.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})} spent`;
-        budgetRemaining.textContent = `${currencySymbol}${remaining.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})} remaining`;
-        
-        // Update progress bar color
-        if (percent < 60) {
-            budgetProgressBar.className = 'progress-bar good';
-            budgetAlert.style.display = 'none';
-        } else if (percent < 85) {
-            budgetProgressBar.className = 'progress-bar caution';
-            budgetAlert.style.display = 'none';
-        } else {
-            budgetProgressBar.className = 'progress-bar warning';
-            budgetAlert.style.display = 'flex';
-        }
-    }
-    
-    // Calculate total spending from subscriptions
-    function calculateTotalSpending() {
-        // Get all subscriptions from DB
-        DB.getAllSubscriptions().then(subscriptions => {
-            totalMonthlySpending = 0;
-            
-            // Calculate total monthly spending
-            subscriptions.forEach(subscription => {
-                const amount = parseFloat(subscription.amount);
-                const billingCycle = subscription.billingCycle;
-                
-                if (billingCycle === 'monthly') {
-                    totalMonthlySpending += amount;
-                } else if (billingCycle === 'yearly') {
-                    totalMonthlySpending += amount / 12;
-                } else if (billingCycle === 'quarterly') {
-                    totalMonthlySpending += amount / 3;
-                } else if (billingCycle === 'biannually') {
-                    totalMonthlySpending += amount / 6;
-                } else if (billingCycle === 'weekly') {
-                    totalMonthlySpending += amount * 4.33; // Average weeks per month
-                }
-            });
-            
-            // Calculate yearly spending
-            totalYearlySpending = totalMonthlySpending * 12;
-            
-            // Update projections
-            const currencySymbol = getSelectedCurrencySymbol();
-            monthlyProjection.textContent = `${currencySymbol}${totalMonthlySpending.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})} / month`;
-            yearlyProjection.textContent = `${currencySymbol}${totalYearlySpending.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})} / year`;
-            
-            // Update budget display with new spending values
-            updateBudgetDisplay();
-        });
-    }
-    
-    // Get selected currency symbol
-    function getSelectedCurrencySymbol() {
-        // Default to Rupee symbol if not found
-        return localStorage.getItem('selectedCurrency') || '₹';
-    }
+    // Load saved budget from localStorage
+    loadSavedBudget();
     
     // Initialize currency symbols
-    function initializeCurrencySymbols() {
-        const currencySymbol = getSelectedCurrencySymbol();
-        currencySymbolElements.forEach(element => {
-            element.textContent = currencySymbol;
-        });
-    }
+    updateCurrencySymbols();
     
-    // Event: Show budget input form
-    editBudgetBtn.addEventListener('click', function() {
-        const currentBudget = currentPeriod === 'monthly' ? monthlyBudget : yearlyBudget;
-        budgetLimitInput.value = currentBudget > 0 ? currentBudget : '';
+    // Set up period selector
+    periodOptions.forEach(option => {
+        option.addEventListener('click', () => {
+            periodOptions.forEach(opt => opt.classList.remove('active'));
+            option.classList.add('active');
+            
+            currentBudget.currentPeriod = option.dataset.period;
+            localStorage.setItem('budgetPeriod', currentBudget.currentPeriod);
+            
+            // Toggle yearly active class on budget planner element
+            if (budgetPlannerElement) {
+                budgetPlannerElement.classList.toggle('yearly-active', currentBudget.currentPeriod === 'yearly');
+            }
+            
+            // Update budget display with current period
+            updateBudgetDisplay();
+        });
+    });
+    
+    // Edit button event listener
+    editBudgetBtn.addEventListener('click', () => {
+        const currentBudgetValue = currentBudget[currentBudget.currentPeriod];
+        budgetLimitInput.value = currentBudgetValue > 0 ? currentBudgetValue : '';
+        
         budgetDisplay.style.display = 'none';
         budgetInputForm.style.display = 'flex';
         budgetLimitInput.focus();
     });
     
-    // Event: Cancel budget edit
-    cancelBudgetBtn.addEventListener('click', function() {
+    // Cancel button event listener
+    cancelBudgetBtn.addEventListener('click', () => {
         budgetInputForm.style.display = 'none';
         budgetDisplay.style.display = 'flex';
     });
     
-    // Event: Save budget
-    saveBudgetBtn.addEventListener('click', function() {
+    // Save button event listener
+    saveBudgetBtn.addEventListener('click', () => {
         const newBudget = parseFloat(budgetLimitInput.value) || 0;
         
-        if (currentPeriod === 'monthly') {
-            monthlyBudget = newBudget;
-            localStorage.setItem('monthlyBudget', monthlyBudget.toString());
+        if (currentBudget.currentPeriod === 'monthly') {
+            currentBudget.monthly = newBudget;
+            localStorage.setItem('monthlyBudget', newBudget.toString());
             
             // Update yearly budget proportionally unless it was manually set
             if (!localStorage.getItem('yearlyBudgetManuallySet')) {
-                yearlyBudget = newBudget * 12;
-                localStorage.setItem('yearlyBudget', yearlyBudget.toString());
+                currentBudget.yearly = newBudget * 12;
+                localStorage.setItem('yearlyBudget', currentBudget.yearly.toString());
             }
         } else {
-            yearlyBudget = newBudget;
-            localStorage.setItem('yearlyBudget', yearlyBudget.toString());
+            currentBudget.yearly = newBudget;
+            localStorage.setItem('yearlyBudget', newBudget.toString());
             localStorage.setItem('yearlyBudgetManuallySet', 'true');
         }
         
         budgetInputForm.style.display = 'none';
         budgetDisplay.style.display = 'flex';
         updateBudgetDisplay();
-    });
-    
-    // Event: Toggle budget period
-    periodOptions.forEach(option => {
-        option.addEventListener('click', function() {
-            if (this.classList.contains('active')) return;
-            
-            // Update active state
-            periodOptions.forEach(opt => opt.classList.remove('active'));
-            this.classList.add('active');
-            
-            // Set current period
-            currentPeriod = this.dataset.period;
-            localStorage.setItem('budgetPeriod', currentPeriod);
-            
-            // Update budget planner class
-            budgetPlannerElement.classList.toggle('yearly-active', currentPeriod === 'yearly');
-            
-            // Update display
-            updateBudgetDisplay();
-        });
-    });
-    
-    // Initialize budget analytics
-    function initBudgetAnalytics() {
-        initializeCurrencySymbols();
-        loadBudgets();
-        calculateTotalSpending();
         
-        // Listen for subscription changes to update totals
-        document.addEventListener('subscriptionChanged', calculateTotalSpending);
-        document.addEventListener('currencyChanged', function() {
-            initializeCurrencySymbols();
-            updateBudgetDisplay();
+        // Load subscriptions to update budget calculations
+        SubscriptionDB.getAll().then(subscriptions => {
+            updateBudgetCalculations(subscriptions);
         });
-    }
+    });
     
-    // Initialize when document is loaded
-    initBudgetAnalytics();
-    
-    // Export functions for other modules
-    window.BudgetAnalytics = {
-        calculateTotalSpending,
-        updateBudgetDisplay
-    };
-});
+    // Initial load of subscriptions to update budget calculations
+    SubscriptionDB.getAll().then(subscriptions => {
+        updateBudgetCalculations(subscriptions);
+    }).catch(error => {
+        console.error('Error loading subscriptions for budget calculations:', error);
+    });
+}
 
-// Initialize budget planner UI and functionality
-function initializeBudgetPlanner() {
-    const budgetLimitInput = document.getElementById('budgetLimit');
-    const saveBudgetBtn = document.getElementById('saveBudgetBtn');
-    const periodOptions = document.querySelectorAll('.period-option');
-    const budgetCurrencySymbol = document.getElementById('budgetCurrencySymbol');
+// Load saved budget values from localStorage
+function loadSavedBudget() {
+    const savedMonthlyBudget = localStorage.getItem('monthlyBudget');
+    const savedYearlyBudget = localStorage.getItem('yearlyBudget');
+    const savedPeriod = localStorage.getItem('budgetPeriod');
     
-    // Set currency symbol
-    if (budgetCurrencySymbol) {
-        budgetCurrencySymbol.textContent = getCurrencySymbol();
+    if (savedMonthlyBudget) {
+        currentBudget.monthly = parseFloat(savedMonthlyBudget);
     }
     
-    // Set active period
-    periodOptions.forEach(option => {
-        if (option.dataset.period === currentBudget.currentPeriod) {
-            option.classList.add('active');
-        }
+    if (savedYearlyBudget) {
+        currentBudget.yearly = parseFloat(savedYearlyBudget);
+    } else if (savedMonthlyBudget) {
+        // Default yearly budget as 12x monthly if not set
+        currentBudget.yearly = currentBudget.monthly * 12;
+        localStorage.setItem('yearlyBudget', currentBudget.yearly.toString());
+    }
+    
+    if (savedPeriod) {
+        currentBudget.currentPeriod = savedPeriod;
         
-        option.addEventListener('click', () => {
-            // Update active state
-            periodOptions.forEach(o => o.classList.remove('active'));
-            option.classList.add('active');
-            
-            // Update current period
-            currentBudget.currentPeriod = option.dataset.period;
-            localStorage.setItem('budgetPeriod', currentBudget.currentPeriod);
-            
-            // Update the input value
-            if (budgetLimitInput) {
-                budgetLimitInput.value = currentBudget[currentBudget.currentPeriod] || '';
-            }
-            
-            // Update calculations
-            SubscriptionDB.getAll().then(subscriptions => {
-                updateBudgetCalculations(subscriptions);
-            });
+        // Set active period option
+        const periodOptions = document.querySelectorAll('.period-option');
+        periodOptions.forEach(option => {
+            option.classList.toggle('active', option.dataset.period === currentBudget.currentPeriod);
         });
-    });
-    
-    // Set initial budget value
-    if (budgetLimitInput) {
-        budgetLimitInput.value = currentBudget[currentBudget.currentPeriod] || '';
+        
+        // Set class on budget planner element
+        if (budgetPlannerElement) {
+            budgetPlannerElement.classList.toggle('yearly-active', currentBudget.currentPeriod === 'yearly');
+        }
     }
     
-    // Save budget button
-    if (saveBudgetBtn) {
-        saveBudgetBtn.addEventListener('click', () => {
-            if (budgetLimitInput && budgetLimitInput.value.trim() !== '') {
-                const budgetValue = parseFloat(budgetLimitInput.value);
-                if (!isNaN(budgetValue) && budgetValue >= 0) {
-                    // Save to local storage
-                    currentBudget[currentBudget.currentPeriod] = budgetValue;
-                    localStorage.setItem(`budgetLimit${capitalize(currentBudget.currentPeriod)}`, budgetValue);
-                    
-                    // Update UI
-                    SubscriptionDB.getAll().then(subscriptions => {
-                        updateBudgetCalculations(subscriptions);
-                    });
-                    
-                    // Show success message
-                    showToast('Budget saved successfully');
-                    
-                    // Haptic feedback
-                    if (navigator.vibrate) navigator.vibrate(30);
-                } else {
-                    showToast('Please enter a valid budget amount', 3000, 'error');
-                }
-            } else {
-                // Clear budget
-                currentBudget[currentBudget.currentPeriod] = 0;
-                localStorage.setItem(`budgetLimit${capitalize(currentBudget.currentPeriod)}`, 0);
-                
-                // Update UI
-                SubscriptionDB.getAll().then(subscriptions => {
-                    updateBudgetCalculations(subscriptions);
-                });
-                
-                showToast('Budget cleared');
-            }
-        });
-    }
+    updateBudgetDisplay();
+}
+
+// Update budget display with current values
+function updateBudgetDisplay() {
+    const budgetValueDisplay = document.getElementById('budgetValueDisplay');
+    const budgetPeriodDisplay = document.querySelector('.budget-period');
+    
+    if (!budgetValueDisplay || !budgetPeriodDisplay) return;
+    
+    const currencySymbol = getCurrencySymbol();
+    const budgetValue = currentBudget[currentBudget.currentPeriod];
+    const periodText = currentBudget.currentPeriod === 'monthly' ? '/month' : '/year';
+    
+    budgetValueDisplay.textContent = `${currencySymbol}${budgetValue.toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    })}`;
+    budgetPeriodDisplay.textContent = periodText;
 }
 
 // Update budget calculations based on subscriptions
@@ -393,113 +226,115 @@ function updateBudgetCalculations(subscriptions) {
     updateProjections(totalMonthly, totalYearly);
 }
 
-// Calculate monthly and yearly totals
+// Calculate total monthly and yearly spending
 function calculateTotals(subscriptions) {
     let totalMonthly = 0;
     
-    // Calculate monthly total using the billing cycle conversion factors
     subscriptions.forEach(subscription => {
-        const amount = parseFloat(subscription.amount);
-        const cycle = subscription.billingCycle;
-        
-        // Use the cached conversion factors from app.js
-        const factor = BILLING_CYCLE_FACTORS[cycle] || 1;
-        totalMonthly += amount * factor;
+        totalMonthly += calculateMonthlyAmount(subscription);
     });
     
-    // Calculate yearly total (monthly × 12)
     const totalYearly = totalMonthly * 12;
     
     return { totalMonthly, totalYearly };
 }
 
-// Update budget progress UI
+// Update budget progress UI with current spending and budget limit
 function updateBudgetProgressUI(currentSpending, budgetLimit) {
-    const budgetPercentageEl = document.getElementById('budgetPercentage');
     const budgetProgressBar = document.getElementById('budgetProgressBar');
-    const currentSpendingEl = document.getElementById('currentSpending');
-    const budgetRemainingEl = document.getElementById('budgetRemaining');
+    const budgetPercentage = document.getElementById('budgetPercentage');
+    const currentSpendingElement = document.getElementById('currentSpending');
+    const budgetRemainingElement = document.getElementById('budgetRemaining');
     const budgetAlert = document.getElementById('budgetAlert');
     
-    // Currency symbol for formatting
+    if (!budgetProgressBar || !budgetPercentage || !currentSpendingElement || !budgetRemainingElement) return;
+    
     const currencySymbol = getCurrencySymbol();
     
+    if (budgetLimit <= 0) {
+        // No budget set
+        budgetProgressBar.style.width = '0%';
+        budgetPercentage.textContent = 'No budget set';
+        currentSpendingElement.textContent = `${currencySymbol}${currentSpending.toLocaleString('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        })} spent`;
+        budgetRemainingElement.textContent = 'Set a budget limit';
+        if (budgetAlert) budgetAlert.style.display = 'none';
+        return;
+    }
+    
     // Calculate percentage
-    let percentage = 0;
-    if (budgetLimit > 0) {
-        percentage = Math.min(Math.round((currentSpending / budgetLimit) * 100), 100);
-    }
+    const percent = Math.min((currentSpending / budgetLimit) * 100, 100);
+    const remaining = Math.max(budgetLimit - currentSpending, 0);
     
-    // Update elements
-    if (budgetPercentageEl) {
-        budgetPercentageEl.textContent = `${percentage}%`;
-    }
+    // Update progress bar
+    budgetProgressBar.style.width = `${percent}%`;
+    budgetPercentage.textContent = `${Math.round(percent)}%`;
     
-    if (budgetProgressBar) {
-        budgetProgressBar.style.width = `${percentage}%`;
-        
-        // Change color based on percentage
-        budgetProgressBar.className = 'progress-bar';
-        if (percentage >= 90) {
-            budgetProgressBar.classList.add('critical');
-        } else if (percentage >= 75) {
-            budgetProgressBar.classList.add('warning');
-        } else if (percentage >= 50) {
-            budgetProgressBar.classList.add('caution');
-        } else {
-            budgetProgressBar.classList.add('good');
-        }
-    }
+    // Update status text
+    currentSpendingElement.textContent = `${currencySymbol}${currentSpending.toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    })} spent`;
     
-    if (currentSpendingEl) {
-        currentSpendingEl.textContent = `${currencySymbol}${currentSpending.toFixed(2)} spent`;
-    }
+    budgetRemainingElement.textContent = `${currencySymbol}${remaining.toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    })} remaining`;
     
-    if (budgetRemainingEl && budgetLimit > 0) {
-        const remaining = Math.max(budgetLimit - currentSpending, 0);
-        budgetRemainingEl.textContent = `${currencySymbol}${remaining.toFixed(2)} remaining`;
-    } else if (budgetRemainingEl) {
-        budgetRemainingEl.textContent = 'No budget set';
-    }
-    
-    // Show/hide budget alert
-    if (budgetAlert) {
-        if (budgetLimit > 0 && percentage >= 80) {
-            budgetAlert.style.display = 'flex';
-            budgetAlert.innerHTML = `
-                <i class="fas fa-exclamation-triangle"></i>
-                <div class="budget-alert-message">
-                    You're ${percentage >= 100 ? 'over' : 'approaching'} your budget limit! 
-                    Consider reviewing your subscriptions.
-                </div>
-            `;
-        } else {
-            budgetAlert.style.display = 'none';
-        }
+    // Update progress bar color and alert
+    if (percent < 60) {
+        budgetProgressBar.className = 'progress-bar good';
+        if (budgetAlert) budgetAlert.style.display = 'none';
+    } else if (percent < 85) {
+        budgetProgressBar.className = 'progress-bar caution';
+        if (budgetAlert) budgetAlert.style.display = 'none';
+    } else {
+        budgetProgressBar.className = 'progress-bar warning';
+        if (budgetAlert) budgetAlert.style.display = 'flex';
     }
 }
 
 // Update spending projections
 function updateProjections(monthlySpending, yearlySpending) {
-    const monthlyProjectionEl = document.getElementById('monthlyProjection');
-    const yearlyProjectionEl = document.getElementById('yearlyProjection');
+    const monthlyProjection = document.getElementById('monthlyProjection');
+    const yearlyProjection = document.getElementById('yearlyProjection');
     
-    // Currency symbol for formatting
+    if (!monthlyProjection || !yearlyProjection) return;
+    
     const currencySymbol = getCurrencySymbol();
     
-    if (monthlyProjectionEl) {
-        monthlyProjectionEl.textContent = `${currencySymbol}${monthlySpending.toFixed(2)} / month`;
-    }
+    monthlyProjection.textContent = `${currencySymbol}${monthlySpending.toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    })} / month`;
     
-    if (yearlyProjectionEl) {
-        yearlyProjectionEl.textContent = `${currencySymbol}${yearlySpending.toFixed(2)} / year`;
-    }
+    yearlyProjection.textContent = `${currencySymbol}${yearlySpending.toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    })} / year`;
+}
+
+// Update currency symbols throughout the UI
+function updateCurrencySymbols() {
+    const currencySymbol = getCurrencySymbol();
+    const currencySymbolElements = document.querySelectorAll('.budget-currency-symbol');
+    
+    currencySymbolElements.forEach(element => {
+        element.textContent = currencySymbol;
+    });
 }
 
 // Initialize Analytics Dashboard
 function initializeAnalyticsDashboard() {
     const periodButtons = document.querySelectorAll('.time-period-btn');
     const analyticsTabs = document.querySelectorAll('.analytics-tab');
+    
+    if (!periodButtons.length || !analyticsTabs.length) {
+        console.error('Analytics elements not found in the DOM');
+        return;
+    }
     
     // Set up period buttons
     periodButtons.forEach(button => {
@@ -511,6 +346,8 @@ function initializeAnalyticsDashboard() {
             // Update charts with new period
             SubscriptionDB.getAll().then(subscriptions => {
                 updateAnalyticsDashboard(subscriptions, button.dataset.period);
+            }).catch(error => {
+                console.error('Error loading subscriptions for analytics:', error);
             });
         });
     });
@@ -534,12 +371,28 @@ function initializeAnalyticsDashboard() {
             }
         });
     });
+    
+    // Initial load of analytics
+    SubscriptionDB.getAll().then(subscriptions => {
+        updateAnalyticsDashboard(subscriptions);
+    }).catch(error => {
+        console.error('Error loading initial analytics data:', error);
+    });
 }
 
 // Update Analytics Dashboard
 function updateAnalyticsDashboard(subscriptions, period = '6m') {
     if (!subscriptions || subscriptions.length === 0) {
-        // No data, show empty state
+        // Show empty state for analytics
+        const analyticsContent = document.querySelector('.analytics-content');
+        if (analyticsContent) {
+            analyticsContent.innerHTML = `
+                <div class="empty-analytics">
+                    <i class="fas fa-chart-bar"></i>
+                    <p>Add subscriptions to see analytics and insights.</p>
+                </div>
+            `;
+        }
         return;
     }
     
@@ -553,124 +406,129 @@ function updateAnalyticsDashboard(subscriptions, period = '6m') {
     updateComparisonMetrics(subscriptions);
 }
 
-// Update trend chart
+// Update the spending trend chart
 function updateTrendChart(subscriptions, period = '6m') {
     const canvas = document.getElementById('trendChart');
     if (!canvas) return;
     
-    // Generate data for the selected period
+    // Clean up existing chart
+    if (window.trendChartInstance && typeof window.trendChartInstance.destroy === 'function') {
+        window.trendChartInstance.destroy();
+    }
+    
+    const currencySymbol = getCurrencySymbol();
     const { labels, data } = generateTrendData(subscriptions, period);
     
-    // Chart configuration
-    const config = {
+    // Create new chart
+    window.trendChartInstance = new Chart(canvas, {
         type: 'line',
         data: {
             labels: labels,
             datasets: [{
                 label: 'Monthly Spending',
                 data: data,
-                borderColor: '#8B5A2B',
-                backgroundColor: 'rgba(139, 90, 43, 0.1)',
+                backgroundColor: 'rgba(111, 29, 27, 0.2)',
+                borderColor: '#6f1d1b',
                 borderWidth: 2,
-                fill: true,
-                tension: 0.4
+                pointBackgroundColor: '#6f1d1b',
+                pointBorderColor: '#fff',
+                pointHoverBackgroundColor: '#fff',
+                pointHoverBorderColor: '#6f1d1b',
+                tension: 0.3
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        callback: function(value) {
-                            return getCurrencySymbol() + value;
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: (context) => {
+                            return `${currencySymbol}${context.parsed.y.toFixed(2)}`;
                         }
                     }
                 }
             },
-            plugins: {
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            return getCurrencySymbol() + context.parsed.y.toFixed(2);
+            scales: {
+                x: {
+                    grid: {
+                        display: false
+                    }
+                },
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: (value) => {
+                            return `${currencySymbol}${value}`;
                         }
                     }
                 }
             }
         }
-    };
-    
-    // Create or update chart
-    if (window.trendChart) {
-        window.trendChart.data = config.data;
-        window.trendChart.update();
-    } else {
-        window.trendChart = new Chart(canvas, config);
-    }
+    });
 }
 
-// Generate trend data based on subscriptions
+// Generate trend data for chart
 function generateTrendData(subscriptions, period) {
     const now = new Date();
-    let months = 6; // Default to 6 months
+    let months = 6;
     
-    if (period === '1y') {
-        months = 12;
-    } else if (period === 'all') {
-        // Find the earliest subscription date
-        let earliest = now;
-        subscriptions.forEach(sub => {
-            const createdAt = new Date(sub.createdAt || sub.dueDate);
-            if (createdAt < earliest) {
-                earliest = createdAt;
-            }
-        });
-        
-        // Calculate months difference (minimum 6)
-        const monthsDiff = (now.getFullYear() - earliest.getFullYear()) * 12 + 
-                           now.getMonth() - earliest.getMonth();
-        months = Math.max(6, monthsDiff);
+    switch (period) {
+        case '1y':
+            months = 12;
+            break;
+        case 'all':
+            // Find earliest subscription
+            const earliest = subscriptions.reduce((min, sub) => {
+                const date = new Date(sub.dueDate);
+                return date < min ? date : min;
+            }, now);
+            
+            months = Math.max(
+                6,
+                Math.ceil((now - earliest) / (1000 * 60 * 60 * 24 * 30))
+            );
+            break;
     }
     
-    // Generate labels (month names)
+    // Generate labels and data points
     const labels = [];
     const data = [];
     
     for (let i = months - 1; i >= 0; i--) {
-        const d = new Date(now);
-        d.setMonth(d.getMonth() - i);
-        labels.push(d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }));
+        const date = new Date(now);
+        date.setMonth(date.getMonth() - i);
         
-        // Calculate monthly spending for this month
-        const monthlySpending = calculateMonthlySpendingForDate(subscriptions, d);
-        data.push(monthlySpending);
+        // Format month name
+        const monthName = date.toLocaleString('default', { month: 'short' });
+        labels.push(`${monthName} ${date.getFullYear()}`);
+        
+        // Calculate spending for this month
+        const spending = calculateMonthlySpendingForDate(subscriptions, date);
+        data.push(spending);
     }
     
     return { labels, data };
 }
 
-// Calculate monthly spending for a specific month
+// Calculate monthly spending for a specific date
 function calculateMonthlySpendingForDate(subscriptions, date) {
-    let total = 0;
+    let totalMonthly = 0;
     
-    // Filter subscriptions that were active in this month
-    const activeSubscriptions = subscriptions.filter(sub => {
-        const createdAt = new Date(sub.createdAt || sub.dueDate);
-        return createdAt <= date;
+    // Only count subscriptions that existed on this date
+    const filteredSubscriptions = subscriptions.filter(sub => {
+        const startDate = new Date(sub.dueDate);
+        return startDate <= date;
     });
     
-    // Sum up monthly spending
-    activeSubscriptions.forEach(subscription => {
-        const amount = parseFloat(subscription.amount);
-        const cycle = subscription.billingCycle;
-        
-        // Use the cached conversion factors
-        const factor = BILLING_CYCLE_FACTORS[cycle] || 1;
-        total += amount * factor;
+    filteredSubscriptions.forEach(subscription => {
+        totalMonthly += calculateMonthlyAmount(subscription);
     });
     
-    return total;
+    return totalMonthly;
 }
 
 // Update category analysis chart
@@ -678,256 +536,219 @@ function updateCategoryAnalysisChart(subscriptions, period = '6m') {
     const canvas = document.getElementById('categoryAnalysisChart');
     if (!canvas) return;
     
-    // Get category spending data
+    // Clean up existing chart
+    if (window.categoryChartInstance && typeof window.categoryChartInstance.destroy === 'function') {
+        window.categoryChartInstance.destroy();
+    }
+    
+    const currencySymbol = getCurrencySymbol();
     const categoryData = getCategorySpendingData(subscriptions);
     
-    // Sort categories by spending
-    const sortedCategories = Object.keys(categoryData).sort((a, b) => 
-        categoryData[b] - categoryData[a]
-    );
-    
-    // Prepare data for chart
-    const labels = sortedCategories.map(category => capitalize(category));
-    const data = sortedCategories.map(category => categoryData[category]);
-    
-    // Color palette for categories
+    // Define category colors
     const categoryColors = {
-        'streaming': '#e91e63',
-        'fitness': '#4caf50',
-        'productivity': '#ff9800',
-        'music': '#9c27b0',
-        'cloud': '#2196f3',
-        'other': '#607d8b'
+        'streaming': '#6f1d1b', // Falu red
+        'fitness': '#bb9457',   // Lion
+        'productivity': '#432818', // Bistre
+        'music': '#99582a',     // Brown
+        'cloud': '#ffe6a7',     // Peach
+        'other': '#d3a184'      // Lighter brown
     };
     
-    // Chart configuration
-    const config = {
-        type: 'bar',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Monthly Spending by Category',
-                data: data,
-                backgroundColor: sortedCategories.map(category => 
-                    categoryColors[category] || '#8B5A2B'
-                ),
-                borderWidth: 0
-            }]
-        },
+    // Prepare chart data
+    const data = {
+        labels: categoryData.map(item => capitalize(item.category)),
+        datasets: [{
+            data: categoryData.map(item => item.amount),
+            backgroundColor: categoryData.map(item => categoryColors[item.category] || '#6f1d1b'),
+            borderWidth: 1,
+            borderColor: '#fff'
+        }]
+    };
+    
+    // Create new chart
+    window.categoryChartInstance = new Chart(canvas, {
+        type: 'doughnut',
+        data: data,
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        callback: function(value) {
-                            return getCurrencySymbol() + value;
+            plugins: {
+                legend: {
+                    position: 'right',
+                    labels: {
+                        boxWidth: 15,
+                        padding: 15
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: (context) => {
+                            const value = context.parsed;
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = Math.round((value / total) * 100);
+                            return `${currencySymbol}${value.toFixed(2)} (${percentage}%)`;
                         }
                     }
                 }
             },
-            plugins: {
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            const value = context.parsed.y;
-                            const total = data.reduce((a, b) => a + b, 0);
-                            const percentage = Math.round((value / total) * 100);
-                            return `${getCurrencySymbol()}${value.toFixed(2)} (${percentage}%)`;
-                        }
-                    }
-                }
+            cutout: '60%',
+            animation: {
+                animateScale: true,
+                animateRotate: true
             }
         }
-    };
-    
-    // Create or update chart
-    if (window.categoryAnalysisChart) {
-        window.categoryAnalysisChart.data = config.data;
-        window.categoryAnalysisChart.update();
-    } else {
-        window.categoryAnalysisChart = new Chart(canvas, config);
-    }
+    });
 }
 
 // Get category spending data
 function getCategorySpendingData(subscriptions) {
-    const categoryData = {};
+    const categories = {};
     
     subscriptions.forEach(subscription => {
-        const amount = parseFloat(subscription.amount);
-        const cycle = subscription.billingCycle;
-        const category = subscription.category;
+        const category = subscription.category || 'other';
+        const monthlyAmount = calculateMonthlyAmount(subscription);
         
-        // Use the cached conversion factors
-        const factor = BILLING_CYCLE_FACTORS[cycle] || 1;
-        const monthlyAmount = amount * factor;
-        
-        // Add to category total
-        if (!categoryData[category]) {
-            categoryData[category] = 0;
+        if (!categories[category]) {
+            categories[category] = 0;
         }
-        categoryData[category] += monthlyAmount;
+        
+        categories[category] += monthlyAmount;
     });
     
-    return categoryData;
+    // Convert to array for chart
+    return Object.keys(categories).map(category => ({
+        category,
+        amount: categories[category]
+    }));
 }
 
 // Update comparison metrics
 function updateComparisonMetrics(subscriptions) {
     if (!subscriptions || subscriptions.length === 0) return;
     
-    // Most expensive subscription
-    const mostExpensive = subscriptions.reduce((prev, current) => {
-        const prevMonthly = calculateMonthlyAmount(prev);
-        const currentMonthly = calculateMonthlyAmount(current);
-        return prevMonthly > currentMonthly ? prev : current;
-    });
+    const mostExpensiveElement = document.getElementById('mostExpensive');
+    const leastUsedElement = document.getElementById('leastUsed');
+    const biggestCategoryElement = document.getElementById('biggestCategory');
+    const yearChangeElement = document.getElementById('yearChange');
+    const yearChangePercentElement = document.getElementById('yearChangePercent');
     
-    // Update UI
-    const mostExpensiveEl = document.getElementById('mostExpensive');
-    if (mostExpensiveEl) {
-        mostExpensiveEl.textContent = `${mostExpensive.name} (${getCurrencySymbol()}${calculateMonthlyAmount(mostExpensive).toFixed(2)}/mo)`;
+    const currencySymbol = getCurrencySymbol();
+    
+    // Most expensive subscription
+    if (mostExpensiveElement) {
+        const mostExpensive = subscriptions.reduce((max, sub) => {
+            const monthlyAmount = calculateMonthlyAmount(sub);
+            return monthlyAmount > max.amount ? { name: sub.name, amount: monthlyAmount } : max;
+        }, { name: '', amount: 0 });
+        
+        mostExpensiveElement.textContent = mostExpensive.name ? 
+            `${mostExpensive.name} (${currencySymbol}${mostExpensive.amount.toFixed(2)}/mo)` : 
+            'None';
+    }
+    
+    // Least used (placeholder - in a real app you'd track usage)
+    if (leastUsedElement) {
+        // Simulating least used based on oldest subscription
+        const oldest = subscriptions.reduce((oldest, sub) => {
+            const dueDate = new Date(sub.dueDate);
+            return !oldest.date || dueDate < oldest.date ? 
+                { name: sub.name, date: dueDate } : oldest;
+        }, { name: '', date: null });
+        
+        leastUsedElement.textContent = oldest.name || 'None';
     }
     
     // Biggest category
-    const categoryData = getCategorySpendingData(subscriptions);
-    const biggestCategory = Object.keys(categoryData).reduce((a, b) => 
-        categoryData[a] > categoryData[b] ? a : b
-    );
-    
-    // Update UI
-    const biggestCategoryEl = document.getElementById('biggestCategory');
-    if (biggestCategoryEl) {
-        biggestCategoryEl.textContent = `${capitalize(biggestCategory)} (${getCurrencySymbol()}${categoryData[biggestCategory].toFixed(2)}/mo)`;
+    if (biggestCategoryElement) {
+        const categoryTotals = {};
+        
+        subscriptions.forEach(sub => {
+            const category = sub.category || 'other';
+            const monthlyAmount = calculateMonthlyAmount(sub);
+            
+            if (!categoryTotals[category]) {
+                categoryTotals[category] = 0;
+            }
+            
+            categoryTotals[category] += monthlyAmount;
+        });
+        
+        let biggestCategory = { category: '', amount: 0 };
+        
+        Object.keys(categoryTotals).forEach(category => {
+            if (categoryTotals[category] > biggestCategory.amount) {
+                biggestCategory = { 
+                    category, 
+                    amount: categoryTotals[category] 
+                };
+            }
+        });
+        
+        biggestCategoryElement.textContent = biggestCategory.category ? 
+            `${capitalize(biggestCategory.category)} (${currencySymbol}${biggestCategory.amount.toFixed(2)})` : 
+            'None';
     }
     
-    // Year-over-year change
-    // For this demo, we'll just calculate a simulated YoY change
-    const totalMonthly = Object.values(categoryData).reduce((a, b) => a + b, 0);
-    // Simulate last year's spending as 90-110% of current
-    const randomFactor = 0.9 + Math.random() * 0.2;
-    const lastYearMonthly = totalMonthly * randomFactor;
-    const yoyChange = ((totalMonthly - lastYearMonthly) / lastYearMonthly) * 100;
-    
-    // Update UI
-    const yearChangeEl = document.getElementById('yearChange');
-    const yearChangePercentEl = document.getElementById('yearChangePercent');
-    
-    if (yearChangeEl) {
-        yearChangeEl.textContent = `${getCurrencySymbol()}${Math.abs(totalMonthly - lastYearMonthly).toFixed(2)}`;
-    }
-    
-    if (yearChangePercentEl) {
-        yearChangePercentEl.textContent = `${yoyChange > 0 ? '+' : ''}${yoyChange.toFixed(1)}%`;
-        yearChangePercentEl.className = 'comparison-change';
-        yearChangePercentEl.classList.add(yoyChange > 0 ? 'increase' : 'decrease');
-    }
-    
-    // Least used (we don't have usage data, so this is a placeholder)
-    // In a real app, you would track actual usage vs cost
-    const leastUsedEl = document.getElementById('leastUsed');
-    if (leastUsedEl && subscriptions.length > 1) {
-        // For demo purposes, select a random subscription
-        const randomIndex = Math.floor(Math.random() * subscriptions.length);
-        leastUsedEl.textContent = subscriptions[randomIndex].name;
-    } else if (leastUsedEl) {
-        leastUsedEl.textContent = 'N/A';
+    // Year over year change (placeholder - would normally compare to historical data)
+    if (yearChangeElement && yearChangePercentElement) {
+        // Simulating a YoY change
+        yearChangeElement.textContent = `${currencySymbol}0.00`;
+        yearChangePercentElement.textContent = `(0%)`;
+        yearChangePercentElement.className = 'comparison-change neutral';
     }
 }
 
-// Calculate monthly amount for a subscription
+// Calculate monthly amount from subscription based on billing cycle
 function calculateMonthlyAmount(subscription) {
-    const amount = parseFloat(subscription.amount);
-    const cycle = subscription.billingCycle;
-    const factor = BILLING_CYCLE_FACTORS[cycle] || 1;
+    const amount = parseFloat(subscription.amount) || 0;
+    const factor = BILLING_CYCLE_FACTORS[subscription.billingCycle] || 1;
     return amount * factor;
 }
 
-// Helper function to get currency symbol
+// Get currency symbol from localStorage
 function getCurrencySymbol() {
-  // Default to ₹ (INR)
-  let symbol = '₹';
-  
-  // Get currency from localStorage
-  const currency = localStorage.getItem('currency') || 'INR';
-  
-  // Map currency code to symbol
-  const symbols = {
-    'INR': '₹',
-    'USD': '$',
-    'EUR': '€',
-    'GBP': '£',
-    'JPY': '¥',
-    'CAD': '$',
-    'AUD': '$',
-    'CNY': '¥',
-    'SGD': '$',
-    'RUB': '₽'
-  };
-  
-  return symbols[currency] || symbol;
+    const currency = localStorage.getItem('currency') || 'INR';
+    const symbols = {
+        'INR': '₹',
+        'USD': '$',
+        'EUR': '€',
+        'GBP': '£',
+        'JPY': '¥',
+        'CAD': '$',
+        'AUD': '$',
+        'CNY': '¥',
+        'RUB': '₽'
+    };
+    
+    return symbols[currency] || symbols['INR'];
 }
 
-// Helper function to capitalize a string
+// Capitalize the first letter of a string
 function capitalize(string) {
+    if (!string) return '';
     return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
-// Helper function for toast messages - fallback if not defined in app.js
+// Show toast notification
 function showToast(message, duration = 3000, type = 'info') {
-    // Check if the app.js showToast is defined first
-    if (window.showToast) {
+    // Using the app's showToast function if it exists
+    if (typeof window.showToast === 'function') {
         window.showToast(message, duration, type);
         return;
     }
     
-    // Create a simple toast implementation if not already defined
-    const toast = document.createElement('div');
-    toast.className = `toast-message toast-${type}`;
+    // Otherwise, create our own toast
+    let toast = document.querySelector('.analytics-toast');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.className = 'analytics-toast';
+        document.body.appendChild(toast);
+    }
+    
     toast.textContent = message;
+    toast.className = `analytics-toast show ${type}`;
     
-    // Create styles for the toast
-    const style = document.createElement('style');
-    style.textContent = `
-        .toast-message {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            padding: 12px 24px;
-            border-radius: 8px;
-            background-color: rgba(0, 0, 0, 0.7);
-            color: white;
-            font-size: 14px;
-            z-index: 9999;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-        .toast-error {
-            background-color: rgba(220, 53, 69, 0.9);
-        }
-        .toast-success {
-            background-color: rgba(40, 167, 69, 0.9);
-        }
-        .toast-warning {
-            background-color: rgba(255, 193, 7, 0.9);
-        }
-        .toast-show {
-            opacity: 1;
-        }
-    `;
-    
-    document.head.appendChild(style);
-    document.body.appendChild(toast);
-    
-    // Show the toast
-    setTimeout(() => toast.classList.add('toast-show'), 10);
-    
-    // Hide and remove after the duration
     setTimeout(() => {
-        toast.style.opacity = '0';
-        setTimeout(() => toast.remove(), 300);
+        toast.className = toast.className.replace('show', '');
     }, duration);
 } 

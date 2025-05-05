@@ -1,36 +1,36 @@
-/* Enhanced Theme & Styling Improvements - Coffee Shop Theme */
+/* Enhanced Theme & Styling Improvements - Rustic Warmth Theme */
 
 :root {
-  /* Main color palette based on Coffee Shop design */
-  --primary-color: #8B5A2B;
-  --primary-color-rgb: 139, 90, 43;
-  --primary-color-light: #A67C52;
-  --primary-color-dark: #704119;
+  /* Main color palette based on Tailwind theme */
+  --primary-color: #6f1d1b; /* Falu red */
+  --primary-color-rgb: 111, 29, 27;
+  --primary-color-light: #ab2c29;
+  --primary-color-dark: #431110;
   
   --success-color: #537A5A;
   --success-color-rgb: 83, 122, 90;
-  --warning-color: #C2955A;
-  --warning-color-rgb: 194, 149, 90;
-  --danger-color: #A73121;
-  --danger-color-rgb: 167, 49, 33;
+  --warning-color: #bb9457; /* Lion */
+  --warning-color-rgb: 187, 148, 87;
+  --danger-color: #99582a; /* Brown */
+  --danger-color-rgb: 153, 88, 42;
   --info-color: #718EA4;
   --info-color-rgb: 113, 142, 164;
   
   /* Background & surface colors */
-  --bg-primary: #F8F3E9;
-  --bg-card: #FFFFFF;
-  --bg-input: #FFFFFF;
+  --bg-primary: #fff;
+  --bg-card: #fff;
+  --bg-input: #fff;
   
   /* Text colors */
-  --text-primary: #3A2C1F;
-  --text-secondary: #6C5F51;
-  --text-light: #9C8E7B;
+  --text-primary: #432818; /* Bistre */
+  --text-secondary: #99582a; /* Brown */
+  --text-light: #bb9457; /* Lion */
   
   /* Borders & shadows */
-  --border-color: #E8DFD5;
-  --shadow-sm: 0 2px 4px rgba(99, 75, 37, 0.05);
-  --shadow-md: 0 4px 6px rgba(99, 75, 37, 0.07), 0 1px 3px rgba(99, 75, 37, 0.08);
-  --shadow-lg: 0 10px 15px rgba(99, 75, 37, 0.07), 0 5px 8px rgba(99, 75, 37, 0.08);
+  --border-color: #f1eade;
+  --shadow-sm: 0 2px 4px rgba(111, 29, 27, 0.05);
+  --shadow-md: 0 4px 6px rgba(111, 29, 27, 0.07), 0 1px 3px rgba(111, 29, 27, 0.08);
+  --shadow-lg: 0 10px 15px rgba(111, 29, 27, 0.07), 0 5px 8px rgba(111, 29, 27, 0.08);
   
   /* Spacing */
   --spacing-xs: 4px;
@@ -50,40 +50,62 @@
   --button-border-radius: 24px;
   
   /* Category Colors */
-  --streaming-color: #E67E22;
-  --streaming-color-rgb: 230, 126, 34;
-  --fitness-color: #537A5A;
-  --fitness-color-rgb: 83, 122, 90;
-  --productivity-color: #3A8BB4;
-  --productivity-color-rgb: 58, 139, 180;
-  --music-color: #8E44AD;
-  --music-color-rgb: 142, 68, 173;
-  --cloud-color: #718EA4;
-  --cloud-color-rgb: 113, 142, 164;
-  --other-color: #7C6E63;
-  --other-color-rgb: 124, 110, 99;
-  --saas-color: #D35400;
-  --saas-color-rgb: 211, 84, 0;
+  --streaming-color: #6f1d1b; /* Falu red */
+  --streaming-color-rgb: 111, 29, 27;
+  --fitness-color: #bb9457; /* Lion */
+  --fitness-color-rgb: 187, 148, 87;
+  --productivity-color: #432818; /* Bistre */
+  --productivity-color-rgb: 67, 40, 24;
+  --music-color: #99582a; /* Brown */
+  --music-color-rgb: 153, 88, 42;
+  --cloud-color: #ffe6a7; /* Peach */
+  --cloud-color-rgb: 255, 230, 167;
+  --other-color: #99582a; /* Brown */
+  --other-color-rgb: 153, 88, 42;
+  --saas-color: #6f1d1b; /* Falu red */
+  --saas-color-rgb: 111, 29, 27;
 }
 
 /* Dark mode overrides for Coffee Shop Theme */
 body.dark-mode {
-  --primary-color: #C28B51;
-  --primary-color-light: #D6A977;
-  --primary-color-dark: #9E6B39;
+  /* Primary brand colors - warmer and more refined */
+  --primary-color: #E3A86C;
+  --primary-color-light: #F2C196;
+  --primary-color-dark: #B58046;
+  --primary-color-rgb: 227, 168, 108;
   
-  --bg-primary: #2A2118;
-  --bg-card: #372D22;
-  --bg-input: #423528;
+  /* Background colors - proper dark mode hierarchy */
+  --bg-primary: #1A1A1A;
+  --bg-card: #2A2A2A;
+  --bg-input: #333333;
   
-  --text-primary: #F3EAE0;
-  --text-secondary: #C8B8A5;
-  --text-light: #9C8E7B;
+  /* Text colors - high contrast for readability */
+  --text-primary: #F7F7F7;
+  --text-secondary: #DADADA;
+  --text-light: #A0A0A0;
   
-  --border-color: #4D4033;
-  --shadow-sm: 0 2px 4px rgba(0,0,0,0.2);
-  --shadow-md: 0 4px 8px rgba(0,0,0,0.25);
-  --shadow-lg: 0 10px 20px rgba(0,0,0,0.3);
+  /* Border and shadow colors - subtle depth */
+  --border-color: #404040;
+  --border-light: rgba(255, 255, 255, 0.1);
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 20px rgba(0, 0, 0, 0.5);
+  
+  /* Button colors */
+  --button-bg: #333333;
+  --button-text: #F7F7F7;
+  
+  /* Error and warning colors - more visible in dark mode */
+  --error-color: #FF5252;
+  --warning-color: #FFB74D;
+  --success-color: #66BB6A;
+  
+  /* Other utility colors */
+  --card-border: 1px solid var(--border-color);
+  --primary-gradient: linear-gradient(135deg, var(--primary-color), var(--primary-color-light));
+  
+  background-image: linear-gradient(135deg, rgba(26, 26, 26, 0.6) 0%, rgba(38, 38, 38, 0.6) 100%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cg fill='%23333333' fill-opacity='0.05'%3E%3Cpath d='M0 0h40v40H0V0zm40 40h40v40H40V40zm0-40h2l-2 2V0zm0 4l4-4h2l-6 6V4zm0 4l8-8h2L40 10V8zm0 4L52 0h2L40 14v-2zm0 4L56 0h2L40 18v-2zm0 4L60 0h2L40 22v-2zm0 4L64 0h2L40 26v-2zm0 4L68 0h2L40 30v-2zm0 4L72 0h2L40 34v-2zm0 4L76 0h2L40 38v-2zm0 4L80 0v2L42 40h-2zm4 0L80 4v2L46 40h-2zm4 0L80 8v2L50 40h-2zm4 0l28-28v2L54 40h-2zm4 0l24-24v2L58 40h-2zm4 0l20-20v2L62 40h-2zm4 0l16-16v2L66 40h-2zm4 0l12-12v2L70 40h-2zm4 0l8-8v2l-6 6h-2zm4 0l4-4v2l-2 2h-2z'/%3E%3C/g%3E%3C/svg%3E");
 }
 
 /* ==== Global Styling Enhancements ==== */
@@ -92,7 +114,7 @@ body {
   background-color: var(--bg-primary);
   background-image: 
     linear-gradient(135deg, rgba(139, 90, 43, 0.05) 0%, rgba(165, 135, 95, 0.05) 100%),
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cg fill='%238b5a2b' fill-opacity='0.03'%3E%3Cpath d='M0 0h40v40H0V0zm40 40h40v40H40V40zm0-40h2l-2 2V0zm0 4l4-4h2l-6 6V4zm0 4l8-8h2L40 10V8zm0 4L52 0h2L40 14v-2zm0 4L56 0h2L40 18v-2zm0 4L60 0h2L40 22v-2zm0 4L64 0h2L40 26v-2zm0 4L68 0h2L40 30v-2zm0 4L72 0h2L40 34v-2zm0 4L76 0h2L40 38v-2zm0 4L80 0v2L42 40h-2zm4 0L80 4v2L46 40h-2zm4 0L80 8v2L50 40h-2zm4 0l28-28v2L54 40h-2zm4 0l24-24v2L58 40h-2zm4 0l20-20v2L62 40h-2zm4 0l16-16v2L66 40h-2zm4 0l12-12v2L70 40h-2zm4 0l8-8v2l-6 6h-2zm4 0l4-4v2l-2 2h-2z'/%3E%3C/g%3E%3C/svg%3E");
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Cg fill='%238b5a2b' fill-opacity='0.03'%3E%3Cpath d='M0 0h40v40H0V0zm40 40h40v40H40V40zm0-40h2l-2 2V0zm0 4l4-4h2l-6 6V4zm0 4l8-8h2L40 10V8zm0 4L52 0h2L40 14v-2zm0 4L56 0h2L40 18v-2zm0 4L60 0h2L40 22v-2zm0 4L64 0h2L40 26v-2zm0 4L68 0h2L40 30v-2zm0 4L72 0h2L40 34v-2zm0 4L76 0h2L40 38v-2zm0 4L80 0v2L42 40h-2zm4 0L80 4v2L46 40h-2zm4 0L80 8v2L50 40h-2zm4 0l28-28v2L54 40h-2zm4 0l24-24v2L58 40h-2zm4 0l20-20v2L62 40h-2zm4 0l16-16v2L66 40h-2zm4 0l12-12v2L70 40h-2zm4 0l8-8v2l-6 6h-2zm4 0l4-4v2l-2 2h-2z'/%3E%3C/g%3E%3C/svg%3E");
   background-attachment: fixed;
   color: var(--text-primary);
   line-height: 1.5;
@@ -788,13 +810,6 @@ body.dark-mode .dark-mode-switch::after {
   box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb), 0.1);
 }
 
-/* Dark mode body background */
-body.dark-mode {
-  background-image: 
-    linear-gradient(135deg, rgba(58, 44, 31, 0.1) 0%, rgba(70, 54, 36, 0.1) 100%),
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cg fill='%23704119' fill-opacity='0.05'%3E%3Cpath d='M0 0h40v40H0V0zm40 40h40v40H40V40zm0-40h2l-2 2V0zm0 4l4-4h2l-6 6V4zm0 4l8-8h2L40 10V8zm0 4L52 0h2L40 14v-2zm0 4L56 0h2L40 18v-2zm0 4L60 0h2L40 22v-2zm0 4L64 0h2L40 26v-2zm0 4L68 0h2L40 30v-2zm0 4L72 0h2L40 34v-2zm0 4L76 0h2L40 38v-2zm0 4L80 0v2L42 40h-2zm4 0L80 4v2L46 40h-2zm4 0L80 8v2L50 40h-2zm4 0l28-28v2L54 40h-2zm4 0l24-24v2L58 40h-2zm4 0l20-20v2L62 40h-2zm4 0l16-16v2L66 40h-2zm4 0l12-12v2L70 40h-2zm4 0l8-8v2l-6 6h-2zm4 0l4-4v2l-2 2h-2z'/%3E%3C/g%3E%3C/svg%3E");
-}
-
 /* Loading animation for buttons */
 .btn-loading {
   position: relative;
@@ -845,7 +860,7 @@ body.dark-mode .amount-input-wrapper span {
 }
 
 body.dark-mode .add-subscription {
-  background-image: linear-gradient(135deg, rgba(55, 45, 34, 0.95) 0%, rgba(42, 33, 24, 0.95) 100%);
+  background-image: linear-gradient(135deg, rgba(45, 45, 45, 0.95) 0%, rgba(35, 35, 35, 0.95) 100%);
 }
 
 /* Placeholder text styling */
@@ -1139,4 +1154,58 @@ body.dark-mode .remember-email-group {
   .card-actions:has(> .action-btn:nth-child(3)) .action-btn {
     flex-basis: 100%;
   }
+}
+
+/* Dark mode subscription card improvements */
+body.dark-mode .subscription-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+body.dark-mode .subscription-card::before {
+  background: var(--primary-gradient);
+}
+
+body.dark-mode .subscription-name {
+  color: var(--text-primary);
+}
+
+body.dark-mode .detail-label {
+  color: var(--text-light);
+}
+
+body.dark-mode .subscription-amount {
+  color: var(--primary-color);
+}
+
+body.dark-mode .days-left {
+  color: var(--text-secondary);
+}
+
+body.dark-mode .days-left.warning {
+  color: var(--warning-color);
+}
+
+/* Dark mode add subscription form */
+body.dark-mode .add-subscription {
+  background-image: linear-gradient(135deg, rgba(45, 45, 45, 0.95) 0%, rgba(35, 35, 35, 0.95) 100%);
+  border: 1px solid var(--border-color);
+}
+
+body.dark-mode .form-group input[type="text"],
+body.dark-mode .form-group input[type="number"],
+body.dark-mode .form-group input[type="date"],
+body.dark-mode .form-group input[type="email"],
+body.dark-mode .form-group select,
+body.dark-mode .amount-input-wrapper {
+  background-color: var(--bg-input);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+body.dark-mode .amount-input-wrapper span {
+  background-color: rgba(var(--primary-color-rgb), 0.15);
+  color: var(--primary-color-light);
+  border-right: 1px solid var(--border-color);
 }

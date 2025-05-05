@@ -388,6 +388,21 @@ function setupEventListeners() {
     setupCategoryFilter();
     setupSearch();
     setupSettingsPanel();
+    setupRemindersSection();
+}
+
+// Setup reminders section event listeners
+function setupRemindersSection() {
+    const viewAllBtn = document.querySelector('.view-all-btn');
+    if (viewAllBtn) {
+        viewAllBtn.addEventListener('click', () => {
+            // Navigate to reminders page
+            window.location.href = 'reminders.html';
+            
+            // Haptic feedback
+            if (navigator.vibrate) navigator.vibrate(30);
+        });
+    }
 }
 
 // Show the app loader
@@ -625,6 +640,9 @@ function loadSubscriptions() {
                         updateTotalAmount(subscriptions);
                         updateCategoryChart(subscriptions);
                         
+                        // Update upcoming reminders
+                        loadUpcomingReminders(subscriptions);
+                        
                         // Dispatch event for other modules
                         document.dispatchEvent(new CustomEvent('subscriptions-loaded', { 
                             detail: { subscriptions } 
@@ -703,18 +721,144 @@ function loadUpcomingReminders(subscriptions) {
         // Create reminder item
         const reminderItem = document.createElement('div');
         reminderItem.className = 'reminder-item';
+        reminderItem.dataset.id = sub.id;
+        
+        // Generate notification settings HTML
+        const notificationSettings = `
+            <div class="notification-settings">
+                <div class="notification-toggle">
+                    <span class="toggle-label">Push</span>
+                    <label class="switch switch-small">
+                        <input type="checkbox" class="reminder-push-toggle" ${sub.reminderEnabled ? 'checked' : ''}>
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+                <div class="notification-toggle">
+                    <span class="toggle-label">Email</span>
+                    <label class="switch switch-small">
+                        <input type="checkbox" class="reminder-email-toggle" ${sub.reminderEmailEnabled ? 'checked' : ''}>
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+            </div>
+        `;
+        
         reminderItem.innerHTML = `
             <div class="reminder-item-content">
                 <div class="reminder-item-title">${sub.name}</div>
                 <div class="reminder-item-date">${formattedDate} (${sub.billingCycle})</div>
+                ${notificationSettings}
             </div>
             <div class="reminder-status-tag ${tagClass}">${tagText}</div>
         `;
         
         // Add click event to navigate to reminders page
-        reminderItem.addEventListener('click', () => {
+        reminderItem.addEventListener('click', (e) => {
+            // If the user clicked on a toggle, don't navigate
+            if (e.target.closest('.switch') || e.target.closest('.notification-toggle')) {
+                e.stopPropagation();
+                return;
+            }
+            
             window.location.href = 'reminders.html';
         });
+        
+        // Add event listeners for toggles
+        const pushToggle = reminderItem.querySelector('.reminder-push-toggle');
+        const emailToggle = reminderItem.querySelector('.reminder-email-toggle');
+        
+        if (pushToggle) {
+            pushToggle.addEventListener('change', (e) => {
+                e.stopPropagation(); // Prevent navigation
+                
+                // Update subscription in database
+                SubscriptionDB.get(sub.id)
+                    .then(subscription => {
+                        if (subscription) {
+                            subscription.reminderEnabled = pushToggle.checked;
+                            return SubscriptionDB.update(subscription);
+                        }
+                    })
+                    .then(() => {
+                        // Show confirmation
+                        showToast(`Push notifications ${pushToggle.checked ? 'enabled' : 'disabled'} for ${sub.name}`);
+                        
+                        // Haptic feedback
+                        if (navigator.vibrate) navigator.vibrate(30);
+                    })
+                    .catch(error => {
+                        console.error('Error updating reminder settings:', error);
+                        showToast('Error updating reminder settings');
+                        
+                        // Restore previous state
+                        pushToggle.checked = !pushToggle.checked;
+                    });
+            });
+        }
+        
+        if (emailToggle) {
+            emailToggle.addEventListener('change', (e) => {
+                e.stopPropagation(); // Prevent navigation
+                
+                // If enabling email but no email address set, show prompt
+                if (emailToggle.checked && (!sub.reminderEmail || sub.reminderEmail.trim() === '')) {
+                    const email = prompt('Please enter your email address for notifications:');
+                    
+                    if (!email || !isValidEmail(email)) {
+                        showToast('Please enter a valid email address');
+                        emailToggle.checked = false;
+                        return;
+                    }
+                    
+                    // Get the subscription from the database
+                    SubscriptionDB.get(sub.id)
+                        .then(subscription => {
+                            if (subscription) {
+                                subscription.reminderEmailEnabled = true;
+                                subscription.reminderEmail = email;
+                                return SubscriptionDB.update(subscription);
+                            }
+                        })
+                        .then(() => {
+                            // Show confirmation
+                            showToast(`Email notifications enabled for ${sub.name}`);
+                            
+                            // Haptic feedback
+                            if (navigator.vibrate) navigator.vibrate(30);
+                        })
+                        .catch(error => {
+                            console.error('Error updating reminder settings:', error);
+                            showToast('Error updating reminder settings');
+                            
+                            // Restore previous state
+                            emailToggle.checked = false;
+                        });
+                } else {
+                    // Update subscription in database
+                    SubscriptionDB.get(sub.id)
+                        .then(subscription => {
+                            if (subscription) {
+                                subscription.reminderEmailEnabled = emailToggle.checked;
+                                return SubscriptionDB.update(subscription);
+                            }
+                        })
+                        .then(() => {
+                            // Show confirmation
+                            showToast(`Email notifications ${emailToggle.checked ? 'enabled' : 'disabled'} for ${sub.name}`);
+                            
+                            // Haptic feedback
+                            if (navigator.vibrate) navigator.vibrate(30);
+                        })
+                        .catch(error => {
+                            console.error('Error updating reminder settings:', error);
+                            showToast('Error updating reminder settings');
+                            
+                            // Restore previous state
+                            emailToggle.checked = !emailToggle.checked;
+                        });
+                }
+            });
+        }
         
         remindersList.appendChild(reminderItem);
     });
@@ -725,50 +869,26 @@ function saveSubscription(subscription) {
     // Save to IndexedDB
     SubscriptionDB.add(subscription)
         .then(savedSubscription => {
-            // Update the UI with the new subscription
-            try {
-                const card = createSubscriptionCard(savedSubscription);
-                
-                // Try to get the main container, fall back to the fallback container if needed
-                let container = document.getElementById('subscriptionCards');
-                
-                // If main container not found, try to use the fallback
-                if (!container) {
-                    console.warn('Main subscriptionCards container not found in saveSubscription, trying fallback');
-                    container = document.getElementById('subscriptionCardsFallback');
-                    
-                    // Make the fallback visible if it exists
-                    if (container) {
-                        container.style.display = 'block';
-                    }
-                }
-                
-                // Append to the container if it exists
-                if (container) {
-                    container.appendChild(card);
-                    console.log('Subscription card added to the container');
-                } else {
-                    console.error('No container found for adding the subscription card');
-                }
-            } catch (error) {
-                console.error('Error creating or appending subscription card:', error);
-            }
-            
             // Clear the form
             const subscriptionForm = document.getElementById('subscriptionForm');
             if (subscriptionForm) {
                 subscriptionForm.reset();
             }
             
-            // Update total amount and chart
+            // Update total amount and chart - this will also reload the subscription cards
             loadSubscriptions();
             
             // Show toast
             showToast('Subscription added successfully');
+            
+            // Haptic feedback
+            if (navigator.vibrate) {
+                navigator.vibrate([50, 30, 100]);
+            }
         })
         .catch(error => {
             console.error('Error saving subscription to IndexedDB:', error);
-            showToast('Error saving subscription. Please try again.');
+            showToast('Error adding subscription. Please try again.');
         });
 }
 
@@ -1238,11 +1358,6 @@ function handleEditFormSubmit(event) {
         
         // Close the modal
         document.getElementById('editModal').style.display = 'none';
-        
-        // Haptic feedback
-        if (navigator.vibrate) {
-            navigator.vibrate([50, 30, 100]);
-        }
     } catch (error) {
         console.error('Error in edit form submission:', error);
         showToast('An error occurred. Please try again.');
@@ -1254,20 +1369,16 @@ function updateSubscription(subscription) {
     // Update in IndexedDB
     SubscriptionDB.update(subscription)
         .then(() => {
-            // Update the UI
-            const card = document.getElementById(`subscription-${subscription.id}`);
-            if (card) {
-                card.remove();
-            }
-            
-            // Create new card with updated data
-            createSubscriptionCard(subscription);
-            
-            // Update total amount and chart
+            // Update total amount, chart, and UI
             loadSubscriptions();
             
             // Show toast
             showToast('Subscription updated successfully');
+            
+            // Haptic feedback
+            if (navigator.vibrate) {
+                navigator.vibrate([50, 30, 100]);
+            }
         })
         .catch(error => {
             console.error('Error updating subscription in IndexedDB:', error);
@@ -1401,11 +1512,6 @@ function setupFormListener() {
             
             // Save subscription
             saveSubscription(subscription);
-            
-            // Haptic feedback
-            if (navigator.vibrate) {
-                navigator.vibrate([50, 30, 100]);
-            }
         } catch (error) {
             console.error('Error in form submission:', error);
             showToast('An error occurred. Please try again.');
@@ -1469,7 +1575,11 @@ function updateTotalAmount(subscriptions) {
     // Update the UI only once
     const totalElement = document.getElementById('totalMonthly');
     if (totalElement) {
-        totalElement.textContent = total.toFixed(2);
+        const currencySymbol = getCurrencySymbol();
+        totalElement.textContent = `${currencySymbol}${total.toLocaleString('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        })}`;
     }
 }
 
@@ -1503,18 +1613,18 @@ function updateCategoryChart(subscriptions) {
         
         // Color palette for categories - cached
         const categoryColors = {
-            'streaming': '#e91e63',
-            'fitness': '#4caf50',
-            'productivity': '#ff9800',
-            'music': '#9c27b0',
-            'cloud': '#2196f3',
-            'other': '#607d8b'
+            'streaming': '#6f1d1b', // Falu red
+            'fitness': '#bb9457',   // Lion
+            'productivity': '#432818', // Bistre
+            'music': '#99582a',     // Brown
+            'cloud': '#ffe6a7',     // Peach
+            'other': '#99582a'      // Brown
         };
         
         // Default colors for other categories
         const defaultColors = [
-            '#3f51b5', '#009688', '#ffc107', '#795548', 
-            '#9e9e9e', '#f44336', '#cddc39', '#00bcd4'
+            '#6f1d1b', '#bb9457', '#432818', '#99582a', 
+            '#ffe6a7', '#d3a184', '#e28987', '#f1eade'
         ];
         
         // Prepare data for chart
