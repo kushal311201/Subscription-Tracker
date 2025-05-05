@@ -3,14 +3,14 @@
   "public": true,
   "builds": [
     {
-      "src": "ui-prototype/**/*",
+      "src": "subscription-manager/**/*",
       "use": "@vercel/static"
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "/ui-prototype/$1"
+      "dest": "/subscription-manager/$1"
     }
   ]
 } 
