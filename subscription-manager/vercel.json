@@ -1,8 +1,9 @@
 {
   "version": 2,
+  "name": "subscription-tracker",
   "builds": [
     {
-      "src": "**/*.html",
+      "src": "**",
       "use": "@vercel/static"
     }
   ],
@@ -12,5 +13,10 @@
       "dest": "/$1"
     }
   ],
-  "cleanUrls": true
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "github": {
+    "enabled": true,
+    "silent": false
+  }
 } 
