@@ -16,6 +16,9 @@ let syncInProgress = false;
 
 // Initialize app when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
+    // Start the loading sequence
+    showAppLoader();
+    
     // Initialize IndexedDB
     SubscriptionDB.init()
         .then(() => {
@@ -44,10 +47,19 @@ document.addEventListener('DOMContentLoaded', () => {
             // Setup bottom navigation and settings
             setupNavigation();
             setupSettingsPanel();
+            
+            // Hide loader after initialization is complete
+            setTimeout(hideAppLoader, 1000);
+            
+            // Start animations
+            setTimeout(startPageAnimations, 1200);
         })
         .catch(error => {
             console.error('Failed to initialize IndexedDB:', error);
             showToast('Failed to initialize offline storage. Some features may not work correctly.');
+            
+            // Hide loader even if there's an error
+            hideAppLoader();
         });
     
     // Listen for online/offline events
@@ -69,6 +81,64 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
+// Show the app loader
+function showAppLoader() {
+    const loader = document.querySelector('.app-loader');
+    if (loader) {
+        loader.classList.remove('hidden');
+    }
+}
+
+// Hide the app loader
+function hideAppLoader() {
+    const loader = document.querySelector('.app-loader');
+    if (loader) {
+        loader.classList.add('hidden');
+    }
+}
+
+// Start page animations
+function startPageAnimations() {
+    // Animate elements with the animate-in class
+    const animatedElements = document.querySelectorAll('.animate-in');
+    animatedElements.forEach((element, index) => {
+        // Add staggered delay
+        setTimeout(() => {
+            element.classList.add('animate-fade-in');
+        }, index * 100);
+    });
+    
+    // Use GSAP for subscription cards animation if available
+    if (window.gsap && document.querySelector('.subscription-card')) {
+        gsap.from('.subscription-card', {
+            duration: 0.6,
+            opacity: 0,
+            y: 30,
+            stagger: 0.1,
+            ease: "power2.out"
+        });
+    }
+}
+
+// Animate an element when it's added to the DOM
+function animateElement(element) {
+    // Add animation class with GSAP if available
+    if (window.gsap) {
+        gsap.from(element, {
+            duration: 0.4,
+            opacity: 0,
+            y: 20,
+            ease: "power2.out"
+        });
+    } else {
+        // Fallback to CSS animation
+        element.classList.add('animate-in');
+        setTimeout(() => {
+            element.classList.add('animate-fade-in');
+        }, 10);
+    }
+}
 
 // Handle online/offline status changes
 function handleOnlineStatusChange() {
@@ -350,13 +420,16 @@ function createSubscriptionCard(subscription) {
         year: 'numeric'
     });
     
+    // Get currency symbol from localStorage
+    const currencySymbol = getCurrencySymbol();
+    
     // Set card HTML
     card.innerHTML = `
         <span class="card-category">${subscription.category}</span>
         <div class="card-title">${subscription.name}</div>
         <div class="card-detail">
             <span class="detail-label">Amount:</span>
-            <span class="amount-value">₹${subscription.amount}</span>
+            <span class="amount-value">${currencySymbol}${subscription.amount}</span>
         </div>
         <div class="card-detail">
             <span class="detail-label">Billing:</span>
@@ -406,7 +479,7 @@ function createSubscriptionCard(subscription) {
         shareBtn.addEventListener('click', () => {
             navigator.share({
                 title: 'Subscription Details',
-                text: `${subscription.name} - ₹${subscription.amount} (${subscription.billingCycle})`,
+                text: `${subscription.name} - ${currencySymbol}${subscription.amount} (${subscription.billingCycle})`,
                 url: window.location.href
             })
             .then(() => console.log('Shared successfully'))
@@ -424,6 +497,34 @@ function createSubscriptionCard(subscription) {
     
     // Add to container
     container.appendChild(card);
+    
+    // Animate the card
+    animateElement(card);
+}
+
+// Helper function to get currency symbol
+function getCurrencySymbol() {
+    // Default to ₹ (INR)
+    let symbol = '₹';
+    
+    // Get currency from localStorage
+    const currency = localStorage.getItem('currency') || 'INR';
+    
+    // Map currency code to symbol
+    const symbols = {
+        'INR': '₹',
+        'USD': '$',
+        'EUR': '€',
+        'GBP': '£',
+        'JPY': '¥',
+        'CAD': '$',
+        'AUD': '$',
+        'CNY': '¥',
+        'SGD': '$',
+        'RUB': '₽'
+    };
+    
+    return symbols[currency] || symbol;
 }
 
 // Open the edit modal with subscription data

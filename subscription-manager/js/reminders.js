@@ -7,6 +7,9 @@ let reminders = [];
 
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
+    // Show the app loader
+    showAppLoader();
+    
     // Setup event listeners
     setupEventListeners();
     
@@ -15,7 +18,71 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Initialize UI based on saved preferences
     initPreferences();
+    
+    // Hide loader after initialization with a slight delay for better UX
+    setTimeout(hideAppLoader, 1000);
+    
+    // Start animations
+    setTimeout(startPageAnimations, 1200);
 });
+
+// Show the app loader
+function showAppLoader() {
+    const loader = document.querySelector('.app-loader');
+    if (loader) {
+        loader.classList.remove('hidden');
+    }
+}
+
+// Hide the app loader
+function hideAppLoader() {
+    const loader = document.querySelector('.app-loader');
+    if (loader) {
+        loader.classList.add('hidden');
+    }
+}
+
+// Start page animations
+function startPageAnimations() {
+    // Animate elements with the animate-in class
+    const animatedElements = document.querySelectorAll('.animate-in');
+    animatedElements.forEach((element, index) => {
+        // Add staggered delay
+        setTimeout(() => {
+            element.classList.add('animate-fade-in');
+        }, index * 150);
+    });
+    
+    // Use GSAP for reminder cards animation if available
+    if (window.gsap && document.querySelector('.reminder-card')) {
+        gsap.from('.reminder-card', {
+            duration: 0.6,
+            opacity: 0,
+            y: 30,
+            stagger: 0.1,
+            ease: "power2.out"
+        });
+    }
+}
+
+// Animate an element when it's added to the DOM
+function animateElement(element) {
+    // Add animation class with GSAP if available
+    if (window.gsap) {
+        gsap.from(element, {
+            duration: 0.4,
+            opacity: 0,
+            y: 20,
+            ease: "power2.out"
+        });
+    } else {
+        // Fallback to CSS animation
+        element.classList.add('animate-in');
+        setTimeout(() => {
+            element.classList.add('animate-fade-in');
+        }, 10);
+    }
+}
 
 // Setup event listeners for reminders page
 function setupEventListeners() {
@@ -175,6 +242,9 @@ function createReminderCard(subscription) {
         notificationTypeText = "None";
     }
     
+    // Get currency symbol
+    const currencySymbol = getCurrencySymbol();
+    
     // Create card element
     const card = document.createElement('div');
     card.className = 'reminder-card';
@@ -191,7 +261,7 @@ function createReminderCard(subscription) {
         </div>
         <div class="reminder-info">
             <span class="reminder-label">Subscription Amount:</span>
-            <span class="reminder-value">₹${subscription.amount} (${subscription.billingCycle})</span>
+            <span class="reminder-value">${currencySymbol}${subscription.amount} (${subscription.billingCycle})</span>
         </div>
         <div class="reminder-info">
             <span class="reminder-label">Due Date:</span>
@@ -222,6 +292,9 @@ function createReminderCard(subscription) {
     
     // Add to container
     reminderList.appendChild(card);
+    
+    // Animate the card
+    animateElement(card);
 }
 
 // Sort reminder cards by due date
