@@ -15,6 +15,13 @@ const BILLING_CYCLE_FACTORS = {
 
 // Initialize budget functionality
 document.addEventListener('DOMContentLoaded', () => {
+    // Check if SubscriptionDB is defined
+    if (typeof SubscriptionDB === 'undefined') {
+        console.error('SubscriptionDB is not defined. Budget analytics will not work.');
+        showToast('Error loading budget analytics. Please refresh the page.', 5000, 'error');
+        return;
+    }
+    
     // Make sure Chart.js is loaded
     if (typeof Chart === 'undefined') {
         console.error('Chart.js is not loaded. Analytics will not be available.');

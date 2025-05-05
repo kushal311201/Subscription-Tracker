@@ -14,17 +14,38 @@ let tempIdCounter = 1;
 let isOnline = navigator.onLine;
 let syncInProgress = false;
 
-// Initialize app when DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
+// Initialize the app
+(function initApp() {
+  // Wait for DOM to be loaded before initializing
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+      if (typeof SubscriptionDB === 'undefined') {
+        console.error('SubscriptionDB is not defined. Check if db.js is loaded properly.');
+        showDatabaseError('Database module not found. Please refresh the page.');
+        return;
+      }
+      initializeApp();
+    });
+  } else {
+    // DOM already loaded
+    if (typeof SubscriptionDB === 'undefined') {
+      console.error('SubscriptionDB is not defined. Check if db.js is loaded properly.');
+      showDatabaseError('Database module not found. Please refresh the page.');
+      return;
+    }
+    initializeApp();
+  }
+  
+  function initializeApp() {
     // Start the loading sequence
     showAppLoader();
     
     // Check browser support first
     if (!SubscriptionDB.isSupported()) {
-        console.error('IndexedDB is not supported in this browser');
-        showDatabaseError('Your browser does not support offline storage. Try using a modern browser like Chrome or Edge.');
-        hideAppLoader();
-        return;
+      console.error('IndexedDB is not supported in this browser');
+      showDatabaseError('Your browser does not support offline storage. Try using a modern browser like Chrome or Edge.');
+      hideAppLoader();
+      return;
     }
     
     // Initialize critical features first
@@ -34,44 +55,47 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Initialize IndexedDB
     SubscriptionDB.init()
-        .then(() => {
-            console.log('IndexedDB initialized');
-            
-            // Load subscriptions - most important task first
-            loadSubscriptions();
-            
-            // Setup event listeners after DB initialization
-            setupEventListeners();
-            
-            // Register for notifications - background task
-            setTimeout(() => {
-                setupNotifications();
-            }, 1000);
-        })
-        .catch(error => {
-            console.error('Failed to initialize IndexedDB:', error);
-            
-            // Try to determine the specific error cause for better error messages
-            let errorMessage = 'Failed to initialize offline storage. Some features may not work correctly.';
-            let errorDetails = '';
-            
-            if (error.name === 'QuotaExceededError' || error.message.includes('quota')) {
-                errorDetails = 'This may happen in private browsing mode or if your device is low on storage.';
-            } else if (error.name === 'SecurityError' || error.message.includes('security')) {
-                errorDetails = 'This may be due to browser security restrictions.';
-            } else if (error.message.includes('timed out')) {
-                errorDetails = 'Database initialization timed out. Try refreshing the page.';
-            }
-            
-            // Display a more user-friendly error message
-            showDatabaseError(errorMessage, errorDetails);
-            
-            // Hide loader even if there's an error
-            hideAppLoader();
-            
-            // Setup the app in limited mode (read-only)
-            setupLimitedMode();
-        });
+      .then(() => {
+        console.log('IndexedDB initialized');
+        
+        // Load subscriptions - most important task first
+        loadSubscriptions();
+        
+        // Setup event listeners after DB initialization
+        setupEventListeners();
+        
+        // Register for notifications - background task
+        setTimeout(() => {
+          setupNotifications();
+        }, 1000);
+        
+        // Hide loader after initialization
+        hideAppLoader();
+      })
+      .catch(error => {
+        console.error('Failed to initialize IndexedDB:', error);
+        
+        // Try to determine the specific error cause for better error messages
+        let errorMessage = 'Failed to initialize offline storage. Some features may not work correctly.';
+        let errorDetails = '';
+        
+        if (error.name === 'QuotaExceededError' || error.message.includes('quota')) {
+          errorDetails = 'This may happen in private browsing mode or if your device is low on storage.';
+        } else if (error.name === 'SecurityError' || error.message.includes('security')) {
+          errorDetails = 'This may be due to browser security restrictions.';
+        } else if (error.message.includes('timed out')) {
+          errorDetails = 'Database initialization timed out. Try refreshing the page.';
+        }
+        
+        // Display a more user-friendly error message
+        showDatabaseError(errorMessage, errorDetails);
+        
+        // Hide loader even if there's an error
+        hideAppLoader();
+        
+        // Setup the app in limited mode (read-only)
+        setupLimitedMode();
+      });
     
     // Listen for online/offline events
     window.addEventListener('online', handleOnlineStatusChange);
@@ -79,19 +103,20 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Listen for sync messages from service worker
     if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-        navigator.serviceWorker.addEventListener('message', event => {
-            if (event.data.type === 'SYNC_STARTED') {
-                syncInProgress = true;
-                showSyncIndicator(true, 'Syncing data...');
-            } else if (event.data.type === 'SYNC_COMPLETED') {
-                syncInProgress = false;
-                showSyncIndicator(false, 'Sync completed');
-                // Reload subscriptions to get the latest data
-                loadSubscriptions();
-            }
-        });
+      navigator.serviceWorker.addEventListener('message', event => {
+        if (event.data.type === 'SYNC_STARTED') {
+          syncInProgress = true;
+          showSyncIndicator(true, 'Syncing data...');
+        } else if (event.data.type === 'SYNC_COMPLETED') {
+          syncInProgress = false;
+          showSyncIndicator(false, 'Sync completed');
+          // Reload subscriptions to get the latest data
+          loadSubscriptions();
+        }
+      });
     }
-});
+  }
+})();
 
 // Setup all event listeners - extracted for better organization
 function setupEventListeners() {
