@@ -3,17 +3,39 @@
  * Adds budget management and spending visualization to Subscription Tracker
  */
 
+// Cached conversion factors for recurring billing (copy from app.js)
+const BILLING_CYCLE_FACTORS = {
+  'monthly': 1,
+  'yearly': 1/12,
+  'quarterly': 1/3,
+  'weekly': 4.33, // Average weeks in a month
+  'biweekly': 2.17, // Average bi-weekly periods in a month
+  'daily': 30.42 // Average days in a month
+};
+
 // Initialize budget functionality
 document.addEventListener('DOMContentLoaded', () => {
-    initializeBudgetPlanner();
-    initializeAnalyticsDashboard();
+    // Make sure Chart.js is loaded
+    if (typeof Chart === 'undefined') {
+        console.error('Chart.js is not loaded. Analytics will not be available.');
+        showToast('Analytics could not be loaded. Please refresh the page.', 5000, 'error');
+        return;
+    }
     
-    // Subscribe to subscription updates
-    document.addEventListener('subscriptions-updated', (event) => {
-        const subscriptions = event.detail.subscriptions;
-        updateBudgetCalculations(subscriptions);
-        updateAnalyticsDashboard(subscriptions);
-    });
+    try {
+        initializeBudgetPlanner();
+        initializeAnalyticsDashboard();
+        
+        // Subscribe to subscription updates
+        document.addEventListener('subscriptions-updated', (event) => {
+            const subscriptions = event.detail.subscriptions;
+            updateBudgetCalculations(subscriptions);
+            updateAnalyticsDashboard(subscriptions);
+        });
+    } catch (error) {
+        console.error('Error initializing budget analytics:', error);
+        showToast('There was an error loading the analytics. Please refresh the page.', 5000, 'error');
+    }
 });
 
 // Budget variables
@@ -573,7 +595,89 @@ function calculateMonthlyAmount(subscription) {
     return amount * factor;
 }
 
+// Helper function to get currency symbol
+function getCurrencySymbol() {
+  // Default to ₹ (INR)
+  let symbol = '₹';
+  
+  // Get currency from localStorage
+  const currency = localStorage.getItem('currency') || 'INR';
+  
+  // Map currency code to symbol
+  const symbols = {
+    'INR': '₹',
+    'USD': '$',
+    'EUR': '€',
+    'GBP': '£',
+    'JPY': '¥',
+    'CAD': '$',
+    'AUD': '$',
+    'CNY': '¥',
+    'SGD': '$',
+    'RUB': '₽'
+  };
+  
+  return symbols[currency] || symbol;
+}
+
 // Helper function to capitalize a string
 function capitalize(string) {
     return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
+// Helper function for toast messages - fallback if not defined in app.js
+function showToast(message, duration = 3000, type = 'info') {
+    // Check if the app.js showToast is defined first
+    if (window.showToast) {
+        window.showToast(message, duration, type);
+        return;
+    }
+    
+    // Create a simple toast implementation if not already defined
+    const toast = document.createElement('div');
+    toast.className = `toast-message toast-${type}`;
+    toast.textContent = message;
+    
+    // Create styles for the toast
+    const style = document.createElement('style');
+    style.textContent = `
+        .toast-message {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 24px;
+            border-radius: 8px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            font-size: 14px;
+            z-index: 9999;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .toast-error {
+            background-color: rgba(220, 53, 69, 0.9);
+        }
+        .toast-success {
+            background-color: rgba(40, 167, 69, 0.9);
+        }
+        .toast-warning {
+            background-color: rgba(255, 193, 7, 0.9);
+        }
+        .toast-show {
+            opacity: 1;
+        }
+    `;
+    
+    document.head.appendChild(style);
+    document.body.appendChild(toast);
+    
+    // Show the toast
+    setTimeout(() => toast.classList.add('toast-show'), 10);
+    
+    // Hide and remove after the duration
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 300);
+    }, duration);
 } 
