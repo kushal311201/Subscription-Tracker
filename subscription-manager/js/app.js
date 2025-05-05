@@ -226,46 +226,137 @@ function syncData() {
 
 // Load subscriptions from IndexedDB
 function loadSubscriptions() {
-    // Clear existing cards
+    // First, check if IndexedDB is supported
+    if (!SubscriptionDB.isSupported()) {
+        console.error('IndexedDB is not supported in this browser');
+        showToast('Your browser does not support offline storage. Some features may not work correctly.');
+        hideAppLoader();
+        return;
+    }
+    
+    // Show loading indicator
     const container = document.getElementById('subscriptionCards');
     if (container) {
+        // Clear existing cards
         container.innerHTML = '';
+        
+        // Show loading indicator in container
+        const loadingEl = document.createElement('div');
+        loadingEl.className = 'loading-indicator';
+        loadingEl.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+        loadingEl.style.textAlign = 'center';
+        loadingEl.style.padding = '30px';
+        loadingEl.style.color = 'var(--text-secondary)';
+        container.appendChild(loadingEl);
     }
     
     // Load from IndexedDB
     SubscriptionDB.getAll()
         .then(subscriptions => {
-            // Display subscriptions from IndexedDB
-            if (subscriptions && subscriptions.length > 0) {
-                subscriptions.forEach(subscription => {
-                    createSubscriptionCard(subscription);
-                });
-                
-                // Update the total monthly amount
-                updateTotalAmount(subscriptions);
-                
-                // Update category chart
-                updateCategoryChart(subscriptions);
-                
-                // Load upcoming reminders
-                loadUpcomingReminders(subscriptions);
-                
-                // Hide empty state
-                const emptyState = document.querySelector('.empty-state');
-                if (emptyState) {
-                    emptyState.style.display = 'none';
+            try {
+                // Clear loading indicator
+                if (container) {
+                    container.innerHTML = '';
                 }
-            } else {
-                // Show empty state
-                const emptyState = document.querySelector('.empty-state');
-                if (emptyState) {
-                    emptyState.style.display = 'flex';
+                
+                // Display subscriptions from IndexedDB
+                if (subscriptions && subscriptions.length > 0) {
+                    // Process each subscription
+                    subscriptions.forEach(subscription => {
+                        try {
+                            createSubscriptionCard(subscription);
+                        } catch (cardError) {
+                            console.error('Error creating subscription card:', cardError, subscription);
+                        }
+                    });
+                    
+                    try {
+                        // Update the total monthly amount
+                        updateTotalAmount(subscriptions);
+                    } catch (totalError) {
+                        console.error('Error updating total amount:', totalError);
+                    }
+                    
+                    try {
+                        // Update category chart
+                        updateCategoryChart(subscriptions);
+                    } catch (chartError) {
+                        console.error('Error updating category chart:', chartError);
+                    }
+                    
+                    try {
+                        // Load upcoming reminders
+                        loadUpcomingReminders(subscriptions);
+                    } catch (reminderError) {
+                        console.error('Error loading upcoming reminders:', reminderError);
+                    }
+                    
+                    // Hide empty state
+                    const emptyState = document.querySelector('.empty-state');
+                    if (emptyState) {
+                        emptyState.style.display = 'none';
+                    }
+                } else {
+                    // Show empty state
+                    const emptyState = document.querySelector('.empty-state');
+                    if (emptyState) {
+                        emptyState.style.display = 'flex';
+                    }
+                    
+                    // Reset total amount and reminders
+                    document.getElementById('totalMonthly').textContent = '0';
+                    
+                    // Clear upcoming reminders
+                    const remindersList = document.getElementById('upcomingRemindersList');
+                    if (remindersList) {
+                        remindersList.innerHTML = `
+                            <div class="empty-reminders">
+                                <i class="fas fa-bell-slash"></i>
+                                <p>No upcoming reminders. Add subscriptions with reminders enabled to see them here.</p>
+                            </div>
+                        `;
+                    }
                 }
+                
+                // Start animations after loading
+                startPageAnimations();
+            } catch (error) {
+                console.error('Error processing subscriptions data:', error);
+                showToast('Error displaying subscriptions. Please try again.');
             }
         })
         .catch(error => {
             console.error('Error loading subscriptions from IndexedDB:', error);
+            
+            // Clear loading indicator
+            if (container) {
+                container.innerHTML = '';
+            }
+            
+            // Show empty state with error
+            const emptyState = document.querySelector('.empty-state');
+            if (emptyState) {
+                emptyState.style.display = 'flex';
+                emptyState.innerHTML = `
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>Error loading subscriptions. Please try again.</p>
+                    <button id="retryLoadBtn" class="btn secondary-btn">Retry</button>
+                `;
+                
+                // Add retry button handler
+                const retryBtn = document.getElementById('retryLoadBtn');
+                if (retryBtn) {
+                    retryBtn.addEventListener('click', () => {
+                        loadSubscriptions();
+                    });
+                }
+            }
+            
             showToast('Error loading subscriptions. Please try again.');
+        })
+        .finally(() => {
+            // Hide loader in any case
+            hideAppLoader();
         });
 }
 

@@ -16,37 +16,79 @@ let db;
  */
 function initDB() {
   return new Promise((resolve, reject) => {
+    // Return the existing connection if already open
     if (db) {
       return resolve(db);
     }
 
     console.log('Opening IndexedDB database...');
-    const request = indexedDB.open(DB_NAME, DB_VERSION);
+    
+    // Handle browsers that don't support IndexedDB
+    if (!window.indexedDB) {
+      console.error('Your browser does not support IndexedDB');
+      return reject(new Error('Your browser does not support IndexedDB'));
+    }
+    
+    try {
+      const request = indexedDB.open(DB_NAME, DB_VERSION);
 
-    request.onupgradeneeded = event => {
-      const db = event.target.result;
-      console.log('Upgrading IndexedDB database...');
+      request.onupgradeneeded = event => {
+        try {
+          const db = event.target.result;
+          console.log('Upgrading IndexedDB database...');
 
-      // Create subscriptions store
-      if (!db.objectStoreNames.contains(SUBSCRIPTION_STORE)) {
-        const store = db.createObjectStore(SUBSCRIPTION_STORE, { keyPath: 'id' });
-        store.createIndex('name', 'name', { unique: false });
-        store.createIndex('dueDate', 'dueDate', { unique: false });
-        store.createIndex('category', 'category', { unique: false });
-        console.log('Created subscriptions store');
-      }
-    };
+          // Create subscriptions store
+          if (!db.objectStoreNames.contains(SUBSCRIPTION_STORE)) {
+            const store = db.createObjectStore(SUBSCRIPTION_STORE, { keyPath: 'id' });
+            store.createIndex('name', 'name', { unique: false });
+            store.createIndex('dueDate', 'dueDate', { unique: false });
+            store.createIndex('category', 'category', { unique: false });
+            console.log('Created subscriptions store');
+          }
+        } catch (err) {
+          console.error('Error during database upgrade:', err);
+          reject(err);
+        }
+      };
 
-    request.onsuccess = event => {
-      db = event.target.result;
-      console.log('IndexedDB database opened successfully');
-      resolve(db);
-    };
+      request.onsuccess = event => {
+        db = event.target.result;
+        console.log('IndexedDB database opened successfully');
+        
+        // Handle database errors
+        db.onerror = event => {
+          console.error('Database error:', event.target.errorCode);
+        };
+        
+        // Listen for close events
+        db.onclose = () => {
+          console.log('Database connection closed unexpectedly');
+          db = null;
+        };
+        
+        // Listen for version change events
+        db.onversionchange = event => {
+          db.close();
+          console.log('Database version changed, please reload the page');
+          db = null;
+        };
+        
+        resolve(db);
+      };
 
-    request.onerror = event => {
-      console.error('IndexedDB error:', event.target.error);
-      reject(event.target.error);
-    };
+      request.onerror = event => {
+        console.error('IndexedDB error:', event.target.error);
+        reject(event.target.error);
+      };
+      
+      request.onblocked = event => {
+        console.error('Database opening blocked. Please close other tabs with this app open.');
+        reject(new Error('Database opening blocked'));
+      };
+    } catch (err) {
+      console.error('Error initializing IndexedDB:', err);
+      reject(err);
+    }
   });
 }
 
@@ -66,15 +108,21 @@ function addSubscription(subscription) {
   
   return executeTransaction(SUBSCRIPTION_STORE, 'readwrite', store => {
     return new Promise((resolve, reject) => {
-      const request = store.put(subscription);
-      
-      request.onsuccess = () => {
-        resolve(subscription);
-      };
-      
-      request.onerror = event => {
-        reject(event.target.error);
-      };
+      try {
+        const request = store.put(subscription);
+        
+        request.onsuccess = () => {
+          resolve(subscription);
+        };
+        
+        request.onerror = event => {
+          console.error('Error adding subscription:', event.target.error);
+          reject(event.target.error);
+        };
+      } catch (err) {
+        console.error('Transaction error while adding subscription:', err);
+        reject(err);
+      }
     });
   });
 }
@@ -86,15 +134,21 @@ function addSubscription(subscription) {
 function getAllSubscriptions() {
   return executeTransaction(SUBSCRIPTION_STORE, 'readonly', store => {
     return new Promise((resolve, reject) => {
-      const request = store.getAll();
-      
-      request.onsuccess = () => {
-        resolve(request.result);
-      };
-      
-      request.onerror = event => {
-        reject(event.target.error);
-      };
+      try {
+        const request = store.getAll();
+        
+        request.onsuccess = () => {
+          resolve(request.result || []);
+        };
+        
+        request.onerror = event => {
+          console.error('Error getting all subscriptions:', event.target.error);
+          reject(event.target.error);
+        };
+      } catch (err) {
+        console.error('Transaction error while getting all subscriptions:', err);
+        reject(err);
+      }
     });
   });
 }
@@ -107,15 +161,21 @@ function getAllSubscriptions() {
 function getSubscription(id) {
   return executeTransaction(SUBSCRIPTION_STORE, 'readonly', store => {
     return new Promise((resolve, reject) => {
-      const request = store.get(id);
-      
-      request.onsuccess = () => {
-        resolve(request.result);
-      };
-      
-      request.onerror = event => {
-        reject(event.target.error);
-      };
+      try {
+        const request = store.get(id);
+        
+        request.onsuccess = () => {
+          resolve(request.result);
+        };
+        
+        request.onerror = event => {
+          console.error('Error getting subscription:', event.target.error);
+          reject(event.target.error);
+        };
+      } catch (err) {
+        console.error('Transaction error while getting subscription:', err);
+        reject(err);
+      }
     });
   });
 }
@@ -131,15 +191,21 @@ function updateSubscription(subscription) {
   
   return executeTransaction(SUBSCRIPTION_STORE, 'readwrite', store => {
     return new Promise((resolve, reject) => {
-      const request = store.put(subscription);
-      
-      request.onsuccess = () => {
-        resolve(subscription);
-      };
-      
-      request.onerror = event => {
-        reject(event.target.error);
-      };
+      try {
+        const request = store.put(subscription);
+        
+        request.onsuccess = () => {
+          resolve(subscription);
+        };
+        
+        request.onerror = event => {
+          console.error('Error updating subscription:', event.target.error);
+          reject(event.target.error);
+        };
+      } catch (err) {
+        console.error('Transaction error while updating subscription:', err);
+        reject(err);
+      }
     });
   });
 }
@@ -152,15 +218,21 @@ function updateSubscription(subscription) {
 function deleteSubscription(id) {
   return executeTransaction(SUBSCRIPTION_STORE, 'readwrite', store => {
     return new Promise((resolve, reject) => {
-      const deleteRequest = store.delete(id);
-      
-      deleteRequest.onsuccess = () => {
-        resolve();
-      };
-      
-      deleteRequest.onerror = event => {
-        reject(event.target.error);
-      };
+      try {
+        const deleteRequest = store.delete(id);
+        
+        deleteRequest.onsuccess = () => {
+          resolve();
+        };
+        
+        deleteRequest.onerror = event => {
+          console.error('Error deleting subscription:', event.target.error);
+          reject(event.target.error);
+        };
+      } catch (err) {
+        console.error('Transaction error while deleting subscription:', err);
+        reject(err);
+      }
     });
   });
 }
@@ -175,19 +247,34 @@ function deleteSubscription(id) {
 function executeTransaction(storeName, mode, callback) {
   return initDB().then(db => {
     return new Promise((resolve, reject) => {
-      const transaction = db.transaction(storeName, mode);
-      const store = transaction.objectStore(storeName);
-      
-      transaction.oncomplete = () => {
-        resolve();
-      };
-      
-      transaction.onerror = event => {
-        reject(event.target.error);
-      };
-      
-      resolve(callback(store));
+      try {
+        const transaction = db.transaction(storeName, mode);
+        const store = transaction.objectStore(storeName);
+        
+        transaction.oncomplete = () => {
+          resolve();
+        };
+        
+        transaction.onerror = event => {
+          console.error('Transaction error:', event.target.error);
+          reject(event.target.error);
+        };
+        
+        transaction.onabort = event => {
+          console.error('Transaction aborted:', event.target.error);
+          reject(event.target.error || new Error('Transaction aborted'));
+        };
+        
+        const result = callback(store);
+        resolve(result);
+      } catch (err) {
+        console.error('Error executing transaction:', err);
+        reject(err);
+      }
     });
+  }).catch(err => {
+    console.error('Database initialization failed:', err);
+    throw err;
   });
 }
 
@@ -206,17 +293,31 @@ function generateUniqueId() {
 function clearDatabase() {
   return executeTransaction(SUBSCRIPTION_STORE, 'readwrite', store => {
     return new Promise((resolve, reject) => {
-      const request = store.clear();
-      
-      request.onsuccess = () => {
-        resolve();
-      };
-      
-      request.onerror = event => {
-        reject(event.target.error);
-      };
+      try {
+        const request = store.clear();
+        
+        request.onsuccess = () => {
+          resolve();
+        };
+        
+        request.onerror = event => {
+          console.error('Error clearing database:', event.target.error);
+          reject(event.target.error);
+        };
+      } catch (err) {
+        console.error('Transaction error while clearing database:', err);
+        reject(err);
+      }
     });
   });
+}
+
+/**
+ * Check if IndexedDB is supported in this browser
+ * @returns {boolean} True if IndexedDB is supported
+ */
+function isIndexedDBSupported() {
+  return !!window.indexedDB;
 }
 
 // Export the database API
@@ -227,5 +328,6 @@ const SubscriptionDB = {
   get: getSubscription,
   update: updateSubscription,
   delete: deleteSubscription,
-  clearAll: clearDatabase
+  clearAll: clearDatabase,
+  isSupported: isIndexedDBSupported
 }; 
