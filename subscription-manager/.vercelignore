@@ -1,0 +1,17 @@
+# Development files
+.git
+.github
+.gitignore
+README.md
+
+# Dependency directories
+node_modules
+
+# Build directories that might be in parent folders
+/build
+/dist
+
+# Exclude any old prototype files
+/prototype
+/old
+/_archive 
