@@ -2881,75 +2881,140 @@ function debounce(func, wait) {
 
 // Load budget analytics functionality
 function loadBudgetAnalytics() {
-    // Check if Chart.js is loaded
+    console.log('Loading budget analytics...');
+    
+    // First check if Chart.js is available
     if (typeof Chart === 'undefined') {
-        console.error('Chart.js is not loaded. Attempting to load it dynamically...');
+        console.error('Chart.js not found, attempting to load it');
         const chartScript = document.createElement('script');
         chartScript.src = 'https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js';
         chartScript.onload = function() {
-            console.log('Chart.js loaded successfully');
-            // Now we can initialize the budget analytics
-            initializeBudgetAnalyticsComponents();
+            console.log('Chart.js loaded dynamically');
+            loadAnalyticsScript();
         };
-        chartScript.onerror = function() {
-            console.error('Failed to load Chart.js dynamically');
-            showToast('Failed to load analytics components. Please refresh the page.', 5000, 'error');
+        chartScript.onerror = function(e) {
+            console.error('Failed to load Chart.js:', e);
+            showToast('Failed to load analytics components', 5000, 'error');
         };
         document.head.appendChild(chartScript);
     } else {
-        // Chart.js is already loaded, just initialize
-        initializeBudgetAnalyticsComponents();
+        loadAnalyticsScript();
+    }
+    
+    function loadAnalyticsScript() {
+        // Check if the script is already loaded
+        const isAnalyticsScriptLoaded = Array.from(document.querySelectorAll('script')).some(
+            script => script.src && script.src.includes('budget-analytics.js')
+        );
+        
+        if (isAnalyticsScriptLoaded) {
+            console.log('Analytics script is already in the DOM');
+            
+            // Give it a bit more time to initialize
+            setTimeout(() => {
+                const result = checkAndInitializeAnalytics();
+                if (!result) {
+                    console.warn('Analytics still not initialized, trying analytics fix script');
+                    loadAnalyticsFixScript();
+                }
+            }, 1000);
+            
+            return;
+        }
+        
+        // If not loaded, add the script
+        try {
+            console.log('Adding analytics script to DOM');
+            const budgetScript = document.createElement('script');
+            budgetScript.src = 'js/budget-analytics.js';
+            budgetScript.defer = true;
+            
+            budgetScript.onload = function() {
+                console.log('Budget analytics script loaded successfully');
+                
+                // Wait a short time to ensure functions are defined
+                setTimeout(() => {
+                    const result = checkAndInitializeAnalytics();
+                    if (!result) {
+                        console.warn('Analytics not initialized after script load, trying fix script');
+                        loadAnalyticsFixScript();
+                    }
+                }, 1000);
+            };
+            
+            budgetScript.onerror = function(e) {
+                console.error('Failed to load budget analytics script:', e);
+                showToast('Failed to load analytics components. Please refresh the page.', 5000, 'error');
+            };
+            
+            document.head.appendChild(budgetScript);
+        } catch (error) {
+            console.error('Error loading analytics script:', error);
+            showToast('Failed to load analytics components. Please refresh the page.', 5000, 'error');
+        }
+    }
+    
+    function loadAnalyticsFixScript() {
+        // Check if the analytics fix script is already loaded
+        const isFixScriptLoaded = Array.from(document.querySelectorAll('script')).some(
+            script => script.src && script.src.includes('analytics-fix.js')
+        );
+        
+        if (isFixScriptLoaded) {
+            console.log('Analytics fix script is already loaded');
+            return;
+        }
+        
+        console.log('Loading analytics fix script');
+        const fixScript = document.createElement('script');
+        fixScript.src = 'js/analytics-fix.js';
+        document.head.appendChild(fixScript);
     }
 }
 
-// Initialize budget analytics components
-function initializeBudgetAnalyticsComponents() {
+// Helper function to check and initialize analytics if available
+function checkAndInitializeAnalytics() {
+    if (typeof initializeAnalyticsModule === 'function') {
+        console.log('Calling analytics initialization function');
+        initializeAnalyticsModule();
+        return true;
+    } 
+    
+    // Fallback to checking individual functions
     if (typeof initializeBudgetPlanner === 'function' && typeof initializeAnalyticsDashboard === 'function') {
-        console.log('Initializing budget planner and analytics dashboard');
-        initializeBudgetPlanner();
-        initializeAnalyticsDashboard();
+        console.log('Analytics functions found, initializing directly');
         
-        // Ensure current data is loaded
-        SubscriptionDB.getAll().then(subscriptions => {
-            if (typeof updateBudgetCalculations === 'function') {
-                updateBudgetCalculations(subscriptions);
+        try {
+            if (typeof initializeBudgetPlanner === 'function') {
+                initializeBudgetPlanner();
             }
-            if (typeof updateAnalyticsDashboard === 'function') {
-                updateAnalyticsDashboard(subscriptions);
+            
+            if (typeof initializeAnalyticsDashboard === 'function') {
+                initializeAnalyticsDashboard();
             }
-            showToast('Analytics dashboard loaded successfully', 2000);
-        }).catch(error => {
-            console.error('Error loading data for analytics:', error);
-        });
-    } else {
-        console.error('Budget analytics functions not found. Trying to load the script...');
-        // Try to load the script dynamically
-        const budgetScript = document.createElement('script');
-        budgetScript.src = 'js/budget-analytics.js';
-        budgetScript.onload = function() {
-            console.log('Budget analytics script loaded successfully');
-            // Wait a bit for functions to be defined
-            setTimeout(() => {
-                if (typeof initializeBudgetPlanner === 'function' && typeof initializeAnalyticsDashboard === 'function') {
-                    initializeBudgetPlanner();
-                    initializeAnalyticsDashboard();
-                    
-                    // Load data for analytics
-                    SubscriptionDB.getAll().then(subscriptions => {
-                        if (typeof updateBudgetCalculations === 'function') {
-                            updateBudgetCalculations(subscriptions);
-                        }
-                        if (typeof updateAnalyticsDashboard === 'function') {
-                            updateAnalyticsDashboard(subscriptions);
-                        }
-                    });
+            
+            // Load data for analytics
+            SubscriptionDB.getAll().then(subscriptions => {
+                if (typeof updateAnalyticsDashboard === 'function') {
+                    updateAnalyticsDashboard(subscriptions);
                 }
-            }, 500);
-        };
-        budgetScript.onerror = function() {
-            console.error('Failed to load budget analytics script');
-            showToast('Failed to load analytics components. Please refresh the page.', 5000, 'error');
-        };
-        document.head.appendChild(budgetScript);
+                showToast('Analytics dashboard loaded successfully', 2000);
+            }).catch(error => {
+                console.error('Error loading data for analytics:', error);
+            });
+            
+            return true;
+        } catch (e) {
+            console.error('Error initializing analytics components:', e);
+            return false;
+        }
+    } else {
+        console.warn('Analytics functions not found yet');
+        return false;
     }
+}
+
+// Initialize budget analytics components - legacy function kept for backward compatibility
+function initializeBudgetAnalyticsComponents() {
+    return checkAndInitializeAnalytics();
 }

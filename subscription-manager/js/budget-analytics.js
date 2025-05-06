@@ -15,10 +15,32 @@ const BILLING_CYCLE_FACTORS = {
 
 // Initialize budget functionality
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('Budget analytics module loaded, initializing...');
+    
+    // Add a small delay to ensure SubscriptionDB and Chart are loaded
+    setTimeout(() => {
+        initializeAnalyticsModule();
+    }, 500);
+});
+
+// Separate function to initialize analytics
+function initializeAnalyticsModule() {
     // Check if SubscriptionDB is defined
     if (typeof SubscriptionDB === 'undefined') {
         console.error('SubscriptionDB is not defined. Budget analytics will not work.');
         showToast('Error loading budget analytics. Please refresh the page.', 5000, 'error');
+        
+        // Try loading db.js dynamically
+        const dbScript = document.createElement('script');
+        dbScript.src = 'js/db.js';
+        dbScript.onload = function() {
+            console.log('SubscriptionDB loaded dynamically');
+            checkAndInitializeAnalytics();
+        };
+        dbScript.onerror = function() {
+            console.error('Failed to load SubscriptionDB dynamically');
+        };
+        document.head.appendChild(dbScript);
         return;
     }
     
@@ -26,24 +48,58 @@ document.addEventListener('DOMContentLoaded', () => {
     if (typeof Chart === 'undefined') {
         console.error('Chart.js is not loaded. Analytics will not be available.');
         showToast('Analytics could not be loaded. Please refresh the page.', 5000, 'error');
+        
+        // Try loading Chart.js dynamically
+        const chartScript = document.createElement('script');
+        chartScript.src = 'https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js';
+        chartScript.onload = function() {
+            console.log('Chart.js loaded dynamically');
+            checkAndInitializeAnalytics();
+        };
+        chartScript.onerror = function() {
+            console.error('Failed to load Chart.js dynamically');
+        };
+        document.head.appendChild(chartScript);
         return;
     }
     
-    try {
-        initializeBudgetPlanner();
-        initializeAnalyticsDashboard();
-        
-        // Subscribe to subscription updates
-        document.addEventListener('subscriptions-updated', (event) => {
-            const subscriptions = event.detail.subscriptions;
-            updateBudgetCalculations(subscriptions);
-            updateAnalyticsDashboard(subscriptions);
-        });
-    } catch (error) {
-        console.error('Error initializing budget analytics:', error);
-        showToast('There was an error loading the analytics. Please refresh the page.', 5000, 'error');
+    // If we have both dependencies, initialize analytics
+    checkAndInitializeAnalytics();
+}
+
+// Initialize analytics if dependencies are available
+function checkAndInitializeAnalytics() {
+    if (typeof SubscriptionDB !== 'undefined' && typeof Chart !== 'undefined') {
+        try {
+            console.log('Initializing budget planner and analytics dashboard');
+            initializeBudgetPlanner();
+            initializeAnalyticsDashboard();
+            
+            // Subscribe to subscription updates
+            document.addEventListener('subscriptions-updated', (event) => {
+                const subscriptions = event.detail.subscriptions;
+                updateBudgetCalculations(subscriptions);
+                updateAnalyticsDashboard(subscriptions);
+            });
+            
+            // Initial load of data
+            SubscriptionDB.getAll().then(subscriptions => {
+                updateBudgetCalculations(subscriptions);
+                updateAnalyticsDashboard(subscriptions);
+                console.log('Analytics initialized successfully with', subscriptions.length, 'subscriptions');
+            }).catch(error => {
+                console.error('Error loading initial subscription data:', error);
+            });
+            
+            showToast('Analytics loaded successfully', 2000, 'success');
+        } catch (error) {
+            console.error('Error initializing budget analytics:', error);
+            showToast('There was an error loading the analytics. Please refresh the page.', 5000, 'error');
+        }
+    } else {
+        console.error('Dependencies still missing after attempted dynamic loading');
     }
-});
+}
 
 // Current budget state
 const currentBudget = {
@@ -429,16 +485,20 @@ function initializeAnalyticsDashboard() {
     
     // Set up period buttons
     periodButtons.forEach(button => {
-        button.addEventListener('click', () => {
+        // First remove any existing event listeners by cloning
+        const newButton = button.cloneNode(true);
+        button.parentNode.replaceChild(newButton, button);
+        
+        newButton.addEventListener('click', () => {
             // Update active state
             periodButtons.forEach(b => b.classList.remove('active'));
-            button.classList.add('active');
+            newButton.classList.add('active');
             
-            console.log('Period button clicked:', button.dataset.period);
+            console.log('Period button clicked:', newButton.dataset.period);
             
             // Update charts with new period
             SubscriptionDB.getAll().then(subscriptions => {
-                updateAnalyticsDashboard(subscriptions, button.dataset.period);
+                updateAnalyticsDashboard(subscriptions, newButton.dataset.period);
             }).catch(error => {
                 console.error('Error loading subscriptions for analytics:', error);
             });
@@ -447,12 +507,16 @@ function initializeAnalyticsDashboard() {
     
     // Set up analytics tabs
     analyticsTabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            console.log('Analytics tab clicked:', tab.dataset.tab);
+        // First remove any existing event listeners by cloning
+        const newTab = tab.cloneNode(true);
+        tab.parentNode.replaceChild(newTab, tab);
+        
+        newTab.addEventListener('click', () => {
+            console.log('Analytics tab clicked:', newTab.dataset.tab);
             
             // Update active state
             analyticsTabs.forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
+            newTab.classList.add('active');
             
             // Show active tab content
             const tabContents = document.querySelectorAll('.analytics-tab-content');
@@ -460,23 +524,21 @@ function initializeAnalyticsDashboard() {
                 content.style.display = 'none';
             });
             
-            const activeContent = document.getElementById(`${tab.dataset.tab}Tab`);
+            const activeContent = document.getElementById(`${newTab.dataset.tab}Tab`);
             if (activeContent) {
                 activeContent.style.display = 'block';
-                console.log('Showing tab content:', tab.dataset.tab);
+                console.log('Showing tab content:', newTab.dataset.tab);
             } else {
-                console.error('Tab content not found for:', tab.dataset.tab);
+                console.error('Tab content not found for:', newTab.dataset.tab);
             }
         });
     });
     
-    // Make sure the first tab is active on initialization
+    // Ensure the first tab is active and visible
     const firstTab = document.querySelector('.analytics-tab');
-    if (firstTab) {
-        const firstTabContent = document.getElementById(`${firstTab.dataset.tab}Tab`);
-        if (firstTabContent) {
-            firstTabContent.style.display = 'block';
-        }
+    const firstTabContent = document.getElementById(`${firstTab?.dataset.tab}Tab`);
+    if (firstTabContent) {
+        firstTabContent.style.display = 'block';
     }
     
     // Initial load of analytics
@@ -489,93 +551,209 @@ function initializeAnalyticsDashboard() {
 
 // Update Analytics Dashboard
 function updateAnalyticsDashboard(subscriptions, period = '6m') {
-    if (!subscriptions || subscriptions.length === 0) {
-        // Show empty state for analytics
+    try {
+        console.log('Updating analytics dashboard with', subscriptions?.length || 0, 'subscriptions');
+        
+        // Make sure the dashboard is visible
+        const dashboard = document.querySelector('.analytics-dashboard');
+        if (dashboard) {
+            dashboard.style.display = 'block';
+        }
+        
+        // Show empty state for analytics if no subscriptions
         const analyticsContent = document.querySelector('.analytics-content');
-        if (analyticsContent) {
-            analyticsContent.innerHTML = `
+        if (!subscriptions || subscriptions.length === 0) {
+            if (analyticsContent) {
+                analyticsContent.innerHTML = `
                 <div class="empty-analytics">
                     <i class="fas fa-chart-bar"></i>
                     <p>Add subscriptions to see analytics and insights.</p>
-                </div>
-            `;
+                </div>`;
+            }
+            return;
         }
-        return;
+        
+        // Calculate data for analytics
+        const today = new Date();
+        const monthlyTotal = subscriptions.reduce((total, sub) => total + calculateMonthlyAmount(sub), 0);
+        
+        // Update active period button
+        const periodButtons = document.querySelectorAll('.time-period-btn');
+        periodButtons.forEach(button => {
+            if (button.dataset.period === period) {
+                button.classList.add('active');
+            } else {
+                button.classList.remove('active');
+            }
+        });
+        
+        // Ensure tab content containers exist
+        ensureTabContainersExist();
+        
+        // Update tab content
+        updateTrendChart(subscriptions, period);
+        updateCategoryAnalysisChart(subscriptions, period);
+        updateComparisonMetrics(subscriptions);
+        
+        // Make sure the active tab content is visible
+        showActiveTabContent();
+        
+        console.log('Analytics dashboard updated successfully');
+    } catch (error) {
+        console.error('Error updating analytics dashboard:', error);
+        // Attempt recovery by showing empty state
+        const analyticsContent = document.querySelector('.analytics-content');
+        if (analyticsContent) {
+            analyticsContent.innerHTML = `
+            <div class="empty-analytics">
+                <i class="fas fa-exclamation-triangle"></i>
+                <p>There was an error loading the analytics data. Please try refreshing the page.</p>
+            </div>`;
+        }
     }
+}
+
+// Ensure tab content containers exist
+function ensureTabContainersExist() {
+    const tabs = ['trends', 'categories', 'comparison'];
     
-    // Update trend chart
-    updateTrendChart(subscriptions, period);
+    tabs.forEach(tabName => {
+        const tabContent = document.getElementById(`${tabName}Tab`);
+        if (!tabContent) {
+            console.warn(`Tab content container for ${tabName} not found, creating it`);
+            const newTabContent = document.createElement('div');
+            newTabContent.id = `${tabName}Tab`;
+            newTabContent.className = 'analytics-tab-content';
+            newTabContent.style.display = 'none';
+            
+            if (tabName === 'trends' || tabName === 'categories') {
+                const chartContainer = document.createElement('div');
+                chartContainer.className = 'chart-container-large';
+                
+                const canvas = document.createElement('canvas');
+                canvas.id = tabName === 'trends' ? 'trendChart' : 'categoryAnalysisChart';
+                
+                chartContainer.appendChild(canvas);
+                newTabContent.appendChild(chartContainer);
+            }
+            
+            const analyticsContent = document.querySelector('.analytics-content');
+            if (analyticsContent) {
+                analyticsContent.appendChild(newTabContent);
+            }
+        }
+    });
+}
+
+// Show active tab content
+function showActiveTabContent() {
+    const activeTab = document.querySelector('.analytics-tab.active');
     
-    // Update category analysis
-    updateCategoryAnalysisChart(subscriptions, period);
-    
-    // Update comparison metrics
-    updateComparisonMetrics(subscriptions);
+    if (activeTab) {
+        const tabContents = document.querySelectorAll('.analytics-tab-content');
+        tabContents.forEach(content => {
+            content.style.display = 'none';
+        });
+        
+        const activeContent = document.getElementById(`${activeTab.dataset.tab}Tab`);
+        if (activeContent) {
+            activeContent.style.display = 'block';
+            console.log('Made tab content visible:', activeTab.dataset.tab);
+        }
+    } else {
+        // If no active tab, activate the first one
+        const firstTab = document.querySelector('.analytics-tab');
+        if (firstTab) {
+            firstTab.classList.add('active');
+            
+            const firstTabContent = document.getElementById(`${firstTab.dataset.tab}Tab`);
+            if (firstTabContent) {
+                firstTabContent.style.display = 'block';
+            }
+        }
+    }
 }
 
 // Update the spending trend chart
 function updateTrendChart(subscriptions, period) {
     const canvas = document.getElementById('trendChart');
-    if (!canvas) return;
-    
-    // Clean up existing chart
-    if (window.trendChartInstance && typeof window.trendChartInstance.destroy === 'function') {
-        window.trendChartInstance.destroy();
+    if (!canvas) {
+        console.error('Trend chart canvas not found');
+        return;
     }
     
-    const currencySymbol = getCurrencySymbol();
-    const { labels, data } = generateTrendData(subscriptions, period);
-    
-    // Create new chart
-    window.trendChartInstance = new Chart(canvas, {
-        type: 'line',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Monthly Spending',
-                data: data,
-                backgroundColor: 'rgba(111, 29, 27, 0.2)',
-                borderColor: '#6f1d1b',
-                borderWidth: 2,
-                pointBackgroundColor: '#6f1d1b',
-                pointBorderColor: '#fff',
-                pointHoverBackgroundColor: '#fff',
-                pointHoverBorderColor: '#6f1d1b',
-                tension: 0.3
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: false
-                },
-                tooltip: {
-                    callbacks: {
-                        label: (context) => {
-                            return `${currencySymbol}${context.parsed.y.toFixed(2)}`;
+    try {
+        // Clean up existing chart
+        if (window.trendChartInstance && typeof window.trendChartInstance.destroy === 'function') {
+            window.trendChartInstance.destroy();
+        }
+        
+        // Ensure canvas is reset to avoid ghosting
+        const parent = canvas.parentNode;
+        const newCanvas = document.createElement('canvas');
+        newCanvas.id = 'trendChart';
+        newCanvas.width = canvas.width;
+        newCanvas.height = canvas.height;
+        parent.replaceChild(newCanvas, canvas);
+        
+        const currencySymbol = getCurrencySymbol();
+        const { labels, data } = generateTrendData(subscriptions, period);
+        
+        // Create new chart
+        window.trendChartInstance = new Chart(newCanvas, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Monthly Spending',
+                    data: data,
+                    backgroundColor: 'rgba(111, 29, 27, 0.2)',
+                    borderColor: '#6f1d1b',
+                    borderWidth: 2,
+                    pointBackgroundColor: '#6f1d1b',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: '#6f1d1b',
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: (context) => {
+                                return `${currencySymbol}${context.parsed.y.toFixed(2)}`;
+                            }
                         }
                     }
-                }
-            },
-            scales: {
-                x: {
-                    grid: {
-                        display: false
-                    }
                 },
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        callback: (value) => {
-                            return `${currencySymbol}${value}`;
+                scales: {
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: (value) => {
+                                return `${currencySymbol}${value}`;
+                            }
                         }
                     }
                 }
             }
-        }
-    });
+        });
+        
+        console.log('Trend chart updated successfully');
+    } catch (error) {
+        console.error('Error updating trend chart:', error);
+    }
 }
 
 // Generate trend data for chart
@@ -641,70 +819,97 @@ function calculateMonthlySpendingForDate(subscriptions, date) {
 // Update category analysis chart
 function updateCategoryAnalysisChart(subscriptions, period = '6m') {
     const canvas = document.getElementById('categoryAnalysisChart');
-    if (!canvas) return;
-    
-    // Clean up existing chart
-    if (window.categoryChartInstance && typeof window.categoryChartInstance.destroy === 'function') {
-        window.categoryChartInstance.destroy();
+    if (!canvas) {
+        console.error('Category analysis chart canvas not found');
+        return;
     }
     
-    const currencySymbol = getCurrencySymbol();
-    const categoryData = getCategorySpendingData(subscriptions);
-    
-    // Define category colors
-    const categoryColors = {
-        'streaming': '#6f1d1b', // Falu red
-        'fitness': '#bb9457',   // Lion
-        'productivity': '#432818', // Bistre
-        'music': '#99582a',     // Brown
-        'cloud': '#ffe6a7',     // Peach
-        'other': '#d3a184'      // Lighter brown
-    };
-    
-    // Prepare chart data
-    const data = {
-        labels: categoryData.map(item => capitalize(item.category)),
-        datasets: [{
-            data: categoryData.map(item => item.amount),
-            backgroundColor: categoryData.map(item => categoryColors[item.category] || '#6f1d1b'),
-            borderWidth: 1,
-            borderColor: '#fff'
-        }]
-    };
-    
-    // Create new chart
-    window.categoryChartInstance = new Chart(canvas, {
-        type: 'doughnut',
-        data: data,
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'right',
-                    labels: {
-                        boxWidth: 15,
-                        padding: 15
-                    }
-                },
-                tooltip: {
-                    callbacks: {
-                        label: (context) => {
-                            const value = context.parsed;
-                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                            const percentage = Math.round((value / total) * 100);
-                            return `${currencySymbol}${value.toFixed(2)} (${percentage}%)`;
+    try {
+        // Clean up existing chart
+        if (window.categoryChartInstance && typeof window.categoryChartInstance.destroy === 'function') {
+            window.categoryChartInstance.destroy();
+        }
+        
+        // Ensure canvas is reset to avoid ghosting
+        const parent = canvas.parentNode;
+        const newCanvas = document.createElement('canvas');
+        newCanvas.id = 'categoryAnalysisChart';
+        newCanvas.width = canvas.width;
+        newCanvas.height = canvas.height;
+        parent.replaceChild(newCanvas, canvas);
+        
+        const currencySymbol = getCurrencySymbol();
+        const categoryData = getCategorySpendingData(subscriptions);
+        
+        // Handle case with no data
+        if (categoryData.length === 0) {
+            const context = newCanvas.getContext('2d');
+            context.font = '16px Arial';
+            context.fillStyle = '#666';
+            context.textAlign = 'center';
+            context.fillText('No category data available', newCanvas.width / 2, newCanvas.height / 2);
+            return;
+        }
+        
+        // Define category colors
+        const categoryColors = {
+            'streaming': '#6f1d1b', // Falu red
+            'fitness': '#bb9457',   // Lion
+            'productivity': '#432818', // Bistre
+            'music': '#99582a',     // Brown
+            'cloud': '#ffe6a7',     // Peach
+            'other': '#d3a184'      // Lighter brown
+        };
+        
+        // Prepare chart data
+        const data = {
+            labels: categoryData.map(item => capitalize(item.category)),
+            datasets: [{
+                data: categoryData.map(item => item.amount),
+                backgroundColor: categoryData.map(item => categoryColors[item.category] || '#6f1d1b'),
+                borderWidth: 1,
+                borderColor: '#fff'
+            }]
+        };
+        
+        // Create new chart
+        window.categoryChartInstance = new Chart(newCanvas, {
+            type: 'doughnut',
+            data: data,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            boxWidth: 15,
+                            padding: 15
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: (context) => {
+                                const value = context.parsed;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = Math.round((value / total) * 100);
+                                return `${currencySymbol}${value.toFixed(2)} (${percentage}%)`;
+                            }
                         }
                     }
+                },
+                cutout: '60%',
+                animation: {
+                    animateScale: true,
+                    animateRotate: true
                 }
-            },
-            cutout: '60%',
-            animation: {
-                animateScale: true,
-                animateRotate: true
             }
-        }
-    });
+        });
+        
+        console.log('Category chart updated successfully');
+    } catch (error) {
+        console.error('Error updating category chart:', error);
+    }
 }
 
 // Get category spending data
