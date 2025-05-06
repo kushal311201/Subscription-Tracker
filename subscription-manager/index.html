@@ -101,7 +101,7 @@
             text-align: center;
             margin-bottom: 24px;
         }
-        .subscription-list, .add-subscription, .budget-planner, .summary-box {
+        .subscription-list, .add-subscription, .summary-box {
             background-color: var(--bg-primary);
             border-radius: var(--radius-md);
             box-shadow: var(--shadow-md);
@@ -144,11 +144,9 @@
     <!-- Non-critical CSS with loading optimizations -->
     <link rel="stylesheet" href="css/style.css" media="print" onload="this.media='all'">
     <link rel="stylesheet" href="css/theme-enhancements.css" media="print" onload="this.media='all'">
-    <link rel="stylesheet" href="css/budget-analytics.css" media="print" onload="this.media='all'">
     <noscript>
         <link rel="stylesheet" href="css/style.css">
         <link rel="stylesheet" href="css/theme-enhancements.css">
-        <link rel="stylesheet" href="css/budget-analytics.css">
     </noscript>
     
     <!-- Optimized font loading -->
@@ -218,162 +216,8 @@
             </div>
         </div>
 
-        <!-- Budget Planner -->
-        <div class="budget-planner animate-in">
-            <div class="budget-header">
-                <h2>Budget Planning</h2>
-                <div class="budget-period-selector">
-                    <div class="period-option active" data-period="monthly">Monthly</div>
-                    <div class="period-option" data-period="yearly">Yearly</div>
-                </div>
-            </div>
-            
-            <!-- Current Budget Display -->
-            <div class="budget-display">
-                <div class="current-budget">
-                    <div class="budget-heading">Monthly Budget</div>
-                    <div class="budget-value" id="currentBudgetDisplay">
-                        <span id="budgetValueDisplay">₹0.00</span>
-                        <span class="budget-period">/month</span>
-                        <span class="alternate-period-info">(₹0.00/year)</span>
-                    </div>
-                </div>
-                <button class="edit-budget-btn" id="editBudgetBtn">
-                    <i class="fas fa-pencil-alt"></i> Edit
-                </button>
-            </div>
-            
-            <!-- Budget Input Form (hidden by default) -->
-            <div class="budget-limit-wrapper" id="budgetInputForm" style="display: none;">
-                <label for="budgetLimit">Set Budget Limit:</label>
-                <div class="budget-input-wrapper">
-                    <span class="budget-currency-symbol" id="budgetCurrencySymbol">₹</span>
-                    <input type="number" id="budgetLimit" placeholder="Enter your budget limit" step="0.01" min="0">
-                </div>
-                <div class="budget-actions">
-                    <button id="saveBudgetBtn" class="btn primary-btn">Save</button>
-                    <button id="cancelBudgetBtn" class="btn secondary-btn">Cancel</button>
-                </div>
-            </div>
-            
-            <div class="budget-progress">
-                <div class="label-flex">
-                    <label>Budget Usage</label>
-                    <span id="budgetPercentage">0%</span>
-                </div>
-                <div class="progress-container">
-                    <div class="progress-bar" id="budgetProgressBar" style="width: 0%;"></div>
-                </div>
-                <div class="budget-details">
-                    <span id="currentSpending">₹0.00 spent</span>
-                    <span id="budgetRemaining">₹0.00 remaining</span>
-                </div>
-            </div>
-            
-            <div id="budgetAlert" class="budget-alert" style="display: none;">
-                <i class="fas fa-exclamation-triangle"></i>
-                <div class="budget-alert-message">You're approaching your budget limit! Consider reviewing your subscriptions.</div>
-            </div>
-            
-            <div class="budget-prediction">
-                <div class="prediction-title">
-                    <i class="fas fa-chart-line"></i>
-                    <span>Projected Spending</span>
-                </div>
-                <p>Based on your current subscriptions, you'll spend approximately:</p>
-                <div class="projection-amount" id="monthlyProjection">₹0.00 / month</div>
-                
-                <div class="annual-projection">
-                    <p>Annual projection:</p>
-                    <div class="projection-amount" id="yearlyProjection">₹0.00 / year</div>
-                </div>
-            </div>
-        </div>
-
         <!-- Subscription Container Fallback - Will only be used if the main one is not found -->
         <div id="subscriptionCardsFallback" style="display: none;"></div>
-
-        <!-- Analytics Dashboard -->
-        <div class="analytics-dashboard animate-in">
-            <div class="analytics-header">
-                <h2>Analytics Dashboard</h2>
-                <div class="time-period-selector">
-                    <button class="time-period-btn active" data-period="6m">6 Months</button>
-                    <button class="time-period-btn" data-period="1y">1 Year</button>
-                    <button class="time-period-btn" data-period="all">All Time</button>
-                </div>
-            </div>
-            
-            <div class="analytics-tabs">
-                <div class="analytics-tab active" data-tab="trends">Spending Trends</div>
-                <div class="analytics-tab" data-tab="categories">Category Analysis</div>
-                <div class="analytics-tab" data-tab="comparison">Comparisons</div>
-            </div>
-            
-            <div class="analytics-content">
-                <!-- Spending Trends Tab -->
-                <div class="analytics-tab-content active" id="trendsTab">
-                    <div class="chart-container-large">
-                        <canvas id="trendChart"></canvas>
-                    </div>
-                </div>
-                
-                <!-- Category Analysis Tab -->
-                <div class="analytics-tab-content" id="categoriesTab" style="display: none;">
-                    <div class="chart-container-large">
-                        <canvas id="categoryAnalysisChart"></canvas>
-                    </div>
-                </div>
-                
-                <!-- Comparison Tab -->
-                <div class="analytics-tab-content" id="comparisonTab" style="display: none;">
-                    <div class="comparison-grid">
-                        <div class="comparison-card">
-                            <div class="comparison-title">Most Expensive</div>
-                            <div class="comparison-value" id="mostExpensive">--</div>
-                        </div>
-                        <div class="comparison-card">
-                            <div class="comparison-title">Least Used</div>
-                            <div class="comparison-value" id="leastUsed">--</div>
-                        </div>
-                        <div class="comparison-card">
-                            <div class="comparison-title">Biggest Category</div>
-                            <div class="comparison-value" id="biggestCategory">--</div>
-                        </div>
-                        <div class="comparison-card">
-                            <div class="comparison-title">YoY Change</div>
-                            <div class="comparison-value">
-                                <span id="yearChange">--</span>
-                                <span class="comparison-change" id="yearChangePercent">--</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="export-section">
-                <div class="export-dropdown">
-                    <button class="export-btn">
-                        <i class="fas fa-download"></i>
-                        Export Report
-                    </button>
-                    <div class="export-options">
-                        <div class="export-option" data-format="pdf">
-                            <i class="fas fa-file-pdf"></i>
-                            PDF Report
-                        </div>
-                        <div class="export-option" data-format="csv">
-                            <i class="fas fa-file-csv"></i>
-                            CSV Data
-                        </div>
-                        <div class="export-option" data-format="json">
-                            <i class="fas fa-file-code"></i>
-                            JSON Data
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
 
         <!-- Main Content -->
         <div class="main-content">
@@ -802,43 +646,9 @@
     
     <!-- App scripts -->
     <script src="js/app.js"></script>
-    <script src="js/budget-analytics.js"></script>
     
-    <!-- Analytics debug helper - only loaded when needed -->
+    <!-- Service Worker Registration -->
     <script>
-        // Only load the debug helper if requested or if needed
-        window.addEventListener('load', function() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const debugMode = urlParams.get('debug') === 'true';
-            
-            // Check if analytics are broken
-            setTimeout(function() {
-                const analyticsWorking = typeof updateAnalyticsDashboard === 'function' && 
-                                        document.querySelector('.analytics-dashboard');
-                                        
-                if (debugMode || !analyticsWorking) {
-                    const script = document.createElement('script');
-                    script.src = 'js/analytics-debug.js';
-                    document.head.appendChild(script);
-                    console.log('Loading analytics debug tools');
-                }
-            }, 2000);
-        });
-        
-        // Check if analytics loaded properly
-        window.addEventListener('load', function() {
-            setTimeout(function() {
-                if (typeof initializeAnalyticsModule !== 'function' && 
-                    (typeof initializeBudgetPlanner !== 'function' || 
-                     typeof initializeAnalyticsDashboard !== 'function')) {
-                    console.warn('Analytics not initialized properly, attempting reload...');
-                    if (typeof loadBudgetAnalytics === 'function') {
-                        loadBudgetAnalytics();
-                    }
-                }
-            }, 1500);
-        });
-        
         // Service worker registration
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', function() {
@@ -852,8 +662,5 @@
             });
         }
     </script>
-    
-    <!-- Analytics Fix Script -->
-    <script src="js/analytics-fix.js"></script>
 </body>
 </html>

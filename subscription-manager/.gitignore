@@ -1,5 +1,3 @@
-.vercel
-
 # Logs
 logs
 *.log
@@ -54,3 +52,6 @@ debug.html
 # Backup files
 *.bak
 *~
+
+# Vercel
+.vercel

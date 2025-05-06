@@ -2974,44 +2974,9 @@ function loadBudgetAnalytics() {
 
 // Helper function to check and initialize analytics if available
 function checkAndInitializeAnalytics() {
-    if (typeof initializeAnalyticsModule === 'function') {
-        console.log('Calling analytics initialization function');
-        initializeAnalyticsModule();
-        return true;
-    } 
-    
-    // Fallback to checking individual functions
-    if (typeof initializeBudgetPlanner === 'function' && typeof initializeAnalyticsDashboard === 'function') {
-        console.log('Analytics functions found, initializing directly');
-        
-        try {
-            if (typeof initializeBudgetPlanner === 'function') {
-                initializeBudgetPlanner();
-            }
-            
-            if (typeof initializeAnalyticsDashboard === 'function') {
-                initializeAnalyticsDashboard();
-            }
-            
-            // Load data for analytics
-            SubscriptionDB.getAll().then(subscriptions => {
-                if (typeof updateAnalyticsDashboard === 'function') {
-                    updateAnalyticsDashboard(subscriptions);
-                }
-                showToast('Analytics dashboard loaded successfully', 2000);
-            }).catch(error => {
-                console.error('Error loading data for analytics:', error);
-            });
-            
-            return true;
-        } catch (e) {
-            console.error('Error initializing analytics components:', e);
-            return false;
-        }
-    } else {
-        console.warn('Analytics functions not found yet');
-        return false;
-    }
+    // Analytics features have been removed
+    console.log('Analytics features have been disabled');
+    return false;
 }
 
 // Initialize budget analytics components - legacy function kept for backward compatibility
