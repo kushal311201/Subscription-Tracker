@@ -2093,17 +2093,31 @@ function setupSettingsPanel() {
     
     // Open settings panel
     if (settingsButton && settingsPanel && settingsBackdrop) {
-        settingsButton.addEventListener('click', () => {
+        settingsButton.addEventListener('click', (e) => {
+            // Prevent event bubbling
+            e.stopPropagation();
+            
+            // Add open classes
             settingsPanel.classList.add('open');
             settingsBackdrop.classList.add('visible');
             
             // Scroll settings panel to top
             settingsPanel.scrollTop = 0;
             
+            // Position panel based on viewport size
+            positionSettingsPanel();
+            
             // Haptic feedback
             if (navigator.vibrate) navigator.vibrate(30);
         });
     }
+    
+    // Listen for window resize to reposition panel if open
+    window.addEventListener('resize', () => {
+        if (settingsPanel && settingsPanel.classList.contains('open')) {
+            positionSettingsPanel();
+        }
+    });
     
     const closeSettingsPanel = () => {
         if (settingsPanel && settingsBackdrop) {
@@ -3018,4 +3032,30 @@ function checkAndInitializeAnalytics() {
 // Initialize budget analytics components - legacy function kept for backward compatibility
 function initializeBudgetAnalyticsComponents() {
     return checkAndInitializeAnalytics();
+}
+
+// Position settings panel based on viewport size and button position
+function positionSettingsPanel() {
+    const settingsButton = document.getElementById('settingsButton');
+    const settingsPanel = document.getElementById('settingsPanel');
+    
+    if (!settingsButton || !settingsPanel) return;
+    
+    // Get button position info
+    const buttonRect = settingsButton.getBoundingClientRect();
+    const viewportHeight = window.innerHeight;
+    
+    // Set panel position
+    settingsPanel.style.top = `${buttonRect.bottom + 10}px`;
+    
+    // Ensure panel stays within viewport
+    const panelHeight = Math.min(viewportHeight * 0.8, 600); // Max 80% of viewport or 600px
+    settingsPanel.style.maxHeight = `${panelHeight}px`;
+    
+    // Adjust right position based on viewport
+    if (window.innerWidth <= 768) {
+        settingsPanel.style.right = '10px';
+    } else {
+        settingsPanel.style.right = '20px';
+    }
 }
