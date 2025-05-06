@@ -3044,18 +3044,29 @@ function positionSettingsPanel() {
     // Get button position info
     const buttonRect = settingsButton.getBoundingClientRect();
     const viewportHeight = window.innerHeight;
+    const viewportWidth = window.innerWidth;
     
-    // Set panel position
-    settingsPanel.style.top = `${buttonRect.bottom + 10}px`;
+    // Set panel position - position directly beside the button
+    settingsPanel.style.top = `${buttonRect.top}px`;
     
-    // Ensure panel stays within viewport
-    const panelHeight = Math.min(viewportHeight * 0.8, 600); // Max 80% of viewport or 600px
-    settingsPanel.style.maxHeight = `${panelHeight}px`;
-    
-    // Adjust right position based on viewport
-    if (window.innerWidth <= 768) {
+    // For mobile (small screens), position from right edge
+    if (viewportWidth < 768) {
         settingsPanel.style.right = '10px';
+        settingsPanel.style.maxHeight = `${viewportHeight - buttonRect.top - 20}px`;
     } else {
-        settingsPanel.style.right = '20px';
+        // For larger screens, position relative to button
+        // Calculate if panel will fit beside the button
+        const panelWidth = 300; // Panel width in pixels
+        
+        if (buttonRect.right + panelWidth > viewportWidth) {
+            // Not enough space to the right of the button, position from right edge
+            settingsPanel.style.right = '20px';
+        } else {
+            // Enough space, position directly beside the button
+            settingsPanel.style.right = `${viewportWidth - buttonRect.right - 10}px`;
+        }
+        
+        // Set max height to fit in viewport
+        settingsPanel.style.maxHeight = `${viewportHeight - buttonRect.top - 20}px`;
     }
 }

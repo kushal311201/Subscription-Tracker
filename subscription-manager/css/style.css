@@ -1354,18 +1354,16 @@ input, select, button {
     border-radius: 0 0 3px 3px;
 }
 
-/* Settings panel */
+/* Settings panel positioning */
 .settings-panel {
     position: fixed;
-    top: 80px;
-    right: 20px;
+    /* Top and right positions will be set dynamically via JavaScript */
     bottom: auto;
-    height: calc(100% - 100px);
     width: 300px;
     background-color: var(--bg-card);
     z-index: 200;
     transform: translateX(100%);
-    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
     box-shadow: -5px 0 25px rgba(0, 0, 0, 0.15);
     display: flex;
     flex-direction: column;
@@ -1373,11 +1371,13 @@ input, select, button {
     overflow-x: hidden;
     border-left: 1px solid var(--border-color);
     border-radius: var(--radius-md);
-    max-height: 80vh;
+    max-height: 85vh;
+    opacity: 0;
 }
 
 .settings-panel.open {
     transform: translateX(0);
+    opacity: 1;
 }
 
 .settings-header {
@@ -1419,6 +1419,92 @@ input, select, button {
     overflow-y: auto;
     padding: 0;
     max-height: calc(100% - 60px);
+}
+
+/* Settings backdrop */
+.settings-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(2px);
+    z-index: 199;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease;
+}
+
+.settings-backdrop.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Media queries for mobile */
+@media (max-width: 767px) {
+    .settings-panel {
+        top: 70px;
+        right: 10px;
+        width: calc(100% - 20px);
+        max-width: 300px;
+        max-height: 80vh;
+    }
+}
+
+/* Top dark mode toggle improvements */
+.top-dark-mode-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: var(--bg-light);
+    border-radius: 20px;
+    padding: 6px 16px;
+    box-shadow: var(--shadow-sm);
+    margin-left: 16px;
+    transition: all var(--transition-normal);
+    min-width: 130px;
+}
+
+.top-dark-mode-toggle .toggle-label {
+    margin-right: 12px;
+    font-size: 0.9rem;
+    white-space: nowrap;
+}
+
+/* Header actions container */
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    position: relative;
+}
+
+/* Settings button positioning */
+.settings-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+/* Upcoming Reminders Section */
+.upcoming-reminders {
+    margin-top: 30px;
+    background-color: var(--bg-card);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    padding: var(--spacing-xl);
+    width: 100%;
+    margin-bottom: 0; /* Remove bottom margin */
+    border: 1px solid var(--border-light);
 }
 
 .settings-section {
@@ -1568,102 +1654,4 @@ body.dark-mode .settings-group .share-btn:hover {
 body.dark-mode .user-profile-section,
 body.dark-mode .app-info {
     border-color: var(--border-color);
-}
-
-/* Settings backdrop */
-.settings-backdrop {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.4);
-    backdrop-filter: blur(2px);
-    z-index: 199;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.3s ease;
-}
-
-.settings-backdrop.visible {
-    opacity: 1;
-    visibility: visible;
-}
-
-/* Media queries for mobile */
-@media (max-width: 767px) {
-    .settings-panel {
-        top: 70px;
-        right: 10px;
-        width: calc(100% - 20px);
-        max-width: 300px;
-        max-height: 80vh;
-    }
-}
-
-/* Top dark mode toggle improvements */
-.top-dark-mode-toggle {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background-color: var(--bg-light);
-    border-radius: 20px;
-    padding: 6px 16px;
-    box-shadow: var(--shadow-sm);
-    margin-left: 16px;
-    transition: all var(--transition-normal);
-    min-width: 130px;
-}
-
-.top-dark-mode-toggle .toggle-label {
-    margin-right: 12px;
-    font-size: 0.9rem;
-    white-space: nowrap;
-}
-
-.settings-group {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 12px 16px;
-    transition: background-color 0.2s ease;
-}
-
-.settings-group .switch {
-    margin-left: 12px;
-}
-
-/* Header actions container */
-.header-actions {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    position: relative;
-}
-
-/* Settings button positioning */
-.settings-button {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 40px;
-    height: 40px;
-    background-color: var(--bg-card);
-    border: 1px solid var(--border-color);
-    border-radius: 50%;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    position: relative;
-}
-
-/* Upcoming Reminders Section */
-.upcoming-reminders {
-    margin-top: 30px;
-    background-color: var(--bg-card);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-md);
-    padding: var(--spacing-xl);
-    width: 100%;
-    margin-bottom: 0; /* Remove bottom margin */
-    border: 1px solid var(--border-light);
 }
