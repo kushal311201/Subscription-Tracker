@@ -1364,12 +1364,12 @@ input, select, button {
     z-index: 200;
     transform: translateX(100%);
     transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
-    box-shadow: -5px 0 25px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.15);
     display: flex;
     flex-direction: column;
     overflow-y: auto;
     overflow-x: hidden;
-    border-left: 1px solid var(--border-color);
+    border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
     max-height: 85vh;
     opacity: 0;
@@ -1459,11 +1459,11 @@ input, select, button {
     justify-content: space-between;
     background-color: var(--bg-light);
     border-radius: 20px;
-    padding: 6px 16px;
+    padding: 7px 12px;
     box-shadow: var(--shadow-sm);
-    margin-left: 16px;
+    margin-left: 10px;
     transition: all var(--transition-normal);
-    min-width: 130px;
+    gap: 10px; /* Added space between text and toggle */
 }
 
 .top-dark-mode-toggle .toggle-label {
@@ -1480,19 +1480,32 @@ input, select, button {
     position: relative;
 }
 
-/* Settings button positioning */
+/* Settings button styling */
 .settings-button {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 40px;
-    height: 40px;
+    min-width: 42px;
+    min-height: 42px;
     background-color: var(--bg-card);
     border: 1px solid var(--border-color);
     border-radius: 50%;
     cursor: pointer;
     transition: all 0.2s ease;
     position: relative;
+}
+
+.settings-button:hover {
+    background-color: var(--bg-light);
+}
+
+.settings-button:active {
+    transform: scale(0.95);
+}
+
+.settings-button i {
+    font-size: 18px;
+    color: var(--primary-color);
 }
 
 /* Upcoming Reminders Section */
@@ -1654,4 +1667,216 @@ body.dark-mode .settings-group .share-btn:hover {
 body.dark-mode .user-profile-section,
 body.dark-mode .app-info {
     border-color: var(--border-color);
+}
+
+/* Mobile-specific adjustments */
+@media (max-width: 768px) {
+    /* Container adjustments */
+    .container {
+        padding: 10px;
+        padding-bottom: 0;
+        overflow: hidden; /* Prevent scrolling past content */
+    }
+    
+    /* Make everything more compact */
+    .summary-box, 
+    .add-subscription, 
+    .subscription-list, 
+    .upcoming-reminders {
+        padding: 15px;
+        margin-bottom: 15px;
+        border-radius: 12px;
+    }
+    
+    /* Ensure reminders are the final visible element */
+    .upcoming-reminders {
+        margin-bottom: 60px; /* Space for bottom nav */
+    }
+    
+    /* Hide anything that might appear after reminders */
+    .upcoming-reminders ~ * {
+        display: none !important; 
+    }
+    
+    /* Improve touch targets for mobile */
+    input, 
+    select, 
+    textarea, 
+    button,
+    .action-btn,
+    .nav-item {
+        min-height: 44px; /* Apple's recommended minimum */
+        font-size: 16px; /* Prevent zoom on iOS */
+    }
+    
+    .switch {
+        transform: scale(1.1); /* Make toggles slightly larger */
+    }
+    
+    /* Improved bottom nav */
+    .bottom-nav {
+        height: 60px;
+        background-color: var(--bg-card);
+        box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Fix settings popup for mobile */
+    .settings-panel {
+        width: 90%;
+        max-width: 350px;
+        border-radius: 16px;
+        max-height: 80%;
+        top: 50% !important;
+        left: 50% !important;
+        right: auto !important;
+        transform: translate(-50%, -50%) scale(0.95);
+        opacity: 0;
+        border: 1px solid var(--border-color);
+    }
+    
+    .settings-panel.open {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 1;
+    }
+}
+
+/* Mobile tabs - hidden by default */
+.mobile-tabs {
+    display: none;
+    background-color: var(--bg-light);
+    border-radius: var(--radius-md);
+    margin-bottom: 15px;
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color);
+}
+
+.tab-btn {
+    background: none;
+    border: none;
+    padding: 12px 0;
+    width: 50%;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+}
+
+.tab-btn i {
+    font-size: 16px;
+}
+
+.tab-btn.active {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+/* Top dark mode toggle improvements */
+.top-dark-mode-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: var(--bg-light);
+    border-radius: 20px;
+    padding: 7px 12px;
+    box-shadow: var(--shadow-sm);
+    margin-left: 10px;
+    transition: all var(--transition-normal);
+    gap: 10px; /* Added space between text and toggle */
+}
+
+/* Settings button styling */
+.settings-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 42px;
+    min-height: 42px;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.settings-button:hover {
+    background-color: var(--bg-light);
+}
+
+.settings-button:active {
+    transform: scale(0.95);
+}
+
+.settings-button i {
+    font-size: 18px;
+    color: var(--primary-color);
+}
+
+@media (max-width: 768px) {
+    /* Show mobile tabs on small screens */
+    .mobile-tabs {
+        display: flex;
+        justify-content: space-between;
+    }
+    
+    /* Conditional display of sections based on active tab */
+    .tab-btn[data-target="add-subscription"].active ~ .subscription-list,
+    .tab-btn[data-target="subscription-list"].active ~ .add-subscription {
+        display: none;
+    }
+    
+    /* Adjust main content for better mobile experience */
+    .main-content {
+        gap: 10px;
+        margin-bottom: 15px;
+    }
+    
+    /* More compact form on mobile */
+    .form-group {
+        margin-bottom: 12px;
+    }
+    
+    /* Improved form labels */
+    label {
+        font-weight: 500;
+        margin-bottom: 4px;
+        display: block;
+    }
+    
+    /* Settings button improvements */
+    .settings-button {
+        min-width: 44px;
+        min-height: 44px;
+    }
+    
+    /* Less padding for content containers */
+    .settings-group {
+        padding: 10px 14px;
+    }
+    
+    .settings-section-title {
+        padding: 8px 14px;
+    }
+    
+    /* More compact top dark mode toggle */
+    .top-dark-mode-toggle {
+        padding: 5px 8px;
+        font-size: 13px;
+    }
+    
+    /* Make switches slightly smaller on very small screens */
+    @media (max-width: 360px) {
+        .top-dark-mode-toggle {
+            font-size: 12px;
+        }
+        
+        .switch {
+            transform: scale(0.9);
+        }
+    }
 }

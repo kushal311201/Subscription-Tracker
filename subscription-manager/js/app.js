@@ -2101,7 +2101,8 @@ function setupSettingsPanel() {
             settingsPanel.classList.add('open');
             settingsBackdrop.classList.add('visible');
             
-            // Scroll settings panel to top
+            // Reset any remnants from prior manipulations and ensure scrolled to top
+            settingsPanel.style.transform = '';
             settingsPanel.scrollTop = 0;
             
             // Position panel based on viewport size
@@ -2141,158 +2142,10 @@ function setupSettingsPanel() {
     
     // Close on escape key
     document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && settingsPanel.classList.contains('open')) {
+        if (e.key === 'Escape' && settingsPanel && settingsPanel.classList.contains('open')) {
             closeSettingsPanel();
         }
     });
-    
-    // Dark mode toggle
-    if (darkModeToggle) {
-        darkModeToggle.addEventListener('change', () => {
-            const darkMode = darkModeToggle.checked;
-            localStorage.setItem('darkMode', darkMode);
-            
-            // Sync with top dark mode toggle
-            const topDarkModeToggle = document.getElementById('topDarkMode');
-            if (topDarkModeToggle) topDarkModeToggle.checked = darkMode;
-            
-            if (systemThemeToggle && systemThemeToggle.checked) {
-                // If system theme is enabled, disable it
-                systemThemeToggle.checked = false;
-                localStorage.setItem('useSystemTheme', false);
-            }
-            
-            if (darkMode) {
-                document.body.classList.add('dark-mode');
-            } else {
-                document.body.classList.remove('dark-mode');
-            }
-            
-            // Haptic feedback
-            if (navigator.vibrate) navigator.vibrate(30);
-        });
-    }
-    
-    // System theme toggle
-    if (systemThemeToggle) {
-        systemThemeToggle.addEventListener('change', () => {
-            const useSystemTheme = systemThemeToggle.checked;
-            localStorage.setItem('useSystemTheme', useSystemTheme);
-            
-            if (useSystemTheme) {
-                // Follow system preference
-                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                if (prefersDark) {
-                    document.body.classList.add('dark-mode');
-                    if (darkModeToggle) darkModeToggle.checked = true;
-                    
-                    // Sync with top dark mode toggle
-                    const topDarkModeToggle = document.getElementById('topDarkMode');
-                    if (topDarkModeToggle) topDarkModeToggle.checked = true;
-                } else {
-                    document.body.classList.remove('dark-mode');
-                    if (darkModeToggle) darkModeToggle.checked = false;
-                    
-                    // Sync with top dark mode toggle
-                    const topDarkModeToggle = document.getElementById('topDarkMode');
-                    if (topDarkModeToggle) topDarkModeToggle.checked = false;
-                }
-            }
-            
-            // Haptic feedback
-            if (navigator.vibrate) navigator.vibrate(30);
-        });
-    }
-    
-    // Notifications toggle
-    if (notificationsToggle) {
-        // Set initial state
-        notificationsToggle.checked = localStorage.getItem('enableNotifications') === 'true';
-        
-        notificationsToggle.addEventListener('change', () => {
-            const enableNotifications = notificationsToggle.checked;
-            localStorage.setItem('enableNotifications', enableNotifications);
-            
-            if (enableNotifications) {
-                // Request notification permission
-                setupNotifications();
-            }
-            
-            // Haptic feedback
-            if (navigator.vibrate) navigator.vibrate(30);
-        });
-    }
-    
-    // Biometrics toggle
-    if (biometricsToggle) {
-        // Set initial state
-        biometricsToggle.checked = localStorage.getItem('useBiometrics') === 'true';
-        
-        biometricsToggle.addEventListener('change', () => {
-            const useBiometrics = biometricsToggle.checked;
-            localStorage.setItem('useBiometrics', useBiometrics);
-            
-            // Haptic feedback
-            if (navigator.vibrate) navigator.vibrate(30);
-        });
-    }
-    
-    // Currency selection
-    if (currencySelect) {
-        // Set initial value
-        const savedCurrency = localStorage.getItem('currency');
-        if (savedCurrency) {
-            currencySelect.value = savedCurrency;
-        }
-        
-        currencySelect.addEventListener('change', () => {
-            const currency = currencySelect.value;
-            localStorage.setItem('currency', currency);
-            
-            // Update currency symbols
-            updateCurrencySymbols();
-            
-            // Reload subscriptions to update formatting
-            loadSubscriptions();
-            
-            // Haptic feedback
-            if (navigator.vibrate) navigator.vibrate(30);
-        });
-    }
-    
-    // Export data
-    if (exportDataLink) {
-        exportDataLink.addEventListener('click', event => {
-            event.preventDefault();
-            exportData();
-        });
-    }
-    
-    // Import data
-    if (importDataLink && importFileInput) {
-        importDataLink.addEventListener('click', event => {
-            event.preventDefault();
-            importFileInput.click();
-        });
-        
-        importFileInput.addEventListener('change', event => {
-            const file = event.target.files[0];
-            if (file) {
-                importData(file);
-            }
-        });
-    }
-    
-    // Reset data
-    if (resetDataLink) {
-        resetDataLink.addEventListener('click', event => {
-            event.preventDefault();
-            resetData();
-        });
-    }
-    
-    // Notification channels
-    setupNotificationChannels();
 }
 
 // Update currency symbols
@@ -3041,20 +2894,20 @@ function positionSettingsPanel() {
     
     if (!settingsButton || !settingsPanel) return;
     
-    // Get button position info
-    const buttonRect = settingsButton.getBoundingClientRect();
-    const viewportHeight = window.innerHeight;
     const viewportWidth = window.innerWidth;
     
-    // Set panel position - position directly beside the button
-    settingsPanel.style.top = `${buttonRect.top}px`;
-    
-    // For mobile (small screens), position from right edge
+    // For mobile (small screens), center the panel
     if (viewportWidth < 768) {
-        settingsPanel.style.right = '10px';
-        settingsPanel.style.maxHeight = `${viewportHeight - buttonRect.top - 20}px`;
+        // Mobile-centered panel is handled via CSS
+        // No need to set positions here as they're forced with !important in CSS
     } else {
         // For larger screens, position relative to button
+        const buttonRect = settingsButton.getBoundingClientRect();
+        const viewportHeight = window.innerHeight;
+        
+        // Set panel position - position directly beside the button
+        settingsPanel.style.top = `${buttonRect.top}px`;
+        
         // Calculate if panel will fit beside the button
         const panelWidth = 300; // Panel width in pixels
         
@@ -3070,3 +2923,82 @@ function positionSettingsPanel() {
         settingsPanel.style.maxHeight = `${viewportHeight - buttonRect.top - 20}px`;
     }
 }
+
+// Setup mobile tabs
+function setupMobileTabs() {
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    
+    if (tabButtons.length === 0) return;
+    
+    // Handle tab switching
+    tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            // Remove active class from all buttons
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            
+            // Add active class to clicked button
+            button.classList.add('active');
+            
+            // Update main content view
+            const target = button.getAttribute('data-target');
+            const mainContent = document.querySelector('.main-content');
+            
+            if (target === 'add-subscription') {
+                const addForm = document.querySelector('.add-subscription');
+                const subList = document.querySelector('.subscription-list');
+                
+                if (addForm && subList) {
+                    addForm.style.display = 'block';
+                    subList.style.display = 'none';
+                }
+            } else if (target === 'subscription-list') {
+                const addForm = document.querySelector('.add-subscription');
+                const subList = document.querySelector('.subscription-list');
+                
+                if (addForm && subList) {
+                    addForm.style.display = 'none';
+                    subList.style.display = 'block';
+                }
+            }
+            
+            // Haptic feedback
+            if (navigator.vibrate) navigator.vibrate(30);
+        });
+    });
+}
+
+// Initialize all app components
+function initApp() {
+    // Initialize theme
+    initializeTheme();
+    
+    // Setup components
+    setupSettingsPanel();
+    setupTopDarkModeToggle();
+    setupAddSubscriptionForm();
+    setupScrollAnimation();
+    
+    // Initialize mobile-specific features
+    setupMobileTabs();
+    
+    // Check for service worker
+    registerServiceWorker();
+    
+    // Load data
+    loadSubscriptions();
+    
+    // Initialize total calculations
+    calculateAndDisplayMonthlyTotal();
+    
+    // Setup connection monitoring
+    setupConnectionMonitoring();
+    
+    // Setup edit and delete functionality
+    setupSubscriptionEditing();
+    
+    // Hide loader when done
+    hideLoader();
+}
+
+// Initialize the app when DOM is fully loaded
+document.addEventListener('DOMContentLoaded', initApp);

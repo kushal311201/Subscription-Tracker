@@ -221,6 +221,16 @@
 
         <!-- Main Content -->
         <div class="main-content">
+            <!-- Tabs for mobile - Add new element for mobile experience -->
+            <div class="mobile-tabs">
+                <button class="tab-btn active" data-target="add-subscription">
+                    <i class="fas fa-plus-circle"></i> Add New
+                </button>
+                <button class="tab-btn" data-target="subscription-list">
+                    <i class="fas fa-list"></i> My Subscriptions
+                </button>
+            </div>
+
             <!-- Add Subscription Form -->
             <div class="add-subscription animate-in">
                 <h2>Add Subscription</h2>
@@ -292,10 +302,6 @@
                     <div id="emailAddressGroupAdd" class="form-group" style="display: none;">
                         <label for="reminderEmailAdd">Email Address</label>
                         <input type="email" id="reminderEmailAdd" placeholder="your@email.com">
-                        <div class="remember-email-group">
-                            <input type="checkbox" id="rememberEmailCheck" checked>
-                            <label for="rememberEmailCheck">Remember email for future subscriptions</label>
-                        </div>
                     </div>
                     
                     <button type="submit" class="btn primary-btn">
