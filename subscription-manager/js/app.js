@@ -2073,28 +2073,56 @@ function setupNavigation() {
 
 // Setup settings panel
 function setupSettingsPanel() {
+    const settingsButton = document.getElementById('settingsButton');
     const settingsPanel = document.getElementById('settingsPanel');
+    const settingsBackdrop = document.getElementById('settingsBackdrop');
     const closeSettings = document.getElementById('closeSettings');
     const darkModeToggle = document.getElementById('darkMode');
     const systemThemeToggle = document.getElementById('systemTheme');
     const notificationsToggle = document.getElementById('enableNotifications');
     const biometricsToggle = document.getElementById('useBiometrics');
     const currencySelect = document.getElementById('currency');
-    const languageSelect = document.getElementById('language');
     const exportDataLink = document.getElementById('exportDataLink');
     const importDataLink = document.getElementById('importDataLink');
     const resetDataLink = document.getElementById('resetDataLink');
     const importFileInput = document.getElementById('importFileInput');
     
-    // Close settings panel
-    if (closeSettings) {
-        closeSettings.addEventListener('click', () => {
-            settingsPanel.classList.remove('open');
+    // Open settings panel
+    if (settingsButton && settingsPanel && settingsBackdrop) {
+        settingsButton.addEventListener('click', () => {
+            settingsPanel.classList.add('open');
+            settingsBackdrop.classList.add('visible');
             
             // Haptic feedback
             if (navigator.vibrate) navigator.vibrate(30);
         });
     }
+    
+    // Close settings panel function
+    const closeSettingsPanel = () => {
+        if (settingsPanel) settingsPanel.classList.remove('open');
+        if (settingsBackdrop) settingsBackdrop.classList.remove('visible');
+            
+        // Haptic feedback
+        if (navigator.vibrate) navigator.vibrate(30);
+    };
+    
+    // Close on button click
+    if (closeSettings) {
+        closeSettings.addEventListener('click', closeSettingsPanel);
+    }
+    
+    // Close on backdrop click
+    if (settingsBackdrop) {
+        settingsBackdrop.addEventListener('click', closeSettingsPanel);
+    }
+    
+    // Close on escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && settingsPanel.classList.contains('open')) {
+            closeSettingsPanel();
+        }
+    });
     
     // Dark mode toggle
     if (darkModeToggle) {
@@ -2106,7 +2134,7 @@ function setupSettingsPanel() {
             const topDarkModeToggle = document.getElementById('topDarkMode');
             if (topDarkModeToggle) topDarkModeToggle.checked = darkMode;
             
-            if (systemThemeToggle.checked) {
+            if (systemThemeToggle && systemThemeToggle.checked) {
                 // If system theme is enabled, disable it
                 systemThemeToggle.checked = false;
                 localStorage.setItem('useSystemTheme', false);

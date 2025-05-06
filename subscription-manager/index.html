@@ -366,6 +366,9 @@
         </a>
     </div>
 
+    <!-- Settings Backdrop -->
+    <div id="settingsBackdrop" class="settings-backdrop"></div>
+
     <!-- Settings Panel -->
     <div id="settingsPanel" class="settings-panel">
         <div class="settings-header">
@@ -390,47 +393,53 @@
         </div>
         
         <div class="settings-content">
-            <!-- Appearance -->
-            <div class="settings-group">
-                <span>Dark Mode</span>
-                <label class="switch">
-                    <input type="checkbox" id="darkMode">
-                    <span class="slider round"></span>
-                </label>
-            </div>
-            <div class="settings-group">
-                <span>Use System Theme</span>
-                <label class="switch">
-                    <input type="checkbox" id="systemTheme" checked>
-                    <span class="slider round"></span>
-                </label>
-            </div>
-            
-            <!-- Account Settings -->
-            <div class="settings-group">
-                <span>Sync Across Devices</span>
-                <label class="switch">
-                    <input type="checkbox" id="cloudSync">
-                    <span class="slider round"></span>
-                </label>
+            <!-- Appearance Section -->
+            <div class="settings-section">
+                <h3 class="settings-section-title">Appearance</h3>
+                <div class="settings-group">
+                    <span>Dark Mode</span>
+                    <label class="switch">
+                        <input type="checkbox" id="darkMode">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+                <div class="settings-group">
+                    <span>Use System Theme</span>
+                    <label class="switch">
+                        <input type="checkbox" id="systemTheme" checked>
+                        <span class="slider round"></span>
+                    </label>
+                </div>
             </div>
             
-            <div class="settings-group">
-                <span>Email Verification</span>
-                <button class="btn secondary-btn" id="verifyEmailBtn" disabled>Verify</button>
+            <!-- Account Section -->
+            <div class="settings-section">
+                <h3 class="settings-section-title">Account</h3>
+                <div class="settings-group">
+                    <span>Sync Across Devices</span>
+                    <label class="switch">
+                        <input type="checkbox" id="cloudSync">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+                
+                <div class="settings-group">
+                    <span>Email Verification</span>
+                    <button class="btn secondary-btn" id="verifyEmailBtn" disabled>Verify</button>
+                </div>
             </div>
             
-            <!-- Notifications -->
-            <div class="settings-group">
-                <span>Enable Notifications</span>
-                <label class="switch">
-                    <input type="checkbox" id="enableNotifications">
-                    <span class="slider round"></span>
-                </label>
-            </div>
-            
-            <!-- Notification Channels -->
-            <div class="notification-channels">
+            <!-- Notifications Section -->
+            <div class="settings-section">
+                <h3 class="settings-section-title">Notifications</h3>
+                <div class="settings-group">
+                    <span>Enable Notifications</span>
+                    <label class="switch">
+                        <input type="checkbox" id="enableNotifications">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+                
                 <div class="settings-group">
                     <span>Due Date Reminders</span>
                     <label class="switch">
@@ -454,63 +463,74 @@
                 </div>
             </div>
             
-            <!-- Security -->
-            <div class="settings-group">
-                <span>Use Biometrics</span>
-                <label class="switch">
-                    <input type="checkbox" id="useBiometrics">
-                    <span class="slider round"></span>
-                </label>
+            <!-- Security Section -->
+            <div class="settings-section">
+                <h3 class="settings-section-title">Security</h3>
+                <div class="settings-group">
+                    <span>Use Biometrics</span>
+                    <label class="switch">
+                        <input type="checkbox" id="useBiometrics">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
             </div>
             
-            <!-- Preferences -->
-            <div class="settings-group">
-                <span>Currency</span>
-                <select id="currency">
-                    <option value="INR">Indian Rupee (₹)</option>
-                    <option value="USD">US Dollar ($)</option>
-                    <option value="EUR">Euro (€)</option>
-                    <option value="GBP">British Pound (£)</option>
-                    <option value="JPY">Japanese Yen (¥)</option>
-                    <option value="CAD">Canadian Dollar ($)</option>
-                    <option value="AUD">Australian Dollar ($)</option>
-                    <option value="CNY">Chinese Yuan (¥)</option>
-                    <option value="RUB">Russian Ruble (₽)</option>
-                </select>
+            <!-- Preferences Section -->
+            <div class="settings-section">
+                <h3 class="settings-section-title">Preferences</h3>
+                <div class="settings-group">
+                    <span>Currency</span>
+                    <select id="currency">
+                        <option value="INR">₹ (INR)</option>
+                        <option value="USD">$ (USD)</option>
+                        <option value="EUR">€ (EUR)</option>
+                        <option value="GBP">£ (GBP)</option>
+                        <option value="JPY">¥ (JPY)</option>
+                        <option value="CAD">$ (CAD)</option>
+                        <option value="AUD">$ (AUD)</option>
+                        <option value="CNY">¥ (CNY)</option>
+                        <option value="RUB">₽ (RUB)</option>
+                    </select>
+                </div>
+                
+                <div class="settings-group">
+                    <span>Auto Backup</span>
+                    <label class="switch">
+                        <input type="checkbox" id="autoBackup">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
             </div>
             
-            <!-- Backup & Data -->
-            <div class="settings-group">
-                <span>Auto Backup</span>
-                <label class="switch">
-                    <input type="checkbox" id="autoBackup">
-                    <span class="slider round"></span>
-                </label>
+            <!-- Data Management Section -->
+            <div class="settings-section">
+                <h3 class="settings-section-title">Data Management</h3>
+                <div class="settings-group">
+                    <span>Export Data</span>
+                    <a href="#" id="exportDataLink" class="share-btn"><i class="fas fa-download"></i></a>
+                </div>
+                <div class="settings-group">
+                    <span>Import Data</span>
+                    <a href="#" id="importDataLink" class="share-btn"><i class="fas fa-upload"></i></a>
+                    <input type="file" id="importFileInput" accept=".json" style="display: none;">
+                </div>
+                <div class="settings-group">
+                    <span>Reset All Data</span>
+                    <a href="#" id="resetDataLink" class="share-btn" style="color: var(--danger-color);"><i class="fas fa-trash-alt"></i></a>
+                </div>
             </div>
             
-            <!-- Data Management -->
-            <div class="settings-group">
-                <span>Export Data</span>
-                <a href="#" id="exportDataLink" class="share-btn"><i class="fas fa-download"></i></a>
-            </div>
-            <div class="settings-group">
-                <span>Import Data</span>
-                <a href="#" id="importDataLink" class="share-btn"><i class="fas fa-upload"></i></a>
-                <input type="file" id="importFileInput" accept=".json" style="display: none;">
-            </div>
-            <div class="settings-group">
-                <span>Reset All Data</span>
-                <a href="#" id="resetDataLink" class="share-btn" style="color: var(--danger-color);"><i class="fas fa-trash-alt"></i></a>
-            </div>
-            
-            <!-- About -->
-            <div class="settings-group">
-                <span>Privacy Policy</span>
-                <a href="#" class="share-btn" id="privacyPolicyLink"><i class="fas fa-shield-alt"></i></a>
-            </div>
-            <div class="settings-group">
-                <span>Terms of Service</span>
-                <a href="#" class="share-btn" id="termsLink"><i class="fas fa-file-contract"></i></a>
+            <!-- About Section -->
+            <div class="settings-section">
+                <h3 class="settings-section-title">About</h3>
+                <div class="settings-group">
+                    <span>Privacy Policy</span>
+                    <a href="#" class="share-btn" id="privacyPolicyLink"><i class="fas fa-shield-alt"></i></a>
+                </div>
+                <div class="settings-group">
+                    <span>Terms of Service</span>
+                    <a href="#" class="share-btn" id="termsLink"><i class="fas fa-file-contract"></i></a>
+                </div>
             </div>
         </div>
         
