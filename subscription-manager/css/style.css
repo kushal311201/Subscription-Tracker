@@ -3039,3 +3039,167 @@ body.dark-mode .settings-button {
 body.dark-mode .settings-button i {
     color: var(--text-primary);
 }
+
+/* Top dark mode toggle improvements */
+.top-dark-mode-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: var(--bg-light);
+    border-radius: 20px;
+    padding: 5px 12px;
+    box-shadow: var(--shadow-sm);
+    margin-left: 10px;
+    transition: all var(--transition-normal);
+}
+
+body.dark-mode .top-dark-mode-toggle {
+    background-color: var(--bg-card);
+}
+
+.top-dark-mode-toggle .switch {
+    position: relative;
+    display: inline-block;
+    width: 40px;
+    height: 20px;
+    margin-right: 8px;
+}
+
+.top-dark-mode-toggle .switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.top-dark-mode-toggle .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .3s;
+    border-radius: 20px;
+}
+
+.top-dark-mode-toggle .slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    transition: .3s;
+    border-radius: 50%;
+}
+
+.top-dark-mode-toggle input:checked + .slider {
+    background-color: var(--primary-color);
+}
+
+.top-dark-mode-toggle input:checked + .slider:before {
+    transform: translateX(20px);
+}
+
+.toggle-label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    margin: 0;
+    display: flex;
+    align-items: center;
+}
+
+body.dark-mode .toggle-label {
+    color: var(--text-secondary);
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Analytics and Budget Mobile Improvements */
+@media (max-width: 767px) {
+    .analytics-dashboard {
+        padding: 12px;
+        margin-bottom: 60px; /* Add space for navigation bar */
+    }
+    
+    .analytics-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .analytics-header h2 {
+        margin-bottom: 10px;
+    }
+    
+    .time-period-selector {
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        white-space: nowrap;
+        padding-bottom: 8px;
+    }
+    
+    .analytics-tabs {
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        white-space: nowrap;
+        padding-bottom: 8px;
+    }
+    
+    .analytics-tab {
+        padding: 8px 15px;
+        font-size: 0.85rem;
+    }
+    
+    .chart-container-large {
+        height: 250px;
+        margin: 0 -8px;
+    }
+    
+    .comparison-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+    
+    .budget-planner {
+        padding: 15px;
+        margin: 0 0 20px 0;
+    }
+    
+    .period-toggle {
+        flex-wrap: wrap;
+    }
+    
+    .budget-metrics {
+        flex-direction: column;
+    }
+    
+    .budget-metric {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+}
+
+/* Ensure smooth scrolling and better touch experience */
+.analytics-content {
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Fix for chart overflow */
+.chart-container, .chart-container-large {
+    overflow: hidden;
+}
+
+/* Ensure analytics content is always visible */
+.analytics-dashboard {
+    display: block !important;
+}
