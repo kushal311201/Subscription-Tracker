@@ -2055,6 +2055,9 @@ function setupNavigation() {
         settingsButton.addEventListener('click', () => {
             settingsPanel.classList.add('open');
             
+            // Scroll settings panel to top
+            settingsPanel.scrollTop = 0;
+            
             // Haptic feedback
             if (navigator.vibrate) navigator.vibrate(30);
         });
@@ -2084,8 +2087,9 @@ function setupSettingsPanel() {
     const currencySelect = document.getElementById('currency');
     const exportDataLink = document.getElementById('exportDataLink');
     const importDataLink = document.getElementById('importDataLink');
-    const resetDataLink = document.getElementById('resetDataLink');
     const importFileInput = document.getElementById('importFileInput');
+    const resetDataLink = document.getElementById('resetDataLink');
+    const signInBtn = document.getElementById('signInBtn');
     
     // Open settings panel
     if (settingsButton && settingsPanel && settingsBackdrop) {
@@ -2093,26 +2097,30 @@ function setupSettingsPanel() {
             settingsPanel.classList.add('open');
             settingsBackdrop.classList.add('visible');
             
+            // Scroll settings panel to top
+            settingsPanel.scrollTop = 0;
+            
             // Haptic feedback
             if (navigator.vibrate) navigator.vibrate(30);
         });
     }
     
-    // Close settings panel function
     const closeSettingsPanel = () => {
-        if (settingsPanel) settingsPanel.classList.remove('open');
-        if (settingsBackdrop) settingsBackdrop.classList.remove('visible');
+        if (settingsPanel && settingsBackdrop) {
+            settingsPanel.classList.remove('open');
+            settingsBackdrop.classList.remove('visible');
             
-        // Haptic feedback
-        if (navigator.vibrate) navigator.vibrate(30);
+            // Haptic feedback
+            if (navigator.vibrate) navigator.vibrate(30);
+        }
     };
     
-    // Close on button click
+    // Close settings panel
     if (closeSettings) {
         closeSettings.addEventListener('click', closeSettingsPanel);
     }
     
-    // Close on backdrop click
+    // Close settings when clicking on backdrop
     if (settingsBackdrop) {
         settingsBackdrop.addEventListener('click', closeSettingsPanel);
     }
