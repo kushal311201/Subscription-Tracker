@@ -410,7 +410,7 @@ async function initApp() {
             attempts++;
             console.log(`Attempting database initialization (attempt ${attempts}/${maxAttempts})`);
             try {
-                await initDB();
+                await SubscriptionDB.init();
                 dbInitialized = true;
                 console.log('Database initialized successfully');
             } catch (error) {
