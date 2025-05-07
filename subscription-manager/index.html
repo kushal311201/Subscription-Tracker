@@ -221,16 +221,6 @@
 
         <!-- Main Content -->
         <div class="main-content">
-            <!-- Tabs for mobile - Add new element for mobile experience -->
-            <div class="mobile-tabs">
-                <button class="tab-btn active" data-target="add-subscription">
-                    <i class="fas fa-plus-circle"></i> Add New
-                </button>
-                <button class="tab-btn" data-target="subscription-list">
-                    <i class="fas fa-list"></i> My Subscriptions
-                </button>
-            </div>
-
             <!-- Add Subscription Form -->
             <div class="add-subscription animate-in">
                 <h2>Add Subscription</h2>
@@ -311,39 +301,8 @@
             </div>
 
             <!-- Subscription List -->
-            <div class="subscription-list animate-in">
-                <div class="list-header">
-                    <h2>Your Subscriptions</h2>
-                </div>
-                
-                <div class="search-and-filter">
-                    <div class="search-wrapper">
-                        <i class="search-icon fas fa-search"></i>
-                        <input type="text" id="searchInput" placeholder="Search subscriptions...">
-                        <button class="clear-search" id="clearSearch">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-                    <div class="filter-container">
-                        <select id="filterCategory">
-                            <option value="all">All Categories</option>
-                            <option value="streaming">Streaming</option>
-                            <option value="fitness">Fitness</option>
-                            <option value="productivity">Productivity</option>
-                            <option value="music">Music</option>
-                            <option value="cloud">Cloud Storage</option>
-                            <option value="other">Other</option>
-                        </select>
-                    </div>
-                </div>
-                
-                <div id="subscriptionCards" class="cards-container">
-                    <!-- Cards will be added here -->
-                </div>
-                <div class="empty-state">
-                    <i class="fas fa-bookmark"></i>
-                    <p>No subscriptions added yet. Add your first subscription to track it.</p>
-                </div>
+            <div class="subscription-list" id="subscriptionCards">
+                <!-- Subscription cards will be added here dynamically -->
             </div>
         </div>
 

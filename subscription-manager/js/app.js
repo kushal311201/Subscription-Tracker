@@ -1926,3 +1926,16 @@ function setupFormListener() {
         }
     });
 }
+
+// Setup category filter
+function setupCategoryFilter() {
+    const filterSelect = document.getElementById('filterCategory');
+    if (!filterSelect) return;
+
+    filterSelect.addEventListener('change', () => {
+        const selectedCategory = filterSelect.value;
+        appState.currentFilter = selectedCategory;
+        appState.applyFilters();
+        loadSubscriptions();
+    });
+}
