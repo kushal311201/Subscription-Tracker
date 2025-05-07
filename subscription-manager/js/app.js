@@ -305,81 +305,73 @@ let syncInProgress = false;
 async function initApp() {
     console.log('Starting application initialization...');
     const loader = document.querySelector('.app-loader');
-    const errorBanner = document.querySelector('.error-banner');
-
+    
     try {
         // Show loader
         if (loader) {
             loader.classList.remove('hidden');
         }
-
+        
         // Remove any existing error banners
-        if (errorBanner) {
-            errorBanner.remove();
+        const existingError = document.querySelector('.error-banner');
+        if (existingError) {
+            existingError.remove();
         }
-
+        
         // Validate required DOM elements
-        const requiredElements = {
-            subscriptionCards: document.getElementById('subscriptionCards'),
-            totalMonthly: document.getElementById('totalMonthly'),
-            categoryChart: document.getElementById('categoryChart'),
-            subscriptionForm: document.getElementById('subscriptionForm'),
-            settingsButton: document.getElementById('settingsButton'),
-            settingsPanel: document.getElementById('settingsPanel'),
-            settingsBackdrop: document.getElementById('settingsBackdrop'),
-            darkMode: document.getElementById('darkMode'),
-            systemTheme: document.getElementById('systemTheme')
-        };
-
-        // Check for missing elements
-        const missingElements = Object.entries(requiredElements)
-            .filter(([_, element]) => !element)
-            .map(([name]) => name);
-
+        const requiredElements = [
+            'subscriptionForm',
+            'subscriptionList',
+            'filterCategory',
+            'searchInput',
+            'categoryChart'
+        ];
+        
+        const missingElements = requiredElements.filter(id => !document.getElementById(id));
         if (missingElements.length > 0) {
             throw new Error(`Missing required elements: ${missingElements.join(', ')}`);
         }
-
+        
         // Initialize database with retry mechanism
-        let retryCount = 0;
-        const maxRetries = 3;
-        let lastError = null;
-
-        while (retryCount < maxRetries) {
+        let dbInitialized = false;
+        let attempts = 0;
+        const maxAttempts = 3;
+        
+        while (!dbInitialized && attempts < maxAttempts) {
+            attempts++;
+            console.log(`Attempting database initialization (attempt ${attempts}/${maxAttempts})...`);
             try {
-                console.log(`Attempting database initialization (attempt ${retryCount + 1}/${maxRetries})...`);
-                await SubscriptionDB.init();
+                await initializeDatabase();
+                dbInitialized = true;
                 console.log('Database initialized successfully');
-                break;
             } catch (error) {
-                lastError = error;
-                console.error(`Database initialization attempt ${retryCount + 1} failed:`, error);
-                retryCount++;
-                
-                if (retryCount < maxRetries) {
-                    const delay = Math.min(1000 * Math.pow(2, retryCount), 5000);
-                    console.log(`Retrying in ${delay}ms...`);
-                    await new Promise(resolve => setTimeout(resolve, delay));
+                console.error(`Database initialization attempt ${attempts} failed:`, error);
+                if (attempts === maxAttempts) {
+                    throw error;
                 }
+                // Wait before retrying
+                await new Promise(resolve => setTimeout(resolve, 1000));
             }
         }
-
-        if (retryCount === maxRetries) {
-            throw new Error(`Failed to initialize database after ${maxRetries} attempts: ${lastError.message}`);
-        }
-
+        
         // Initialize theme
+        console.log('Initializing theme...');
         initializeTheme();
-
-        // Initialize settings panel
+        
+        // Setup settings panel
+        console.log('Setting up settings panel...');
         setupSettingsPanel();
-
+        
+        // Initialize settings content
+        console.log('Initializing settings content...');
+        initializeSettingsContent();
+        
         // Load subscriptions
         await loadSubscriptions();
-
+        
         // Setup event listeners
         setupEventListeners();
-
+        
         // Initialize chart if Chart.js is available
         if (typeof Chart !== 'undefined') {
             try {
