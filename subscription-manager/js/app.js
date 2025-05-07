@@ -1685,6 +1685,61 @@ function initializeBudgetAnalyticsComponents() {
     return checkAndInitializeAnalytics();
 }
 
+// Setup settings panel functionality
+function setupSettingsPanel() {
+    const settingsButton = document.getElementById('settingsButton');
+    const settingsPanel = document.getElementById('settingsPanel');
+    const settingsBackdrop = document.getElementById('settingsBackdrop');
+    const closeSettingsBtn = document.getElementById('closeSettings');
+    
+    if (!settingsButton || !settingsPanel || !settingsBackdrop || !closeSettingsBtn) {
+        console.error('Settings elements not found');
+        return;
+    }
+    
+    // Function to show settings panel
+    function showSettings() {
+        settingsPanel.classList.add('open');
+        settingsBackdrop.classList.add('visible');
+        document.body.style.overflow = 'hidden'; // Prevent background scrolling
+        
+        // Position the panel
+        positionSettingsPanel();
+        
+        // Haptic feedback
+        if (navigator.vibrate) navigator.vibrate(30);
+    }
+    
+    // Function to hide settings panel
+    function hideSettings() {
+        settingsPanel.classList.remove('open');
+        settingsBackdrop.classList.remove('visible');
+        document.body.style.overflow = ''; // Restore scrolling
+        
+        // Haptic feedback
+        if (navigator.vibrate) navigator.vibrate(30);
+    }
+    
+    // Event listeners
+    settingsButton.addEventListener('click', showSettings);
+    closeSettingsBtn.addEventListener('click', hideSettings);
+    settingsBackdrop.addEventListener('click', hideSettings);
+    
+    // Close on escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && settingsPanel.classList.contains('open')) {
+            hideSettings();
+        }
+    });
+    
+    // Handle window resize
+    window.addEventListener('resize', debounce(() => {
+        if (settingsPanel.classList.contains('open')) {
+            positionSettingsPanel();
+        }
+    }, 250));
+}
+
 // Position settings panel based on viewport size and button position
 function positionSettingsPanel() {
     const settingsButton = document.getElementById('settingsButton');
@@ -1696,29 +1751,20 @@ function positionSettingsPanel() {
     
     // For mobile (small screens), center the panel
     if (viewportWidth < 768) {
-        // Mobile-centered panel is handled via CSS
-        // No need to set positions here as they're forced with !important in CSS
+        settingsPanel.style.top = '50%';
+        settingsPanel.style.left = '50%';
+        settingsPanel.style.transform = 'translate(-50%, -50%)';
     } else {
         // For larger screens, position relative to button
         const buttonRect = settingsButton.getBoundingClientRect();
         const viewportHeight = window.innerHeight;
         
-        // Set panel position - position directly beside the button
-        settingsPanel.style.top = `${buttonRect.top}px`;
-        
-        // Calculate if panel will fit beside the button
-        const panelWidth = 300; // Panel width in pixels
-        
-        if (buttonRect.right + panelWidth > viewportWidth) {
-            // Not enough space to the right of the button, position from right edge
-            settingsPanel.style.right = '20px';
-        } else {
-            // Enough space, position directly beside the button
-            settingsPanel.style.right = `${viewportWidth - buttonRect.right - 10}px`;
-        }
+        // Set panel position
+        settingsPanel.style.top = `${buttonRect.bottom + 10}px`;
+        settingsPanel.style.right = '20px';
         
         // Set max height to fit in viewport
-        settingsPanel.style.maxHeight = `${viewportHeight - buttonRect.top - 20}px`;
+        settingsPanel.style.maxHeight = `${viewportHeight - buttonRect.bottom - 30}px`;
     }
 }
 
@@ -1836,57 +1882,18 @@ function setupFormListener() {
     });
 }
 
-// Setup settings panel functionality
-function setupSettingsPanel() {
-    const settingsButton = document.getElementById('settingsButton');
-    const settingsPanel = document.getElementById('settingsPanel');
-    const settingsBackdrop = document.getElementById('settingsBackdrop');
-    const closeSettingsBtn = document.getElementById('closeSettings');
-    
-    if (!settingsButton || !settingsPanel || !settingsBackdrop || !closeSettingsBtn) {
-        console.error('Settings elements not found');
-        return;
-    }
-    
-    // Function to show settings panel
-    function showSettings() {
-        settingsPanel.classList.add('open');
-        settingsBackdrop.classList.add('visible');
-        document.body.style.overflow = 'hidden'; // Prevent background scrolling
-        
-        // Position the panel
-        positionSettingsPanel();
+// Setup category filter functionality
+function setupCategoryFilter() {
+    const filterSelect = document.getElementById('filterCategory');
+    if (!filterSelect) return;
+
+    filterSelect.addEventListener('change', function() {
+        const selectedCategory = this.value;
+        appState.currentFilter = selectedCategory;
+        appState.applyFilters();
+        loadSubscriptions();
         
         // Haptic feedback
         if (navigator.vibrate) navigator.vibrate(30);
-    }
-    
-    // Function to hide settings panel
-    function hideSettings() {
-        settingsPanel.classList.remove('open');
-        settingsBackdrop.classList.remove('visible');
-        document.body.style.overflow = ''; // Restore scrolling
-        
-        // Haptic feedback
-        if (navigator.vibrate) navigator.vibrate(30);
-    }
-    
-    // Event listeners
-    settingsButton.addEventListener('click', showSettings);
-    closeSettingsBtn.addEventListener('click', hideSettings);
-    settingsBackdrop.addEventListener('click', hideSettings);
-    
-    // Close on escape key
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && settingsPanel.classList.contains('open')) {
-            hideSettings();
-        }
     });
-    
-    // Handle window resize
-    window.addEventListener('resize', debounce(() => {
-        if (settingsPanel.classList.contains('open')) {
-            positionSettingsPanel();
-        }
-    }, 250));
 }
