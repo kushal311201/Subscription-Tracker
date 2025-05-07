@@ -378,171 +378,93 @@
     <!-- Settings Panel -->
     <div id="settingsPanel" class="settings-panel">
         <div class="settings-header">
-            <h2>Settings</h2>
-            <button id="closeSettings" class="close-btn"><i class="fas fa-times"></i></button>
-        </div>
-        
-        <!-- User Profile Section -->
-        <div class="user-profile-section">
-            <div class="profile-header">
-                <div class="profile-avatar">
-                    <i class="fas fa-user"></i>
-                </div>
-                <div class="profile-info">
-                    <div class="profile-name">Guest User</div>
-                    <div class="profile-email">Not signed in</div>
-                </div>
-            </div>
-            <button class="btn primary-btn" id="signInBtn">
-                <i class="fas fa-sign-in-alt"></i> Sign In
+            <h3>Settings</h3>
+            <button id="closeSettings" class="close-btn" aria-label="Close settings">
+                <i class="fas fa-times"></i>
             </button>
         </div>
-        
         <div class="settings-content">
-            <!-- Appearance Section -->
-            <div class="settings-section">
-                <h3 class="settings-section-title">Appearance</h3>
-                <div class="settings-group">
-                    <span>Dark Mode</span>
+            <div class="settings-group">
+                <h4>Appearance</h4>
+                <div class="setting-item">
+                    <span class="setting-label">Dark Mode</span>
                     <label class="switch">
                         <input type="checkbox" id="darkMode">
                         <span class="slider round"></span>
                     </label>
                 </div>
-                <div class="settings-group">
-                    <span>Use System Theme</span>
+                <div class="setting-item">
+                    <span class="setting-label">Use System Theme</span>
                     <label class="switch">
-                        <input type="checkbox" id="systemTheme" checked>
+                        <input type="checkbox" id="systemTheme">
                         <span class="slider round"></span>
                     </label>
                 </div>
             </div>
             
-            <!-- Account Section -->
-            <div class="settings-section">
-                <h3 class="settings-section-title">Account</h3>
-                <div class="settings-group">
-                    <span>Sync Across Devices</span>
+            <div class="settings-group">
+                <h4>Notifications</h4>
+                <div class="setting-item">
+                    <span class="setting-label">Push Notifications</span>
                     <label class="switch">
-                        <input type="checkbox" id="cloudSync">
+                        <input type="checkbox" id="pushNotifications">
                         <span class="slider round"></span>
                     </label>
                 </div>
-                
-                <div class="settings-group">
-                    <span>Email Verification</span>
-                    <button class="btn secondary-btn" id="verifyEmailBtn" disabled>Verify</button>
-                </div>
-            </div>
-            
-            <!-- Notifications Section -->
-            <div class="settings-section">
-                <h3 class="settings-section-title">Notifications</h3>
-                <div class="settings-group">
-                    <span>Enable Notifications</span>
+                <div class="setting-item">
+                    <span class="setting-label">Email Notifications</span>
                     <label class="switch">
-                        <input type="checkbox" id="enableNotifications">
-                        <span class="slider round"></span>
-                    </label>
-                </div>
-                
-                <div class="settings-group">
-                    <span>Due Date Reminders</span>
-                    <label class="switch">
-                        <input type="checkbox" id="dueDateChannel" checked>
-                        <span class="slider round"></span>
-                    </label>
-                </div>
-                <div class="settings-group">
-                    <span>Weekly Digest</span>
-                    <label class="switch">
-                        <input type="checkbox" id="weeklyDigestChannel">
-                        <span class="slider round"></span>
-                    </label>
-                </div>
-                <div class="settings-group">
-                    <span>Price Change Alerts</span>
-                    <label class="switch">
-                        <input type="checkbox" id="priceChangesChannel">
+                        <input type="checkbox" id="emailNotifications">
                         <span class="slider round"></span>
                     </label>
                 </div>
             </div>
             
-            <!-- Security Section -->
-            <div class="settings-section">
-                <h3 class="settings-section-title">Security</h3>
-                <div class="settings-group">
-                    <span>Use Biometrics</span>
-                    <label class="switch">
-                        <input type="checkbox" id="useBiometrics">
-                        <span class="slider round"></span>
-                    </label>
-                </div>
-            </div>
-            
-            <!-- Preferences Section -->
-            <div class="settings-section">
-                <h3 class="settings-section-title">Preferences</h3>
-                <div class="settings-group">
-                    <span>Currency</span>
-                    <select id="currency">
-                        <option value="INR">₹ (INR)</option>
-                        <option value="USD">$ (USD)</option>
-                        <option value="EUR">€ (EUR)</option>
-                        <option value="GBP">£ (GBP)</option>
-                        <option value="JPY">¥ (JPY)</option>
-                        <option value="CAD">$ (CAD)</option>
-                        <option value="AUD">$ (AUD)</option>
-                        <option value="CNY">¥ (CNY)</option>
-                        <option value="RUB">₽ (RUB)</option>
-                    </select>
-                </div>
-                
-                <div class="settings-group">
-                    <span>Auto Backup</span>
+            <div class="settings-group">
+                <h4>Data Management</h4>
+                <div class="setting-item">
+                    <span class="setting-label">Auto Backup</span>
                     <label class="switch">
                         <input type="checkbox" id="autoBackup">
                         <span class="slider round"></span>
                     </label>
                 </div>
-            </div>
-            
-            <!-- Data Management Section -->
-            <div class="settings-section">
-                <h3 class="settings-section-title">Data Management</h3>
-                <div class="settings-group">
-                    <span>Export Data</span>
-                    <a href="#" id="exportDataLink" class="share-btn"><i class="fas fa-download"></i></a>
-                </div>
-                <div class="settings-group">
-                    <span>Import Data</span>
-                    <a href="#" id="importDataLink" class="share-btn"><i class="fas fa-upload"></i></a>
-                    <input type="file" id="importFileInput" accept=".json" style="display: none;">
-                </div>
-                <div class="settings-group">
-                    <span>Reset All Data</span>
-                    <a href="#" id="resetDataLink" class="share-btn" style="color: var(--danger-color);"><i class="fas fa-trash-alt"></i></a>
+                <div class="setting-item">
+                    <span class="setting-label">Cloud Sync</span>
+                    <label class="switch">
+                        <input type="checkbox" id="cloudSync">
+                        <span class="slider round"></span>
+                    </label>
                 </div>
             </div>
             
-            <!-- About Section -->
-            <div class="settings-section">
-                <h3 class="settings-section-title">About</h3>
-                <div class="settings-group">
-                    <span>Privacy Policy</span>
-                    <a href="#" class="share-btn" id="privacyPolicyLink"><i class="fas fa-shield-alt"></i></a>
+            <div class="settings-group">
+                <h4>Account</h4>
+                <div class="setting-item">
+                    <button id="signInBtn" class="btn secondary-btn">
+                        <i class="fas fa-sign-in-alt"></i> Sign In
+                    </button>
                 </div>
-                <div class="settings-group">
-                    <span>Terms of Service</span>
-                    <a href="#" class="share-btn" id="termsLink"><i class="fas fa-file-contract"></i></a>
+                <div class="setting-item">
+                    <button id="verifyEmailBtn" class="btn secondary-btn" disabled>
+                        <i class="fas fa-envelope"></i> Verify Email
+                    </button>
                 </div>
             </div>
-        </div>
-        
-        <div class="app-info">
-            <p>Subscription Tracker v1.5.0</p>
-            <p>© 2023 Subscription Tracker</p>
+            
+            <div class="settings-group">
+                <h4>About</h4>
+                <div class="setting-item">
+                    <a href="#" id="privacyPolicyLink" class="link-btn">
+                        <i class="fas fa-shield-alt"></i> Privacy Policy
+                    </a>
+                </div>
+                <div class="setting-item">
+                    <a href="#" id="termsLink" class="link-btn">
+                        <i class="fas fa-file-contract"></i> Terms of Service
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -671,7 +593,7 @@
     <script src="js/db.js"></script>
     
     <!-- App scripts -->
-    <script src="js/app.js"></script>
+    <script src="js/app.js" defer></script>
     
     <!-- Service Worker Registration -->
     <script>

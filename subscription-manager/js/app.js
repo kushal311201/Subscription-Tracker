@@ -1685,88 +1685,98 @@ function initializeBudgetAnalyticsComponents() {
     return checkAndInitializeAnalytics();
 }
 
-// Setup settings panel functionality
+// Settings Panel Functions
 function setupSettingsPanel() {
-    const settingsButton = document.getElementById('settingsButton');
+    const settingsBtn = document.querySelector('.settings-button');
     const settingsPanel = document.getElementById('settingsPanel');
-    const settingsBackdrop = document.getElementById('settingsBackdrop');
-    const closeSettingsBtn = document.getElementById('closeSettings');
-    
-    if (!settingsButton || !settingsPanel || !settingsBackdrop || !closeSettingsBtn) {
-        console.error('Settings elements not found');
+    const closeBtn = document.getElementById('closeSettings');
+
+    if (!settingsBtn || !settingsPanel || !closeBtn) {
+        console.error('Settings panel elements not found');
         return;
     }
-    
-    // Function to show settings panel
-    function showSettings() {
-        settingsPanel.classList.add('open');
-        settingsBackdrop.classList.add('visible');
-        document.body.style.overflow = 'hidden'; // Prevent background scrolling
-        
-        // Position the panel
+
+    // Show settings panel
+    settingsBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        showSettings();
         positionSettingsPanel();
-        
-        // Haptic feedback
-        if (navigator.vibrate) navigator.vibrate(30);
-    }
-    
-    // Function to hide settings panel
-    function hideSettings() {
-        settingsPanel.classList.remove('open');
-        settingsBackdrop.classList.remove('visible');
-        document.body.style.overflow = ''; // Restore scrolling
-        
-        // Haptic feedback
-        if (navigator.vibrate) navigator.vibrate(30);
-    }
-    
-    // Event listeners
-    settingsButton.addEventListener('click', showSettings);
-    closeSettingsBtn.addEventListener('click', hideSettings);
-    settingsBackdrop.addEventListener('click', hideSettings);
-    
-    // Close on escape key
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && settingsPanel.classList.contains('open')) {
+    });
+
+    // Close settings panel
+    closeBtn.addEventListener('click', hideSettings);
+
+    // Close panel when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!settingsPanel.contains(e.target) && !settingsBtn.contains(e.target)) {
             hideSettings();
         }
     });
-    
-    // Handle window resize
-    window.addEventListener('resize', debounce(() => {
+
+    // Close panel on escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            hideSettings();
+        }
+    });
+
+    // Reposition panel on window resize
+    window.addEventListener('resize', () => {
         if (settingsPanel.classList.contains('open')) {
             positionSettingsPanel();
         }
-    }, 250));
+    });
+
+    // Initial positioning
+    positionSettingsPanel();
 }
 
-// Position settings panel based on viewport size and button position
-function positionSettingsPanel() {
-    const settingsButton = document.getElementById('settingsButton');
+function showSettings() {
     const settingsPanel = document.getElementById('settingsPanel');
-    
-    if (!settingsButton || !settingsPanel) return;
-    
-    const viewportWidth = window.innerWidth;
-    
-    // For mobile (small screens), center the panel
-    if (viewportWidth < 768) {
-        settingsPanel.style.top = '50%';
-        settingsPanel.style.left = '50%';
-        settingsPanel.style.transform = 'translate(-50%, -50%)';
-    } else {
-        // For larger screens, position relative to button
-        const buttonRect = settingsButton.getBoundingClientRect();
-        const viewportHeight = window.innerHeight;
-        
-        // Set panel position
-        settingsPanel.style.top = `${buttonRect.bottom + 10}px`;
-        settingsPanel.style.right = '20px';
-        
-        // Set max height to fit in viewport
-        settingsPanel.style.maxHeight = `${viewportHeight - buttonRect.bottom - 30}px`;
+    if (!settingsPanel) return;
+
+    settingsPanel.style.display = 'block';
+    settingsPanel.classList.add('open');
+    if (window.navigator.vibrate) {
+        window.navigator.vibrate(50);
     }
 }
+
+function hideSettings() {
+    const settingsPanel = document.getElementById('settingsPanel');
+    if (!settingsPanel) return;
+
+    settingsPanel.classList.remove('open');
+    if (window.navigator.vibrate) {
+        window.navigator.vibrate(50);
+    }
+}
+
+function positionSettingsPanel() {
+    const settingsBtn = document.querySelector('.settings-button');
+    const settingsPanel = document.getElementById('settingsPanel');
+    if (!settingsBtn || !settingsPanel) return;
+
+    const btnRect = settingsBtn.getBoundingClientRect();
+    const viewportHeight = window.innerHeight;
+    const panelHeight = settingsPanel.offsetHeight;
+
+    // Position the panel below the button
+    settingsPanel.style.top = `${btnRect.bottom + 8}px`;
+    settingsPanel.style.right = `${window.innerWidth - btnRect.right}px`;
+
+    // Check if panel would go below viewport
+    const panelBottom = btnRect.bottom + panelHeight + 8;
+    if (panelBottom > viewportHeight) {
+        // Position above the button instead
+        settingsPanel.style.top = `${btnRect.top - panelHeight - 8}px`;
+    }
+}
+
+// Initialize settings panel
+document.addEventListener('DOMContentLoaded', () => {
+    setupSettingsPanel();
+});
 
 // Setup mobile tabs
 function setupMobileTabs() {
@@ -1813,7 +1823,7 @@ function setupMobileTabs() {
 
 // Initialize all app components
 function initApp() {
-    // Initialize theme
+    // Initialize theme first
     initializeTheme();
     
     // Setup components
@@ -1840,12 +1850,19 @@ function initApp() {
     // Setup edit and delete functionality
     setupSubscriptionEditing();
     
+    // Initialize settings
+    initializeSettings();
+    
     // Hide loader when done
     hideLoader();
 }
 
 // Initialize the app when DOM is fully loaded
-document.addEventListener('DOMContentLoaded', initApp);
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initApp);
+} else {
+    initApp();
+}
 
 // Setup form listener for adding new subscriptions
 function setupFormListener() {
