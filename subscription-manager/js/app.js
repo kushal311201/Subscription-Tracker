@@ -1758,6 +1758,7 @@ function setupSettingsPanel() {
 // Initialize theme
 function initializeTheme() {
     const darkModeToggle = document.getElementById('darkMode');
+    const topDarkModeToggle = document.getElementById('topDarkMode');
     const systemThemeToggle = document.getElementById('systemTheme');
     const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
     
@@ -1770,19 +1771,32 @@ function initializeTheme() {
         document.body.classList.toggle('dark-mode', prefersDarkScheme.matches);
         systemThemeToggle.checked = true;
         darkModeToggle.checked = prefersDarkScheme.matches;
+        topDarkModeToggle.checked = prefersDarkScheme.matches;
     } else {
         document.body.classList.toggle('dark-mode', isDarkMode);
         darkModeToggle.checked = isDarkMode;
+        topDarkModeToggle.checked = isDarkMode;
         systemThemeToggle.checked = false;
     }
     
-    // Handle dark mode toggle
-    darkModeToggle.addEventListener('change', () => {
-        const isDark = darkModeToggle.checked;
+    // Function to update dark mode state
+    function updateDarkMode(isDark) {
         document.body.classList.toggle('dark-mode', isDark);
         localStorage.setItem('darkMode', isDark);
         localStorage.setItem('useSystemTheme', false);
         systemThemeToggle.checked = false;
+        darkModeToggle.checked = isDark;
+        topDarkModeToggle.checked = isDark;
+    }
+    
+    // Handle dark mode toggle in settings
+    darkModeToggle.addEventListener('change', () => {
+        updateDarkMode(darkModeToggle.checked);
+    });
+    
+    // Handle dark mode toggle in header
+    topDarkModeToggle.addEventListener('change', () => {
+        updateDarkMode(topDarkModeToggle.checked);
     });
     
     // Handle system theme toggle
@@ -1791,10 +1805,12 @@ function initializeTheme() {
         if (useSystem) {
             document.body.classList.toggle('dark-mode', prefersDarkScheme.matches);
             darkModeToggle.checked = prefersDarkScheme.matches;
+            topDarkModeToggle.checked = prefersDarkScheme.matches;
         } else {
             const isDark = localStorage.getItem('darkMode') === 'true';
             document.body.classList.toggle('dark-mode', isDark);
             darkModeToggle.checked = isDark;
+            topDarkModeToggle.checked = isDark;
         }
         localStorage.setItem('useSystemTheme', useSystem);
     });
@@ -1804,6 +1820,7 @@ function initializeTheme() {
         if (systemThemeToggle.checked) {
             document.body.classList.toggle('dark-mode', e.matches);
             darkModeToggle.checked = e.matches;
+            topDarkModeToggle.checked = e.matches;
         }
     });
 }
@@ -1817,7 +1834,7 @@ function initApp() {
     setupSettingsPanel();
     
     // Initialize other components
-    setupFormListeners();
+    setupFormListener();
     setupReminderToggles();
     setupCategoryFilter();
     setupSearch();
@@ -1835,4 +1852,77 @@ if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initApp);
 } else {
     initApp();
+}
+
+// Setup form listener for adding new subscriptions
+function setupFormListener() {
+    const form = document.getElementById('subscriptionForm');
+    const enableReminderInput = document.getElementById('enableReminder');
+    const enableEmailReminderInput = document.getElementById('enableEmailReminder');
+    const reminderDaysContainer = document.getElementById('reminderDaysContainer');
+    const emailAddressGroup = document.getElementById('emailAddressGroupAdd');
+
+    if (!form) return;
+
+    // Toggle reminder days visibility
+    if (enableReminderInput && reminderDaysContainer) {
+        enableReminderInput.addEventListener('change', () => {
+            reminderDaysContainer.style.display = (enableReminderInput.checked || enableEmailReminderInput.checked) ? 'flex' : 'none';
+            if (navigator.vibrate) navigator.vibrate(30);
+        });
+    }
+
+    // Toggle email address group visibility
+    if (enableEmailReminderInput && emailAddressGroup) {
+        enableEmailReminderInput.addEventListener('change', () => {
+            emailAddressGroup.style.display = enableEmailReminderInput.checked ? 'block' : 'none';
+            if (navigator.vibrate) navigator.vibrate(30);
+        });
+    }
+
+    // Handle form submission
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        try {
+            const formData = new FormData(form);
+            const subscription = {
+                name: formData.get('subscriptionName'),
+                amount: parseFloat(formData.get('subscriptionAmount')),
+                billingCycle: formData.get('billingCycle'),
+                dueDate: formData.get('dueDate'),
+                category: formData.get('category'),
+                reminderEnabled: formData.get('enableReminder') === 'on',
+                reminderEmailEnabled: formData.get('enableEmailReminder') === 'on',
+                reminderDays: formData.get('reminderDays') || '3'
+            };
+
+            // Add email if email reminder is enabled
+            if (subscription.reminderEmailEnabled) {
+                subscription.reminderEmail = formData.get('reminderEmailAdd');
+                
+                // Save email for future use if remember email is checked
+                if (formData.get('rememberEmailCheck') === 'on') {
+                    localStorage.setItem('savedReminderEmail', subscription.reminderEmail);
+                }
+            }
+
+            // Save to database
+            await saveSubscription(subscription);
+
+            // Reset form
+            form.reset();
+            
+            // Reset visibility of reminder fields
+            if (reminderDaysContainer) reminderDaysContainer.style.display = 'none';
+            if (emailAddressGroup) emailAddressGroup.style.display = 'none';
+
+            // Show success message
+            showToast('Subscription added successfully');
+
+        } catch (error) {
+            console.error('Error adding subscription:', error);
+            showToast('Error adding subscription. Please try again.');
+        }
+    });
 }
