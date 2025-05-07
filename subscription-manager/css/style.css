@@ -772,26 +772,29 @@ input:focus, select:focus, textarea:focus {
 /* Enhanced Toast */
 .toast {
     position: fixed;
-    bottom: 80px;
+    bottom: 20px;
     left: 50%;
     transform: translateX(-50%) translateY(100px);
-    background-color: var(--bg-card);
+    background-color: var(--bg-secondary);
     color: var(--text-primary);
-    padding: 12px 20px;
-    border-radius: var(--radius-full);
-    z-index: var(--z-toast);
-    opacity: 0;
-    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease;
+    padding: 12px 24px;
+    border-radius: var(--radius-md);
     box-shadow: var(--shadow-lg);
-    border: 1px solid var(--border-color);
-    font-weight: var(--font-medium);
-    min-width: 250px;
-    text-align: center;
+    z-index: 1000;
+    opacity: 0;
+    transition: all 0.3s ease;
 }
 
 .toast.show {
-    opacity: 1;
     transform: translateX(-50%) translateY(0);
+    opacity: 1;
+}
+
+/* Dark mode styles for toast */
+.dark-mode .toast {
+    background-color: var(--bg-secondary-dark);
+    color: var(--text-primary-dark);
+    box-shadow: var(--shadow-lg-dark);
 }
 
 /* Notification Banner */
@@ -1715,21 +1718,17 @@ input, select, button {
 /* Error Banner */
 .error-banner {
     position: fixed;
-    top: 20px;
-    left: 50%;
-    transform: translateX(-50%);
+    top: 0;
+    left: 0;
+    right: 0;
     background-color: var(--error-color);
     color: white;
     padding: 1rem;
-    border-radius: 8px;
-    box-shadow: var(--shadow-lg);
-    z-index: 1000;
     display: flex;
-    align-items: center;
     justify-content: space-between;
-    min-width: 300px;
-    max-width: 90%;
-    animation: slideDown 0.3s ease-out;
+    align-items: center;
+    z-index: 1000;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .error-content {
@@ -1739,7 +1738,7 @@ input, select, button {
 }
 
 .error-content i {
-    font-size: 1.25rem;
+    font-size: 1.2rem;
 }
 
 .retry-btn {
@@ -1749,7 +1748,7 @@ input, select, button {
     padding: 0.5rem 1rem;
     border-radius: 4px;
     cursor: pointer;
-    font-weight: 600;
+    font-weight: 500;
     transition: all 0.2s ease;
 }
 
@@ -1758,13 +1757,72 @@ input, select, button {
     transform: translateY(-1px);
 }
 
-@keyframes slideDown {
-    from {
-        transform: translate(-50%, -100%);
-        opacity: 0;
-    }
+/* App Loader */
+.app-loader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--background-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.app-loader.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.loader-content {
+    text-align: center;
+}
+
+.loader-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--border-color);
+    border-top-color: var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 1rem;
+}
+
+.loader-text {
+    color: var(--text-color);
+    font-size: 0.9rem;
+}
+
+@keyframes spin {
     to {
-        transform: translate(-50%, 0);
-        opacity: 1;
+        transform: rotate(360deg);
     }
+}
+
+/* Dark mode styles for error and loader */
+.dark-mode .error-banner {
+    background-color: var(--error-color-dark);
+}
+
+.dark-mode .retry-btn {
+    background-color: var(--background-color-dark);
+    color: var(--error-color-light);
+}
+
+.dark-mode .app-loader {
+    background-color: var(--background-color-dark);
+}
+
+.dark-mode .loader-spinner {
+    border-color: var(--border-color-dark);
+    border-top-color: var(--primary-color-light);
+}
+
+.dark-mode .loader-text {
+    color: var(--text-color-dark);
 }

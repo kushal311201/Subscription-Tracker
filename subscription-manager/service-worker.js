@@ -1,16 +1,23 @@
 // Service Worker for Subscription Tracker
-const CACHE_NAME = 'subscription-tracker-v1.7';
+const CACHE_NAME = 'subscription-tracker-v1';
 const DYNAMIC_CACHE = 'subscription-tracker-dynamic-v1.2';
+const STATIC_CACHE = 'static-v1';
+
+// Files to cache
+const STATIC_FILES = [
+    '/',
+    '/index.html',
+    '/css/style.css',
+    '/js/app.js',
+    '/js/db.js',
+    'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap',
+    'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1f4b3.png'
+];
 
 // Assets to cache immediately
 const STATIC_ASSETS = [
-  '/',
-  '/index.html',
-  '/css/style.css',
   '/css/theme-enhancements.css',
   '/css/budget-analytics.css',
-  '/js/app.js',
-  '/js/db.js',
   '/js/budget-analytics.js',
   '/img/backgrounds/bg-pattern.svg',
   '/img/favicon.png',
@@ -18,22 +25,34 @@ const STATIC_ASSETS = [
   '/manifest.json',
   '/fonts/inter-var.woff2',
   '/offline.html',
-  'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600&display=swap',
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css',
   'https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js'
 ];
 
-// Install event - Cache static assets
+// Install event - cache static assets
 self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => {
-        console.log('Caching static assets');
-        return cache.addAll(STATIC_ASSETS);
-      })
-      .then(() => self.skipWaiting()) // Activate immediately
-  );
+    event.waitUntil(
+        caches.open(STATIC_CACHE)
+            .then(cache => {
+                console.log('Caching static assets');
+                return Promise.allSettled(
+                    STATIC_FILES.map(url => 
+                        fetch(url)
+                            .then(response => {
+                                if (!response.ok) throw new Error(`Failed to fetch ${url}`);
+                                return cache.put(url, response);
+                            })
+                            .catch(error => {
+                                console.warn(`Failed to cache ${url}:`, error);
+                            })
+                    )
+                );
+            })
+            .catch(error => {
+                console.error('Cache error:', error);
+            })
+    );
 });
 
 // Activate event - Clean up old caches

@@ -31,76 +31,101 @@ window.SubscriptionDB = (function() {
     }
   };
 
-  /**
-   * Initialize the database
-   * @returns {Promise} Promise that resolves when the database is ready
-   */
-  async function init() {
-    return new Promise((resolve, reject) => {
-      try {
-        console.log('Opening database connection...');
-        const request = indexedDB.open(DB_NAME, DB_VERSION);
-        
-        request.onerror = (event) => {
-          console.error('Database error:', event.target.error);
-          handleDbError(new Error('Failed to open database: ' + event.target.error.message));
-          reject(new Error('Failed to open database'));
-        };
-        
-        request.onsuccess = (event) => {
-          console.log('Database connection successful');
-          db = event.target.result;
-          
-          // Add error handling for database connection
-          db.onerror = (event) => {
-            console.error('Database connection error:', event.target.error);
-            handleDbError(new Error('Database connection error: ' + event.target.error.message));
-          };
-          
-          // Add version change handling
-          db.onversionchange = (event) => {
-            console.log('Database version change detected');
-            db.close();
-            window.location.reload();
-          };
-          
-          console.log('Database initialized successfully');
-          resolve();
-        };
-        
-        request.onupgradeneeded = (event) => {
-          console.log('Database upgrade needed');
-          const db = event.target.result;
-          
-          try {
-            // Create object store for subscriptions
-            if (!db.objectStoreNames.contains(SUBSCRIPTION_STORE)) {
-              console.log('Creating subscriptions store');
-              const store = db.createObjectStore(SUBSCRIPTION_STORE, { keyPath: 'id', autoIncrement: true });
-              store.createIndex('name', 'name', { unique: false });
-              store.createIndex('category', 'category', { unique: false });
-              store.createIndex('dueDate', 'dueDate', { unique: false });
-            }
-            
-            // Create object store for settings
-            if (!db.objectStoreNames.contains(CONFIG_STORE)) {
-              console.log('Creating config store');
-              const settingsStore = db.createObjectStore(CONFIG_STORE, { keyPath: 'key' });
-              settingsStore.createIndex('key', 'key', { unique: true });
-            }
-          } catch (error) {
-            console.error('Error during database upgrade:', error);
-            handleDbError(new Error('Database upgrade failed: ' + error.message));
-            reject(error);
-          }
-        };
-      } catch (error) {
-        console.error('Error initializing database:', error);
-        handleDbError(new Error('Database initialization failed: ' + error.message));
-        reject(error);
+  // Database initialization
+  const SubscriptionDB = {
+    db: null,
+    initPromise: null,
+
+    init() {
+      if (this.initPromise) {
+        console.log('Database already initializing, returning existing promise');
+        return this.initPromise;
       }
-    });
-  }
+
+      console.log('Starting database initialization');
+      this.initPromise = new Promise((resolve, reject) => {
+        try {
+          // Check if IndexedDB is supported
+          if (!window.indexedDB) {
+            throw new Error('IndexedDB is not supported in this browser');
+          }
+
+          const request = indexedDB.open(DB_NAME, DB_VERSION);
+          
+          request.onerror = (event) => {
+            console.error('Database error:', event.target.error);
+            this.initPromise = null;
+            reject(new Error('Failed to open database: ' + event.target.error.message));
+          };
+          
+          request.onsuccess = (event) => {
+            console.log('Database opened successfully');
+            this.db = event.target.result;
+            
+            // Add error handling for database connection
+            this.db.onerror = (event) => {
+              console.error('Database connection error:', event.target.error);
+              handleDbError(new Error('Database connection error: ' + event.target.error.message));
+            };
+            
+            // Add version change handling
+            this.db.onversionchange = (event) => {
+              console.log('Database version change detected');
+              this.db.close();
+              window.location.reload();
+            };
+            
+            // Initialize cache
+            refreshCache()
+              .then(() => {
+                console.log('Cache initialized successfully');
+                resolve();
+              })
+              .catch(error => {
+                console.error('Error initializing cache:', error);
+                // Don't reject here, as the database is still usable
+                resolve();
+              });
+          };
+          
+          request.onupgradeneeded = (event) => {
+            console.log('Database upgrade needed');
+            const db = event.target.result;
+            
+            try {
+              // Create object store for subscriptions
+              if (!db.objectStoreNames.contains(SUBSCRIPTION_STORE)) {
+                console.log('Creating subscriptions store');
+                const store = db.createObjectStore(SUBSCRIPTION_STORE, { keyPath: 'id', autoIncrement: true });
+                store.createIndex('name', 'name', { unique: false });
+                store.createIndex('category', 'category', { unique: false });
+                store.createIndex('nextPayment', 'nextPayment', { unique: false });
+              }
+              
+              // Create object store for settings
+              if (!db.objectStoreNames.contains(CONFIG_STORE)) {
+                console.log('Creating config store');
+                const settingsStore = db.createObjectStore(CONFIG_STORE, { keyPath: 'key' });
+                settingsStore.createIndex('key', 'key', { unique: true });
+              }
+            } catch (error) {
+              console.error('Error during database upgrade:', error);
+              handleDbError(new Error('Database upgrade failed: ' + error.message));
+              reject(error);
+            }
+          };
+        } catch (error) {
+          console.error('Error during database initialization:', error);
+          this.initPromise = null;
+          reject(error);
+        }
+      });
+
+      return this.initPromise;
+    },
+
+    // ... rest of the existing code ...
+  };
 
   /**
    * Handle database errors
@@ -228,7 +253,7 @@ window.SubscriptionDB = (function() {
   // Return the public API
   return {
     // Initialize the database
-    init: init,
+    init: SubscriptionDB.init,
     
     // Check if IndexedDB is supported
     isSupported: function() {

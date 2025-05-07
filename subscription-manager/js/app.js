@@ -302,36 +302,115 @@ let tempIdCounter = 1;
 let isOnline = navigator.onLine;
 let syncInProgress = false;
 
-// Initialize app
-function initApp() {
-    console.log('Initializing app...');
-    showAppLoader();
+// Initialize the application
+async function initApp() {
+    console.log('Starting application initialization...');
+    const loader = document.querySelector('.app-loader');
+    const errorBanner = document.querySelector('.error-banner');
 
-    // Check if SubscriptionDB is available
-    if (typeof SubscriptionDB === 'undefined') {
-        console.error('SubscriptionDB not found');
-        showDatabaseError('Database module not found. Please refresh the page.');
-        return;
+    try {
+        // Show loader
+        if (loader) {
+            loader.classList.remove('hidden');
+        }
+
+        // Remove any existing error banners
+        if (errorBanner) {
+            errorBanner.remove();
+        }
+
+        // Validate required DOM elements
+        const requiredElements = {
+            subscriptionCards: document.getElementById('subscriptionCards'),
+            totalMonthly: document.getElementById('totalMonthly'),
+            categoryChart: document.getElementById('categoryChart'),
+            subscriptionForm: document.getElementById('subscriptionForm'),
+            settingsButton: document.getElementById('settingsButton'),
+            settingsPanel: document.getElementById('settingsPanel'),
+            settingsBackdrop: document.getElementById('settingsBackdrop'),
+            darkMode: document.getElementById('darkMode'),
+            systemTheme: document.getElementById('systemTheme')
+        };
+
+        // Check for missing elements
+        const missingElements = Object.entries(requiredElements)
+            .filter(([_, element]) => !element)
+            .map(([name]) => name);
+
+        if (missingElements.length > 0) {
+            throw new Error(`Missing required elements: ${missingElements.join(', ')}`);
+        }
+
+        // Initialize database with retry mechanism
+        let retryCount = 0;
+        const maxRetries = 3;
+        let lastError = null;
+
+        while (retryCount < maxRetries) {
+            try {
+                console.log(`Attempting database initialization (attempt ${retryCount + 1}/${maxRetries})...`);
+                await SubscriptionDB.init();
+                console.log('Database initialized successfully');
+                break;
+            } catch (error) {
+                lastError = error;
+                console.error(`Database initialization attempt ${retryCount + 1} failed:`, error);
+                retryCount++;
+                
+                if (retryCount < maxRetries) {
+                    const delay = Math.min(1000 * Math.pow(2, retryCount), 5000);
+                    console.log(`Retrying in ${delay}ms...`);
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                }
+            }
+        }
+
+        if (retryCount === maxRetries) {
+            throw new Error(`Failed to initialize database after ${maxRetries} attempts: ${lastError.message}`);
+        }
+
+        // Initialize theme
+        initializeTheme();
+
+        // Initialize settings panel
+        setupSettingsPanel();
+
+        // Load subscriptions
+        await loadSubscriptions();
+
+        // Initialize chart
+        initializeChart();
+
+        // Setup event listeners
+        setupEventListeners();
+
+        console.log('Application initialized successfully');
+    } catch (error) {
+        console.error('Application initialization failed:', error);
+        showDatabaseError(error);
+    } finally {
+        // Hide loader
+        if (loader) {
+            loader.classList.add('hidden');
+        }
     }
-
-    // Initialize database
-    SubscriptionDB.init()
-        .then(() => {
-            console.log('Database initialized successfully');
-            return loadSubscriptions();
-        })
-        .then(() => {
-            console.log('Subscriptions loaded successfully');
-            setupEventListeners();
-            hideAppLoader();
-            startPageAnimations();
-        })
-        .catch(error => {
-            console.error('Error during initialization:', error);
-            showDatabaseError('Failed to initialize the application. Please try again.');
-            hideAppLoader();
-        });
 }
+
+// Show database error
+function showDatabaseError(error) {
+    const errorBanner = document.createElement('div');
+    errorBanner.className = 'error-banner';
+    errorBanner.innerHTML = `
+        <div class="error-content">
+            <span>Failed to initialize the application: ${error.message}</span>
+            <button class="retry-btn" onclick="window.location.reload()">Retry</button>
+        </div>
+    `;
+    document.body.appendChild(errorBanner);
+}
+
+// Initialize when DOM is ready
+document.addEventListener('DOMContentLoaded', initApp);
 
 // Setup all event listeners
 function setupEventListeners() {
@@ -424,43 +503,6 @@ function handleDarkModeToggle(event) {
     localStorage.setItem('darkMode', isDarkMode);
 }
 
-// Wait for DOM to be ready
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initApp);
-} else {
-    initApp();
-}
-
-// Show database error
-function showDatabaseError(message) {
-    const errorBanner = document.createElement('div');
-    errorBanner.className = 'error-banner';
-    errorBanner.innerHTML = `
-        <div class="error-content">
-            <i class="fas fa-exclamation-circle"></i>
-            <span>${message}</span>
-        </div>
-        <button onclick="window.location.reload()" class="retry-btn">Retry</button>
-    `;
-    document.body.appendChild(errorBanner);
-    hideAppLoader();
-}
-
-// Setup limited mode when database is not available
-function setupLimitedMode() {
-    console.log('Setting up limited mode...');
-    const errorBanner = document.createElement('div');
-    errorBanner.className = 'error-banner';
-    errorBanner.innerHTML = `
-        <div class="error-content">
-            <i class="fas fa-exclamation-circle"></i>
-            <span>Database is not available. Running in limited mode.</span>
-        </div>
-        <button onclick="window.location.reload()" class="retry-btn">Retry</button>
-    `;
-    document.body.appendChild(errorBanner);
-}
-
 // Setup reminders section event listeners
 function setupRemindersSection() {
     const viewAllBtn = document.querySelector('.view-all-btn');
@@ -477,17 +519,19 @@ function setupRemindersSection() {
 
 // Show the app loader
 function showAppLoader() {
+    console.log('Showing app loader');
     const loader = document.querySelector('.app-loader');
     if (loader) {
-        loader.classList.remove('hidden');
+        loader.classList.add('active');
     }
 }
 
 // Hide the app loader
 function hideAppLoader() {
+    console.log('Hiding app loader');
     const loader = document.querySelector('.app-loader');
     if (loader) {
-        loader.classList.add('hidden');
+        loader.classList.remove('active');
     }
 }
 
@@ -1578,21 +1622,19 @@ function resetDatabase() {
     });
 }
 
-// Add this function to the beginning of the file, right after the app initialization
 // DOM validation to ensure required elements exist
 function validateAppDOM() {
     console.log('Validating app DOM elements');
     const requiredElements = {
         'subscriptionCards': document.getElementById('subscriptionCards'),
-        'empty-state': document.querySelector('.empty-state'),
         'totalMonthly': document.getElementById('totalMonthly'),
         'categoryChart': document.getElementById('categoryChart'),
-        'upcomingRemindersList': document.getElementById('upcomingRemindersList'),
-        'nav-home': document.getElementById('nav-home'),
-        'nav-add': document.getElementById('nav-add'),
-        'nav-settings': document.getElementById('nav-settings'),
-        'add-subscription': document.querySelector('.add-subscription'),
-        'subscription-list': document.querySelector('.subscription-list')
+        'subscriptionForm': document.getElementById('subscriptionForm'),
+        'settingsButton': document.getElementById('settingsButton'),
+        'settingsPanel': document.getElementById('settingsPanel'),
+        'settingsBackdrop': document.getElementById('settingsBackdrop'),
+        'darkMode': document.getElementById('darkMode'),
+        'systemTheme': document.getElementById('systemTheme')
     };
     
     // Log found and missing elements
@@ -1603,6 +1645,7 @@ function validateAppDOM() {
         foundElements[name] = !!element;
         if (!element) {
             missingElements.push(name);
+            console.error(`Missing required element: ${name}`);
         }
     }
     
@@ -1610,22 +1653,10 @@ function validateAppDOM() {
     
     if (missingElements.length > 0) {
         console.error('Critical elements missing:', missingElements);
-        // Show error to user
-        showToast('Application error: Some UI elements are missing. Please refresh the page.', 6000, 'error');
         return false;
     }
     
     return true;
-}
-
-// Utility function for debouncing 
-function debounce(func, wait) {
-    let timeout;
-    return function(...args) {
-        const context = this;
-        clearTimeout(timeout);
-        timeout = setTimeout(() => func.apply(context, args), wait);
-    };
 }
 
 // Load budget analytics functionality
@@ -1815,34 +1846,49 @@ document.addEventListener('DOMContentLoaded', initializeTheme);
 
 // Settings Panel Functions
 function setupSettingsPanel() {
+    console.log('Setting up settings panel...');
     const settingsButton = document.getElementById('settingsButton');
     const settingsPanel = document.getElementById('settingsPanel');
     const settingsBackdrop = document.getElementById('settingsBackdrop');
     const closeButton = document.querySelector('.settings-close');
 
-    function openSettings() {
-        settingsPanel.classList.add('active');
-        settingsBackdrop.classList.add('active');
-        document.body.style.overflow = 'hidden'; // Prevent background scrolling
+    if (!settingsButton || !settingsPanel || !settingsBackdrop || !closeButton) {
+        console.error('Settings panel elements not found');
+        return;
     }
 
-    function closeSettings() {
-        settingsPanel.classList.remove('active');
-        settingsBackdrop.classList.remove('active');
-        document.body.style.overflow = ''; // Restore scrolling
-    }
+    // Toggle settings panel
+    window.toggleSettingsPanel = function(e) {
+        if (e) {
+            e.preventDefault();
+        }
+        settingsPanel.classList.toggle('active');
+        settingsBackdrop.classList.toggle('active');
+        
+        // Prevent body scroll when panel is open
+        document.body.style.overflow = settingsPanel.classList.contains('active') ? 'hidden' : '';
+    };
 
     // Open settings panel
-    settingsButton.addEventListener('click', openSettings);
+    settingsButton.addEventListener('click', toggleSettingsPanel);
 
     // Close settings panel
-    closeButton.addEventListener('click', closeSettings);
-    settingsBackdrop.addEventListener('click', closeSettings);
+    closeButton.addEventListener('click', (e) => {
+        e.preventDefault();
+        toggleSettingsPanel();
+    });
+
+    // Close on backdrop click
+    settingsBackdrop.addEventListener('click', (e) => {
+        if (e.target === settingsBackdrop) {
+            toggleSettingsPanel();
+        }
+    });
 
     // Close on escape key
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && settingsPanel.classList.contains('active')) {
-            closeSettings();
+            toggleSettingsPanel();
         }
     });
 
@@ -1852,11 +1898,13 @@ function setupSettingsPanel() {
 
 // Initialize settings content
 function initializeSettingsContent() {
+    console.log('Initializing settings content...');
+    
     // Initialize dark mode toggle
     initializeTheme();
     
     // Initialize notifications toggle
-    const notificationsToggle = document.getElementById('enableNotifications');
+    const notificationsToggle = document.getElementById('notificationsToggle');
     if (notificationsToggle) {
         notificationsToggle.checked = localStorage.getItem('notificationsEnabled') === 'true';
         notificationsToggle.addEventListener('change', () => {
@@ -1901,75 +1949,59 @@ function initializeSettingsContent() {
     }
 }
 
-// Setup form listener for adding new subscriptions
-function setupFormListener() {
-    const form = document.getElementById('subscriptionForm');
-    const enableReminderInput = document.getElementById('enableReminder');
-    const enableEmailReminderInput = document.getElementById('enableEmailReminder');
-    const reminderDaysContainer = document.getElementById('reminderDaysContainer');
-    const emailAddressGroup = document.getElementById('emailAddressGroupAdd');
+// Show toast notification
+function showToast(message, duration = 3000) {
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    
+    // Trigger animation
+    setTimeout(() => toast.classList.add('show'), 10);
+    
+    // Remove after duration
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+    }, duration);
+}
 
-    if (!form) return;
-
-    // Toggle reminder days visibility
-    if (enableReminderInput && reminderDaysContainer) {
-        enableReminderInput.addEventListener('change', () => {
-            reminderDaysContainer.style.display = (enableReminderInput.checked || enableEmailReminderInput.checked) ? 'flex' : 'none';
-            if (navigator.vibrate) navigator.vibrate(30);
-        });
+// Add toggleSettingsPanel function
+function toggleSettingsPanel() {
+    const settingsPanel = document.getElementById('settingsPanel');
+    const settingsBackdrop = document.getElementById('settingsBackdrop');
+    
+    if (settingsPanel && settingsBackdrop) {
+        settingsPanel.classList.toggle('active');
+        settingsBackdrop.classList.toggle('active');
+        
+        // Prevent body scroll when panel is open
+        document.body.style.overflow = settingsPanel.classList.contains('active') ? 'hidden' : '';
     }
+}
 
-    // Toggle email address group visibility
-    if (enableEmailReminderInput && emailAddressGroup) {
-        enableEmailReminderInput.addEventListener('change', () => {
-            emailAddressGroup.style.display = enableEmailReminderInput.checked ? 'block' : 'none';
-            if (navigator.vibrate) navigator.vibrate(30);
-        });
+// Add event listeners for settings panel
+document.addEventListener('DOMContentLoaded', function() {
+    const settingsButton = document.getElementById('settingsButton');
+    const settingsClose = document.querySelector('.settings-close');
+    const settingsBackdrop = document.getElementById('settingsBackdrop');
+    
+    if (settingsButton) {
+        settingsButton.addEventListener('click', toggleSettingsPanel);
     }
-
-    // Handle form submission
-    form.addEventListener('submit', async (event) => {
-        event.preventDefault();
-
-        try {
-            const formData = new FormData(form);
-            const subscription = {
-                name: formData.get('subscriptionName'),
-                amount: parseFloat(formData.get('subscriptionAmount')),
-                billingCycle: formData.get('billingCycle'),
-                dueDate: formData.get('dueDate'),
-                category: formData.get('category'),
-                reminderEnabled: formData.get('enableReminder') === 'on',
-                reminderEmailEnabled: formData.get('enableEmailReminder') === 'on',
-                reminderDays: formData.get('reminderDays') || '3'
-            };
-
-            // Add email if email reminder is enabled
-            if (subscription.reminderEmailEnabled) {
-                subscription.reminderEmail = formData.get('reminderEmailAdd');
-                
-                // Save email for future use if remember email is checked
-                if (formData.get('rememberEmailCheck') === 'on') {
-                    localStorage.setItem('savedReminderEmail', subscription.reminderEmail);
-                }
-            }
-
-            // Save to database
-            await saveSubscription(subscription);
-
-            // Reset form
-            form.reset();
-            
-            // Reset visibility of reminder fields
-            if (reminderDaysContainer) reminderDaysContainer.style.display = 'none';
-            if (emailAddressGroup) emailAddressGroup.style.display = 'none';
-
-            // Show success message
-            showToast('Subscription added successfully');
-
-        } catch (error) {
-            console.error('Error adding subscription:', error);
-            showToast('Error adding subscription. Please try again.');
+    
+    if (settingsClose) {
+        settingsClose.addEventListener('click', toggleSettingsPanel);
+    }
+    
+    if (settingsBackdrop) {
+        settingsBackdrop.addEventListener('click', toggleSettingsPanel);
+    }
+    
+    // Close settings panel on escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && document.getElementById('settingsPanel').classList.contains('active')) {
+            toggleSettingsPanel();
         }
     });
-}
+});
