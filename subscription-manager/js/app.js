@@ -1810,52 +1810,42 @@ function initializeTheme() {
     });
 }
 
+// Call initializeTheme when the DOM is loaded
+document.addEventListener('DOMContentLoaded', initializeTheme);
+
 // Settings Panel Functions
 function setupSettingsPanel() {
-    console.log('Setting up settings panel...');
-    const settingsBtn = document.getElementById('settingsBtn');
+    const settingsButton = document.getElementById('settingsButton');
     const settingsPanel = document.getElementById('settingsPanel');
     const settingsBackdrop = document.getElementById('settingsBackdrop');
-    const closeBtn = document.getElementById('closeSettings');
-    
-    if (!settingsBtn || !settingsPanel || !closeBtn) {
-        console.error('Settings panel elements not found');
-        return;
-    }
-    
-    // Show settings panel
-    settingsBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        settingsPanel.classList.add('open');
-        if (settingsBackdrop) {
-            settingsBackdrop.classList.add('visible');
-        }
+    const closeButton = document.querySelector('.settings-close');
+
+    function openSettings() {
+        settingsPanel.classList.add('active');
+        settingsBackdrop.classList.add('active');
         document.body.style.overflow = 'hidden'; // Prevent background scrolling
-    });
-    
-    // Close settings panel
+    }
+
     function closeSettings() {
-        settingsPanel.classList.remove('open');
-        if (settingsBackdrop) {
-            settingsBackdrop.classList.remove('visible');
-        }
+        settingsPanel.classList.remove('active');
+        settingsBackdrop.classList.remove('active');
         document.body.style.overflow = ''; // Restore scrolling
     }
-    
-    closeBtn.addEventListener('click', closeSettings);
-    
-    // Close on backdrop click
-    if (settingsBackdrop) {
-        settingsBackdrop.addEventListener('click', closeSettings);
-    }
-    
+
+    // Open settings panel
+    settingsButton.addEventListener('click', openSettings);
+
+    // Close settings panel
+    closeButton.addEventListener('click', closeSettings);
+    settingsBackdrop.addEventListener('click', closeSettings);
+
     // Close on escape key
     document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && settingsPanel.classList.contains('open')) {
+        if (e.key === 'Escape' && settingsPanel.classList.contains('active')) {
             closeSettings();
         }
     });
-    
+
     // Initialize settings content
     initializeSettingsContent();
 }
