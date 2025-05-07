@@ -8,6 +8,11 @@
   "theme_color": "#4361ee",
   "icons": [
     {
+      "src": "https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1f4b3.png",
+      "sizes": "144x144",
+      "type": "image/png"
+    },
+    {
       "src": "img/icon-72x72.png",
       "sizes": "72x72",
       "type": "image/png",

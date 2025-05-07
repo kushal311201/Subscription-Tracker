@@ -302,7 +302,6 @@ let tempIdCounter = 1;
 let isOnline = navigator.onLine;
 let syncInProgress = false;
 
-// Initialize the application
 async function initApp() {
     console.log('Starting application initialization...');
     const loader = document.querySelector('.app-loader');
@@ -378,6 +377,9 @@ async function initApp() {
         // Load subscriptions
         await loadSubscriptions();
 
+        // Setup event listeners
+        setupEventListeners();
+
         // Initialize chart if Chart.js is available
         if (typeof Chart !== 'undefined') {
             try {
@@ -428,9 +430,6 @@ async function initApp() {
                 console.warn('Failed to initialize chart:', error);
             }
         }
-
-        // Setup event listeners
-        setupEventListeners();
 
         console.log('Application initialized successfully');
     } catch (error) {
