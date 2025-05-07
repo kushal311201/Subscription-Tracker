@@ -1733,78 +1733,9 @@ function initializeBudgetAnalyticsComponents() {
     return checkAndInitializeAnalytics();
 }
 
-// Settings Panel Functions
-function setupSettingsPanel() {
-    const settingsBtn = document.getElementById('settingsBtn');
-    const settingsPanel = document.getElementById('settingsPanel');
-    const closeBtn = document.getElementById('closeSettings');
-    
-    if (!settingsBtn || !settingsPanel || !closeBtn) {
-        console.error('Settings panel elements not found');
-        return;
-    }
-    
-    // Show settings panel
-    settingsBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        settingsPanel.classList.add('open');
-        positionSettingsPanel();
-    });
-    
-    // Close settings panel
-    closeBtn.addEventListener('click', () => {
-        settingsPanel.classList.remove('open');
-    });
-    
-    // Close on outside click
-    document.addEventListener('click', (e) => {
-        if (!settingsPanel.contains(e.target) && !settingsBtn.contains(e.target)) {
-            settingsPanel.classList.remove('open');
-        }
-    });
-    
-    // Close on escape key
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && settingsPanel.classList.contains('open')) {
-            settingsPanel.classList.remove('open');
-        }
-    });
-    
-    // Position settings panel
-    function positionSettingsPanel() {
-        const btnRect = settingsBtn.getBoundingClientRect();
-        const panelRect = settingsPanel.getBoundingClientRect();
-        const viewportHeight = window.innerHeight;
-        
-        // Check if panel would go below viewport
-        if (btnRect.bottom + panelRect.height > viewportHeight) {
-            settingsPanel.style.top = `${btnRect.top - panelRect.height}px`;
-        } else {
-            settingsPanel.style.top = `${btnRect.bottom}px`;
-        }
-        
-        // Ensure panel doesn't go off-screen horizontally
-        const rightEdge = btnRect.right + panelRect.width;
-        if (rightEdge > window.innerWidth) {
-            settingsPanel.style.right = '20px';
-        } else {
-            settingsPanel.style.right = `${window.innerWidth - btnRect.right}px`;
-        }
-    }
-    
-    // Reposition on window resize
-    window.addEventListener('resize', () => {
-        if (settingsPanel.classList.contains('open')) {
-            positionSettingsPanel();
-        }
-    });
-    
-    // Initial positioning
-    positionSettingsPanel();
-}
-
 // Initialize theme
 function initializeTheme() {
+    console.log('Initializing theme...');
     const darkModeToggle = document.getElementById('darkMode');
     const topDarkModeToggle = document.getElementById('topDarkMode');
     const systemThemeToggle = document.getElementById('systemTheme');
@@ -1838,39 +1769,146 @@ function initializeTheme() {
     }
     
     // Handle dark mode toggle in settings
-    darkModeToggle.addEventListener('change', () => {
-        updateDarkMode(darkModeToggle.checked);
-    });
+    if (darkModeToggle) {
+        darkModeToggle.addEventListener('change', () => {
+            updateDarkMode(darkModeToggle.checked);
+        });
+    }
     
     // Handle dark mode toggle in header
-    topDarkModeToggle.addEventListener('change', () => {
-        updateDarkMode(topDarkModeToggle.checked);
-    });
+    if (topDarkModeToggle) {
+        topDarkModeToggle.addEventListener('change', () => {
+            updateDarkMode(topDarkModeToggle.checked);
+        });
+    }
     
     // Handle system theme toggle
-    systemThemeToggle.addEventListener('change', () => {
-        const useSystem = systemThemeToggle.checked;
-        if (useSystem) {
-            document.body.classList.toggle('dark-mode', prefersDarkScheme.matches);
-            darkModeToggle.checked = prefersDarkScheme.matches;
-            topDarkModeToggle.checked = prefersDarkScheme.matches;
-        } else {
-            const isDark = localStorage.getItem('darkMode') === 'true';
-            document.body.classList.toggle('dark-mode', isDark);
-            darkModeToggle.checked = isDark;
-            topDarkModeToggle.checked = isDark;
-        }
-        localStorage.setItem('useSystemTheme', useSystem);
-    });
+    if (systemThemeToggle) {
+        systemThemeToggle.addEventListener('change', () => {
+            const useSystem = systemThemeToggle.checked;
+            if (useSystem) {
+                document.body.classList.toggle('dark-mode', prefersDarkScheme.matches);
+                darkModeToggle.checked = prefersDarkScheme.matches;
+                topDarkModeToggle.checked = prefersDarkScheme.matches;
+            } else {
+                const isDark = localStorage.getItem('darkMode') === 'true';
+                document.body.classList.toggle('dark-mode', isDark);
+                darkModeToggle.checked = isDark;
+                topDarkModeToggle.checked = isDark;
+            }
+            localStorage.setItem('useSystemTheme', useSystem);
+        });
+    }
     
     // Listen for system theme changes
     prefersDarkScheme.addEventListener('change', (e) => {
-        if (systemThemeToggle.checked) {
+        if (systemThemeToggle && systemThemeToggle.checked) {
             document.body.classList.toggle('dark-mode', e.matches);
             darkModeToggle.checked = e.matches;
             topDarkModeToggle.checked = e.matches;
         }
     });
+}
+
+// Settings Panel Functions
+function setupSettingsPanel() {
+    console.log('Setting up settings panel...');
+    const settingsBtn = document.getElementById('settingsBtn');
+    const settingsPanel = document.getElementById('settingsPanel');
+    const settingsBackdrop = document.getElementById('settingsBackdrop');
+    const closeBtn = document.getElementById('closeSettings');
+    
+    if (!settingsBtn || !settingsPanel || !closeBtn) {
+        console.error('Settings panel elements not found');
+        return;
+    }
+    
+    // Show settings panel
+    settingsBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        settingsPanel.classList.add('open');
+        if (settingsBackdrop) {
+            settingsBackdrop.classList.add('visible');
+        }
+        document.body.style.overflow = 'hidden'; // Prevent background scrolling
+    });
+    
+    // Close settings panel
+    function closeSettings() {
+        settingsPanel.classList.remove('open');
+        if (settingsBackdrop) {
+            settingsBackdrop.classList.remove('visible');
+        }
+        document.body.style.overflow = ''; // Restore scrolling
+    }
+    
+    closeBtn.addEventListener('click', closeSettings);
+    
+    // Close on backdrop click
+    if (settingsBackdrop) {
+        settingsBackdrop.addEventListener('click', closeSettings);
+    }
+    
+    // Close on escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && settingsPanel.classList.contains('open')) {
+            closeSettings();
+        }
+    });
+    
+    // Initialize settings content
+    initializeSettingsContent();
+}
+
+// Initialize settings content
+function initializeSettingsContent() {
+    // Initialize dark mode toggle
+    initializeTheme();
+    
+    // Initialize notifications toggle
+    const notificationsToggle = document.getElementById('enableNotifications');
+    if (notificationsToggle) {
+        notificationsToggle.checked = localStorage.getItem('notificationsEnabled') === 'true';
+        notificationsToggle.addEventListener('change', () => {
+            localStorage.setItem('notificationsEnabled', notificationsToggle.checked);
+            showToast(notificationsToggle.checked ? 'Notifications enabled' : 'Notifications disabled');
+        });
+    }
+    
+    // Initialize data management buttons
+    const exportBtn = document.getElementById('exportData');
+    const importBtn = document.getElementById('importData');
+    const clearBtn = document.getElementById('clearData');
+    
+    if (exportBtn) {
+        exportBtn.addEventListener('click', () => {
+            // Export functionality
+            showToast('Export functionality coming soon');
+        });
+    }
+    
+    if (importBtn) {
+        importBtn.addEventListener('click', () => {
+            // Import functionality
+            showToast('Import functionality coming soon');
+        });
+    }
+    
+    if (clearBtn) {
+        clearBtn.addEventListener('click', () => {
+            if (confirm('Are you sure you want to clear all data? This cannot be undone.')) {
+                SubscriptionDB.clear()
+                    .then(() => {
+                        showToast('All data cleared successfully');
+                        window.location.reload();
+                    })
+                    .catch(error => {
+                        console.error('Error clearing data:', error);
+                        showToast('Error clearing data');
+                    });
+            }
+        });
+    }
 }
 
 // Setup form listener for adding new subscriptions
