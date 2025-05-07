@@ -38,38 +38,65 @@ window.SubscriptionDB = (function() {
   async function init() {
     return new Promise((resolve, reject) => {
       try {
+        console.log('Opening database connection...');
         const request = indexedDB.open(DB_NAME, DB_VERSION);
         
         request.onerror = (event) => {
           console.error('Database error:', event.target.error);
+          handleDbError(new Error('Failed to open database: ' + event.target.error.message));
           reject(new Error('Failed to open database'));
         };
         
         request.onsuccess = (event) => {
+          console.log('Database connection successful');
           db = event.target.result;
+          
+          // Add error handling for database connection
+          db.onerror = (event) => {
+            console.error('Database connection error:', event.target.error);
+            handleDbError(new Error('Database connection error: ' + event.target.error.message));
+          };
+          
+          // Add version change handling
+          db.onversionchange = (event) => {
+            console.log('Database version change detected');
+            db.close();
+            window.location.reload();
+          };
+          
           console.log('Database initialized successfully');
           resolve();
         };
         
         request.onupgradeneeded = (event) => {
+          console.log('Database upgrade needed');
           const db = event.target.result;
           
-          // Create object store for subscriptions
-          if (!db.objectStoreNames.contains(SUBSCRIPTION_STORE)) {
-            const store = db.createObjectStore(SUBSCRIPTION_STORE, { keyPath: 'id', autoIncrement: true });
-            store.createIndex('name', 'name', { unique: false });
-            store.createIndex('category', 'category', { unique: false });
-            store.createIndex('dueDate', 'dueDate', { unique: false });
-          }
-          
-          // Create object store for settings
-          if (!db.objectStoreNames.contains(CONFIG_STORE)) {
-            const settingsStore = db.createObjectStore(CONFIG_STORE, { keyPath: 'key' });
-            settingsStore.createIndex('key', 'key', { unique: true });
+          try {
+            // Create object store for subscriptions
+            if (!db.objectStoreNames.contains(SUBSCRIPTION_STORE)) {
+              console.log('Creating subscriptions store');
+              const store = db.createObjectStore(SUBSCRIPTION_STORE, { keyPath: 'id', autoIncrement: true });
+              store.createIndex('name', 'name', { unique: false });
+              store.createIndex('category', 'category', { unique: false });
+              store.createIndex('dueDate', 'dueDate', { unique: false });
+            }
+            
+            // Create object store for settings
+            if (!db.objectStoreNames.contains(CONFIG_STORE)) {
+              console.log('Creating config store');
+              const settingsStore = db.createObjectStore(CONFIG_STORE, { keyPath: 'key' });
+              settingsStore.createIndex('key', 'key', { unique: true });
+            }
+          } catch (error) {
+            console.error('Error during database upgrade:', error);
+            handleDbError(new Error('Database upgrade failed: ' + error.message));
+            reject(error);
           }
         };
       } catch (error) {
         console.error('Error initializing database:', error);
+        handleDbError(new Error('Database initialization failed: ' + error.message));
         reject(error);
       }
     });

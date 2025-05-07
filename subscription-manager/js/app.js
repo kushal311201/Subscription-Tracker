@@ -302,110 +302,132 @@ let tempIdCounter = 1;
 let isOnline = navigator.onLine;
 let syncInProgress = false;
 
-// Setup search functionality
-function setupSearch() {
-    const searchInput = document.getElementById('searchInput');
-    if (!searchInput) return;
-
-    searchInput.addEventListener('input', (e) => {
-        appState.searchQuery = e.target.value.toLowerCase();
-        appState.applyFilters();
-        loadSubscriptions();
-    });
-}
-
-// Setup category filter
-function setupCategoryFilter() {
-    const filterSelect = document.getElementById('filterCategory');
-    if (!filterSelect) return;
-
-    filterSelect.addEventListener('change', () => {
-        const selectedCategory = filterSelect.value;
-        appState.currentFilter = selectedCategory;
-        appState.applyFilters();
-        loadSubscriptions();
-    });
-}
-
 // Initialize app
 function initApp() {
-    // Show app loader while initializing
+    console.log('Initializing app...');
     showAppLoader();
-    
-    // Set up performance monitoring
-    if ('performance' in window && 'mark' in performance) {
-        performance.mark('app-init');
+
+    // Check if SubscriptionDB is available
+    if (typeof SubscriptionDB === 'undefined') {
+        console.error('SubscriptionDB not found');
+        showDatabaseError('Database module not found. Please refresh the page.');
+        return;
     }
+
+    // Initialize database
+    SubscriptionDB.init()
+        .then(() => {
+            console.log('Database initialized successfully');
+            return loadSubscriptions();
+        })
+        .then(() => {
+            console.log('Subscriptions loaded successfully');
+            setupEventListeners();
+            hideAppLoader();
+            startPageAnimations();
+        })
+        .catch(error => {
+            console.error('Error during initialization:', error);
+            showDatabaseError('Failed to initialize the application. Please try again.');
+            hideAppLoader();
+        });
+}
+
+// Setup all event listeners
+function setupEventListeners() {
+    console.log('Setting up event listeners...');
     
-    // Initialize the subscription database
-    if (window.SubscriptionDB) {
-        SubscriptionDB.init()
-            .then(() => {
-                // Load and display subscriptions
-                return loadSubscriptions();
-            })
-            .then(() => {
-                // Set up event listeners only after data is loaded
-                setupEventListeners();
-                
-                // Set up other UI components in parallel
-                setupSearch();
-                setupCategoryFilter();
-                setupFormListener();
-                setupEditFormListeners();
-                setupNotifications();
-                setupNavigation();
-                
-                // UI-related initializations that can be deferred
-                window.appPerformance.deferTask(() => {
-                    loadThemePreference();
-                    initializeSettings();
-                    setupSettingsPanel();
-                    startPageAnimations();
-                    validateAppDOM();
-                }, 'medium');
-                
-                // Online status management
-                handleOnlineStatusChange();
-                
-                // Hide loader with slight delay for smoother transition
-                setTimeout(hideAppLoader, 400);
-                
-                // Performance mark for app ready
-                if ('performance' in window && 'mark' in performance) {
-                    performance.mark('app-ready');
-                    performance.measure('app-initialization', 'app-init', 'app-ready');
-                }
-            })
-            .catch(error => {
-                console.error('Initialization error:', error);
-                handleDbError(error);
-                hideAppLoader();
-            });
-    } else {
-        // Fallback when DB is not available
-        console.error('SubscriptionDB not available. Trying to recover...');
-        setupLimitedMode();
-        hideAppLoader();
+    // Setup form listener
+    const form = document.getElementById('subscriptionForm');
+    if (form) {
+        form.addEventListener('submit', handleFormSubmit);
     }
+
+    // Setup category filter
+    const filterSelect = document.getElementById('filterCategory');
+    if (filterSelect) {
+        filterSelect.addEventListener('change', handleCategoryFilter);
+    }
+
+    // Setup search
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.addEventListener('input', handleSearch);
+    }
+
+    // Setup settings panel
+    const settingsButton = document.getElementById('settingsButton');
+    if (settingsButton) {
+        settingsButton.addEventListener('click', toggleSettingsPanel);
+    }
+
+    // Setup dark mode toggle
+    const darkModeToggle = document.getElementById('darkMode');
+    if (darkModeToggle) {
+        darkModeToggle.addEventListener('change', handleDarkModeToggle);
+    }
+
+    // Setup reminders section
+    setupRemindersSection();
+}
+
+// Handle form submission
+function handleFormSubmit(event) {
+    event.preventDefault();
+    const formData = new FormData(event.target);
+    const subscription = {
+        name: formData.get('subscriptionName'),
+        amount: parseFloat(formData.get('subscriptionAmount')),
+        billingCycle: formData.get('billingCycle'),
+        dueDate: formData.get('dueDate'),
+        category: formData.get('category'),
+        reminderEnabled: formData.get('enableReminder') === 'on',
+        reminderEmailEnabled: formData.get('enableEmailReminder') === 'on',
+        reminderDays: formData.get('reminderDays') || '3'
+    };
+
+    if (subscription.reminderEmailEnabled) {
+        subscription.reminderEmail = formData.get('reminderEmailAdd');
+    }
+
+    saveSubscription(subscription)
+        .then(() => {
+            event.target.reset();
+            showToast('Subscription added successfully');
+            loadSubscriptions();
+        })
+        .catch(error => {
+            console.error('Error adding subscription:', error);
+            showToast('Error adding subscription. Please try again.');
+        });
+}
+
+// Handle category filter
+function handleCategoryFilter(event) {
+    const selectedCategory = event.target.value;
+    appState.currentFilter = selectedCategory;
+    appState.applyFilters();
+    loadSubscriptions();
+}
+
+// Handle search
+function handleSearch(event) {
+    appState.searchQuery = event.target.value.toLowerCase();
+    appState.applyFilters();
+    loadSubscriptions();
+}
+
+// Handle dark mode toggle
+function handleDarkModeToggle(event) {
+    const isDarkMode = event.target.checked;
+    document.body.classList.toggle('dark-mode', isDarkMode);
+    localStorage.setItem('darkMode', isDarkMode);
 }
 
 // Wait for DOM to be ready
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-        if (typeof SubscriptionDB === 'undefined') {
-            console.error('SubscriptionDB is not defined. Check if db.js is loaded properly.');
-            showDatabaseError('Database module not found. Please refresh the page.');
-            return;
-        }
-        initApp();
-    });
+    document.addEventListener('DOMContentLoaded', initApp);
 } else {
-    if (typeof SubscriptionDB === 'undefined') {
-        console.error('SubscriptionDB is not defined. Check if db.js is loaded properly.');
-        showDatabaseError('Database module not found. Please refresh the page.');
-        return;
-    }
     initApp();
 }
 
@@ -437,19 +459,6 @@ function setupLimitedMode() {
         <button onclick="window.location.reload()" class="retry-btn">Retry</button>
     `;
     document.body.appendChild(errorBanner);
-}
-
-// Setup all event listeners - extracted for better organization
-function setupEventListeners() {
-    // Setup in order of importance
-    setupFormListener();
-    setupCategoryFilter();
-    setupSearch();
-    setupSettingsPanel();
-    setupRemindersSection();
-    
-    // Ensure budget and analytics are initialized
-    loadBudgetAnalytics();
 }
 
 // Setup reminders section event listeners
@@ -675,7 +684,7 @@ function loadSubscriptions() {
                 // Use document fragment for better performance
                 const fragment = document.createDocumentFragment();
                 
-                // Process in batches for better responsiveness if there are many subscriptions
+                // Process in batches for better responsiveness
                 const batchSize = 10;
                 let currentIndex = 0;
                 
@@ -691,29 +700,16 @@ function loadSubscriptions() {
                     currentIndex = endIndex;
                     
                     if (currentIndex < appState.filteredSubscriptions.length) {
-                        // Process next batch asynchronously for better performance
                         setTimeout(processBatch, 0);
                     } else {
-                        // Done processing all subscriptions
                         subscriptionCards.appendChild(fragment);
-                        
-                        // Update budget and analytics after subscriptions are loaded
                         updateTotalAmount(subscriptions);
                         updateCategoryChart(subscriptions);
-                        
-                        // Update upcoming reminders
                         loadUpcomingReminders(subscriptions);
-                        
-                        // Dispatch event for other modules
-                        document.dispatchEvent(new CustomEvent('subscriptions-loaded', { 
-                            detail: { subscriptions } 
-                        }));
-                        
                         resolve(subscriptions);
                     }
                 }
                 
-                // Start processing batches
                 processBatch();
             })
             .catch(error => {
