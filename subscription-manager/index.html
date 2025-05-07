@@ -557,49 +557,65 @@
             }
         }, true);
 
-        // Initialize app when DOM is ready
-        document.addEventListener('DOMContentLoaded', function() {
-            // Wait for all scripts to load
+        // Initialize app when DOM is ready and scripts are loaded
+        function initializeApp() {
+            // Verify all required elements exist
+            const requiredElements = [
+                'subscriptionList',
+                'subscriptionForm',
+                'categoryChart',
+                'totalSubscriptions',
+                'monthlyCost',
+                'upcomingPayments'
+            ];
+
+            const missingElements = requiredElements.filter(id => !document.getElementById(id));
+            if (missingElements.length > 0) {
+                console.error('Missing required elements:', missingElements);
+                return false;
+            }
+
+            // Verify required scripts are loaded
             if (typeof SubscriptionDB === 'undefined') {
                 console.error('SubscriptionDB not found');
-                const errorBanner = document.createElement('div');
-                errorBanner.className = 'error-banner';
-                errorBanner.innerHTML = `
-                    <div class="error-content">
-                        <span>Database module not found. Please refresh the page.</span>
-                        <button class="retry-btn" onclick="window.location.reload()">Retry</button>
-                    </div>
-                `;
-                document.body.appendChild(errorBanner);
-                return;
+                return false;
             }
 
             if (typeof initApp === 'function') {
                 try {
                     initApp();
+                    return true;
                 } catch (error) {
                     console.error('Error initializing app:', error);
-                    const errorBanner = document.createElement('div');
-                    errorBanner.className = 'error-banner';
-                    errorBanner.innerHTML = `
-                        <div class="error-content">
-                            <span>Application initialization failed: ${error.message}</span>
-                            <button class="retry-btn" onclick="window.location.reload()">Retry</button>
-                        </div>
-                    `;
-                    document.body.appendChild(errorBanner);
+                    return false;
                 }
             } else {
                 console.error('initApp function not found');
+                return false;
+            }
+        }
+
+        // Try to initialize when DOM is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            // Try initialization
+            if (!initializeApp()) {
+                // If initialization fails, show error and retry after a delay
                 const errorBanner = document.createElement('div');
                 errorBanner.className = 'error-banner';
                 errorBanner.innerHTML = `
                     <div class="error-content">
-                        <span>Application initialization failed. Please refresh the page.</span>
-                        <button class="retry-btn" onclick="window.location.reload()">Retry</button>
+                        <span>Application initialization failed. Retrying...</span>
+                        <button class="retry-btn" onclick="window.location.reload()">Retry Now</button>
                     </div>
                 `;
                 document.body.appendChild(errorBanner);
+
+                // Retry initialization after a delay
+                setTimeout(function() {
+                    if (initializeApp()) {
+                        errorBanner.remove();
+                    }
+                }, 1000);
             }
         });
     </script>
