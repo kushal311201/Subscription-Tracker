@@ -316,19 +316,67 @@ async function initApp() {
             existingError.remove();
         }
 
-        // Validate required DOM elements
-        const requiredElements = [
-            'subscriptionList',
-            'subscriptionForm',
-            'categoryChart',
-            'totalSubscriptions',
-            'monthlyCost',
-            'upcomingPayments'
-        ];
+        // Create missing elements if they don't exist
+        const requiredElements = {
+            'subscriptionList': {
+                tag: 'div',
+                className: 'subscription-list',
+                parent: '.main-content',
+                content: '<!-- Subscription cards will be added here dynamically -->'
+            },
+            'subscriptionForm': {
+                tag: 'form',
+                className: 'subscription-form',
+                parent: '.add-subscription',
+                content: ''
+            },
+            'categoryChart': {
+                tag: 'canvas',
+                className: 'chart-container',
+                parent: '.summary-box .chart-container',
+                content: ''
+            },
+            'totalSubscriptions': {
+                tag: 'div',
+                className: 'total-subscriptions',
+                parent: '.summary-box .total-box',
+                content: '0'
+            },
+            'monthlyCost': {
+                tag: 'div',
+                className: 'total-amount',
+                parent: '.summary-box .total-box',
+                content: '0.00'
+            },
+            'upcomingPayments': {
+                tag: 'div',
+                className: 'reminders-list',
+                parent: '.upcoming-reminders',
+                content: `
+                    <div class="empty-reminders">
+                        <i class="fas fa-bell-slash"></i>
+                        <p>No upcoming reminders. Add subscriptions with reminders enabled to see them here.</p>
+                    </div>
+                `
+            }
+        };
 
-        const missingElements = requiredElements.filter(id => !document.getElementById(id));
-        if (missingElements.length > 0) {
-            throw new Error(`Missing required DOM elements: ${missingElements.join(', ')}`);
+        // Create missing elements
+        for (const [id, config] of Object.entries(requiredElements)) {
+            if (!document.getElementById(id)) {
+                console.log(`Creating missing element: ${id}`);
+                const element = document.createElement(config.tag);
+                element.id = id;
+                element.className = config.className;
+                element.innerHTML = config.content;
+
+                const parent = document.querySelector(config.parent);
+                if (parent) {
+                    parent.appendChild(element);
+                } else {
+                    console.warn(`Parent element not found for ${id}: ${config.parent}`);
+                }
+            }
         }
 
         // Initialize database with retry mechanism
@@ -410,6 +458,8 @@ async function initApp() {
             } catch (error) {
                 console.warn('Failed to initialize chart:', error);
             }
+        } else {
+            console.warn('Chart.js not available');
         }
 
         console.log('Application initialized successfully');
