@@ -56,33 +56,9 @@ window.SubscriptionDB = (function() {
           };
           
           request.onsuccess = (event) => {
-            console.log('Database opened successfully');
             db = event.target.result;
-            
-            // Add error handling for database connection
-            db.onerror = (event) => {
-              console.error('Database connection error:', event.target.error);
-              handleDbError(new Error('Database connection error: ' + event.target.error.message));
-            };
-            
-            // Add version change handling
-            db.onversionchange = (event) => {
-              console.log('Database version change detected');
-              db.close();
-              window.location.reload();
-            };
-            
-            // Initialize cache
-            refreshCache()
-              .then(() => {
-                console.log('Cache initialized successfully');
-                resolve();
-              })
-              .catch(error => {
-                console.error('Error initializing cache:', error);
-                // Don't reject here, as the database is still usable
-                resolve();
-              });
+            console.log('Database opened successfully');
+            resolve();
           };
           
           request.onupgradeneeded = (event) => {
@@ -107,7 +83,6 @@ window.SubscriptionDB = (function() {
               }
             } catch (error) {
               console.error('Error during database upgrade:', error);
-              handleDbError(new Error('Database upgrade failed: ' + error.message));
               reject(error);
             }
           };
@@ -135,9 +110,35 @@ window.SubscriptionDB = (function() {
           return resolve(subscriptionCache.data || []);
         }
         
-        refreshCache()
-          .then(data => resolve(data || []))
-          .catch(error => reject(error));
+        if (!db) {
+          try {
+            const data = JSON.parse(localStorage.getItem('subscriptions') || '[]');
+            subscriptionCache.update(data);
+            resolve(data);
+            return;
+          } catch (error) {
+            reject(error);
+            return;
+          }
+        }
+        
+        try {
+          const transaction = db.transaction([SUBSCRIPTION_STORE], 'readonly');
+          const objectStore = transaction.objectStore(SUBSCRIPTION_STORE);
+          const request = objectStore.getAll();
+          
+          request.onsuccess = function(event) {
+            const data = event.target.result;
+            subscriptionCache.update(data);
+            resolve(data);
+          };
+          
+          request.onerror = function(event) {
+            reject(new Error('Error getting all subscriptions: ' + event.target.error));
+          };
+        } catch (error) {
+          reject(error);
+        }
       });
     },
 
@@ -398,7 +399,7 @@ window.SubscriptionDB = (function() {
             const config = JSON.parse(localStorage.getItem('config') || '{}');
             config[key] = value;
             localStorage.setItem('config', JSON.stringify(config));
-            resolve();
+            resolve(value);
             return;
           } catch (error) {
             reject(error);
@@ -412,7 +413,7 @@ window.SubscriptionDB = (function() {
           const request = objectStore.put({ key, value });
           
           request.onsuccess = function(event) {
-            resolve();
+            resolve(value);
           };
           
           request.onerror = function(event) {
@@ -514,7 +515,7 @@ window.SubscriptionDB = (function() {
     }
   };
 
-  // Return the SubscriptionDB object
+  // Return the public API
   return SubscriptionDB;
 })();
 
