@@ -1804,87 +1804,89 @@ document.addEventListener('DOMContentLoaded', initApp);
 // Setup form listener for adding new subscriptions
 function setupFormListener() {
     const form = document.getElementById('subscriptionForm');
-    if (!form) {
-        console.error('Subscription form not found');
+    if (!form) return;
+
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        // Get form values
+        const name = document.getElementById('subscriptionName').value;
+        const amount = parseFloat(document.getElementById('subscriptionAmount').value);
+        const billingCycle = document.getElementById('billingCycle').value;
+        const dueDate = document.getElementById('dueDate').value;
+
+        // Validate required fields
+        if (!name || !amount || !billingCycle || !dueDate) {
+            showToast('Please fill in all required fields');
+            return;
+        }
+
+        // Create subscription object
+        const subscription = {
+            name: name,
+            amount: amount,
+            billingCycle: billingCycle,
+            dueDate: dueDate,
+            category: 'other', // Default category
+            createdAt: new Date().toISOString()
+        };
+
+        // Save subscription
+        saveSubscription(subscription);
+    });
+}
+
+// Setup settings panel functionality
+function setupSettingsPanel() {
+    const settingsButton = document.getElementById('settingsButton');
+    const settingsPanel = document.getElementById('settingsPanel');
+    const settingsBackdrop = document.getElementById('settingsBackdrop');
+    const closeSettingsBtn = document.getElementById('closeSettings');
+    
+    if (!settingsButton || !settingsPanel || !settingsBackdrop || !closeSettingsBtn) {
+        console.error('Settings elements not found');
         return;
     }
-
-    form.addEventListener('submit', async (e) => {
-        e.preventDefault();
+    
+    // Function to show settings panel
+    function showSettings() {
+        settingsPanel.classList.add('open');
+        settingsBackdrop.classList.add('visible');
+        document.body.style.overflow = 'hidden'; // Prevent background scrolling
         
-        try {
-            // Get form values
-            const name = document.getElementById('subscriptionName').value;
-            const amount = parseFloat(document.getElementById('subscriptionAmount').value);
-            const billingCycle = document.getElementById('billingCycle').value;
-            const dueDate = document.getElementById('dueDate').value;
-            const category = document.getElementById('category').value;
-            const reminderEnabled = document.getElementById('enableReminder').checked;
-            const reminderEmailEnabled = document.getElementById('enableEmailReminder').checked;
-            const reminderDays = document.getElementById('reminderDays').value;
-            const reminderEmail = document.getElementById('reminderEmail').value;
-
-            // Validate required fields
-            if (!name || !amount || !billingCycle || !dueDate || !category) {
-                showToast('Please fill in all required fields', 3000, 'error');
-                return;
-            }
-
-            // Create subscription object
-            const subscription = {
-                id: Date.now().toString(), // Generate unique ID
-                name,
-                amount,
-                billingCycle,
-                dueDate,
-                category,
-                reminderEnabled,
-                reminderEmailEnabled,
-                reminderDays: reminderEnabled ? reminderDays : null,
-                reminderEmail: reminderEmailEnabled ? reminderEmail : null,
-                createdAt: new Date().toISOString()
-            };
-
-            // Save to database
-            await SubscriptionDB.add(subscription);
-
-            // Clear form
-            form.reset();
-
-            // Reload subscriptions
-            await loadSubscriptions();
-
-            // Show success message
-            showToast('Subscription added successfully!');
-
-            // Haptic feedback
-            if (navigator.vibrate) {
-                navigator.vibrate(50);
-            }
-        } catch (error) {
-            console.error('Error adding subscription:', error);
-            showToast('Error adding subscription. Please try again.', 3000, 'error');
+        // Position the panel
+        positionSettingsPanel();
+        
+        // Haptic feedback
+        if (navigator.vibrate) navigator.vibrate(30);
+    }
+    
+    // Function to hide settings panel
+    function hideSettings() {
+        settingsPanel.classList.remove('open');
+        settingsBackdrop.classList.remove('visible');
+        document.body.style.overflow = ''; // Restore scrolling
+        
+        // Haptic feedback
+        if (navigator.vibrate) navigator.vibrate(30);
+    }
+    
+    // Event listeners
+    settingsButton.addEventListener('click', showSettings);
+    closeSettingsBtn.addEventListener('click', hideSettings);
+    settingsBackdrop.addEventListener('click', hideSettings);
+    
+    // Close on escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && settingsPanel.classList.contains('open')) {
+            hideSettings();
         }
     });
-
-    // Setup reminder toggle visibility
-    const enableReminderToggle = document.getElementById('enableReminder');
-    const enableEmailReminderToggle = document.getElementById('enableEmailReminder');
-    const reminderDaysContainer = document.getElementById('reminderDaysContainer');
-    const emailAddressGroup = document.getElementById('emailAddressGroup');
-
-    if (enableReminderToggle && reminderDaysContainer) {
-        enableReminderToggle.addEventListener('change', () => {
-            reminderDaysContainer.style.display = 
-                (enableReminderToggle.checked || enableEmailReminderToggle.checked) ? 'flex' : 'none';
-            if (navigator.vibrate) navigator.vibrate(30);
-        });
-    }
-
-    if (enableEmailReminderToggle && emailAddressGroup) {
-        enableEmailReminderToggle.addEventListener('change', () => {
-            emailAddressGroup.style.display = enableEmailReminderToggle.checked ? 'block' : 'none';
-            if (navigator.vibrate) navigator.vibrate(30);
-        });
-    }
+    
+    // Handle window resize
+    window.addEventListener('resize', debounce(() => {
+        if (settingsPanel.classList.contains('open')) {
+            positionSettingsPanel();
+        }
+    }, 250));
 }
