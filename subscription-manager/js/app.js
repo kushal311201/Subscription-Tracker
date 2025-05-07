@@ -302,6 +302,91 @@ let tempIdCounter = 1;
 let isOnline = navigator.onLine;
 let syncInProgress = false;
 
+// Initialize when DOM is ready
+document.addEventListener('DOMContentLoaded', async function() {
+    console.log('DOM Content Loaded - Starting initialization...');
+    
+    // Create required elements first
+    const requiredElements = {
+        'subscriptionList': {
+            tag: 'div',
+            className: 'subscription-list',
+            parent: '.main-content',
+            content: '<!-- Subscription cards will be added here dynamically -->'
+        },
+        'subscriptionForm': {
+            tag: 'form',
+            className: 'subscription-form',
+            parent: '.add-subscription',
+            content: ''
+        },
+        'categoryChart': {
+            tag: 'canvas',
+            className: 'chart-container',
+            parent: '.summary-box .chart-container',
+            content: ''
+        },
+        'totalSubscriptions': {
+            tag: 'div',
+            className: 'total-subscriptions',
+            parent: '.summary-box .total-box',
+            content: '0'
+        },
+        'monthlyCost': {
+            tag: 'div',
+            className: 'total-amount',
+            parent: '.summary-box .total-box',
+            content: '0.00'
+        },
+        'upcomingPayments': {
+            tag: 'div',
+            className: 'reminders-list',
+            parent: '.upcoming-reminders',
+            content: `
+                <div class="empty-reminders">
+                    <i class="fas fa-bell-slash"></i>
+                    <p>No upcoming reminders. Add subscriptions with reminders enabled to see them here.</p>
+                </div>
+            `
+        }
+    };
+
+    // Create missing elements
+    for (const [id, config] of Object.entries(requiredElements)) {
+        if (!document.getElementById(id)) {
+            console.log(`Creating missing element: ${id}`);
+            const element = document.createElement(config.tag);
+            element.id = id;
+            element.className = config.className;
+            element.innerHTML = config.content;
+
+            const parent = document.querySelector(config.parent);
+            if (parent) {
+                parent.appendChild(element);
+            } else {
+                console.warn(`Parent element not found for ${id}: ${config.parent}`);
+                // Create parent if it doesn't exist
+                const parentElement = document.createElement('div');
+                parentElement.className = config.parent.replace('.', '');
+                document.body.appendChild(parentElement);
+                parentElement.appendChild(element);
+            }
+        }
+    }
+
+    // Wait a short moment to ensure elements are in the DOM
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    // Now initialize the app
+    try {
+        await initApp();
+    } catch (error) {
+        console.error('Error during app initialization:', error);
+        showDatabaseError(error);
+    }
+});
+
+// Modify initApp to remove element creation since it's now handled before
 async function initApp() {
     console.log('Starting application initialization...');
     const loader = document.querySelector('.app-loader');
@@ -314,69 +399,6 @@ async function initApp() {
         const existingError = document.querySelector('.error-banner');
         if (existingError) {
             existingError.remove();
-        }
-
-        // Create missing elements if they don't exist
-        const requiredElements = {
-            'subscriptionList': {
-                tag: 'div',
-                className: 'subscription-list',
-                parent: '.main-content',
-                content: '<!-- Subscription cards will be added here dynamically -->'
-            },
-            'subscriptionForm': {
-                tag: 'form',
-                className: 'subscription-form',
-                parent: '.add-subscription',
-                content: ''
-            },
-            'categoryChart': {
-                tag: 'canvas',
-                className: 'chart-container',
-                parent: '.summary-box .chart-container',
-                content: ''
-            },
-            'totalSubscriptions': {
-                tag: 'div',
-                className: 'total-subscriptions',
-                parent: '.summary-box .total-box',
-                content: '0'
-            },
-            'monthlyCost': {
-                tag: 'div',
-                className: 'total-amount',
-                parent: '.summary-box .total-box',
-                content: '0.00'
-            },
-            'upcomingPayments': {
-                tag: 'div',
-                className: 'reminders-list',
-                parent: '.upcoming-reminders',
-                content: `
-                    <div class="empty-reminders">
-                        <i class="fas fa-bell-slash"></i>
-                        <p>No upcoming reminders. Add subscriptions with reminders enabled to see them here.</p>
-                    </div>
-                `
-            }
-        };
-
-        // Create missing elements
-        for (const [id, config] of Object.entries(requiredElements)) {
-            if (!document.getElementById(id)) {
-                console.log(`Creating missing element: ${id}`);
-                const element = document.createElement(config.tag);
-                element.id = id;
-                element.className = config.className;
-                element.innerHTML = config.content;
-
-                const parent = document.querySelector(config.parent);
-                if (parent) {
-                    parent.appendChild(element);
-                } else {
-                    console.warn(`Parent element not found for ${id}: ${config.parent}`);
-                }
-            }
         }
 
         // Initialize database with retry mechanism
@@ -486,9 +508,6 @@ function showDatabaseError(error) {
     `;
     document.body.appendChild(errorBanner);
 }
-
-// Initialize when DOM is ready
-document.addEventListener('DOMContentLoaded', initApp);
 
 // Setup all event listeners
 function setupEventListeners() {
