@@ -2033,4 +2033,3 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
-});
