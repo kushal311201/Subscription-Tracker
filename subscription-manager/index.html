@@ -205,7 +205,7 @@
         <div class="summary-box animate-in">
             <div class="total-box">
                 <h3>Total Monthly</h3>
-                <div class="total-amount" id="totalMonthly">0.00</div>
+                <div class="total-amount" id="monthlyCost">0.00</div>
             </div>
             <div class="chart-container">
                 <canvas id="categoryChart"></canvas>
@@ -213,7 +213,7 @@
         </div>
 
         <!-- Subscription Container Fallback - Will only be used if the main one is not found -->
-        <div id="subscriptionCardsFallback" style="display: none;"></div>
+        <div id="subscriptionList" style="display: none;"></div>
 
         <!-- Main Content -->
         <div class="main-content">
@@ -297,7 +297,7 @@
             </div>
 
             <!-- Subscription List -->
-            <div class="subscription-list" id="subscriptionCards">
+            <div class="subscription-list" id="subscriptionList">
                 <!-- Subscription cards will be added here dynamically -->
             </div>
         </div>
@@ -310,7 +310,7 @@
                     View All <i class="fas fa-arrow-right"></i>
                 </button>
             </div>
-            <div id="upcomingRemindersList" class="reminders-list">
+            <div id="upcomingPayments" class="reminders-list">
                 <div class="empty-reminders">
                     <i class="fas fa-bell-slash"></i>
                     <p>No upcoming reminders. Add subscriptions with reminders enabled to see them here.</p>
