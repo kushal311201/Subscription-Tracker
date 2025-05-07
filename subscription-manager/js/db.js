@@ -35,111 +35,126 @@ window.SubscriptionDB = (function() {
    * Initialize the database
    * @returns {Promise} Promise that resolves when the database is ready
    */
-  function initDB() {
+  async function init() {
     return new Promise((resolve, reject) => {
-      // Check if IndexedDB is supported
-      if (!window.indexedDB) {
-        const fallbackError = new Error('Your browser doesn\'t support IndexedDB. Using fallback storage.');
-        console.warn(fallbackError);
-        initFallbackStorage();
-        return resolve(); // Resolve with fallback
-      }
-      
       try {
-        const request = window.indexedDB.open(DB_NAME, DB_VERSION);
+        const request = indexedDB.open(DB_NAME, DB_VERSION);
         
-        request.onerror = function(event) {
-          const error = new Error('Database error: ' + (event.target.error ? event.target.error.message : 'Unknown error'));
-          console.error('IndexedDB error:', error);
-          initFallbackStorage();
-          resolve(); // Resolve with fallback
+        request.onerror = (event) => {
+          console.error('Database error:', event.target.error);
+          reject(new Error('Failed to open database'));
         };
         
-        request.onupgradeneeded = function(event) {
-          const db = event.target.result;
-          
-          // Create object store if it doesn't exist
-          if (!db.objectStoreNames.contains(SUBSCRIPTION_STORE)) {
-            const objectStore = db.createObjectStore(SUBSCRIPTION_STORE, { keyPath: 'id' });
-            
-            // Create indices for better search performance
-            objectStore.createIndex('name', 'name', { unique: false });
-            objectStore.createIndex('category', 'category', { unique: false });
-            objectStore.createIndex('dueDate', 'dueDate', { unique: false });
-          }
-          
-          // Create config store if it doesn't exist
-          if (!db.objectStoreNames.contains(CONFIG_STORE)) {
-            db.createObjectStore(CONFIG_STORE, { keyPath: 'key' });
-          }
-        };
-        
-        request.onsuccess = function(event) {
+        request.onsuccess = (event) => {
           db = event.target.result;
           console.log('Database initialized successfully');
-          
-          // Handle connection errors
-          db.onerror = function(event) {
-            console.error('Database error:', event.target.error);
-          };
-          
-          // Initialize cache with empty array if needed
-          if (!subscriptionCache.data) {
-            subscriptionCache.data = [];
-          }
-          
-          // Load cache on initialization
-          refreshCache().then(() => {
-            resolve();
-          }).catch(error => {
-            console.error('Error loading cache:', error);
-            reject(error);
-          });
+          resolve();
         };
         
-        // Handle blocked or failed open attempts
-        request.onblocked = function() {
-          const blockedError = new Error('Database connection blocked. Please close other tabs with this app open.');
-          console.error(blockedError);
-          reject(blockedError);
+        request.onupgradeneeded = (event) => {
+          const db = event.target.result;
+          
+          // Create object store for subscriptions
+          if (!db.objectStoreNames.contains(SUBSCRIPTION_STORE)) {
+            const store = db.createObjectStore(SUBSCRIPTION_STORE, { keyPath: 'id', autoIncrement: true });
+            store.createIndex('name', 'name', { unique: false });
+            store.createIndex('category', 'category', { unique: false });
+            store.createIndex('dueDate', 'dueDate', { unique: false });
+          }
+          
+          // Create object store for settings
+          if (!db.objectStoreNames.contains(CONFIG_STORE)) {
+            const settingsStore = db.createObjectStore(CONFIG_STORE, { keyPath: 'key' });
+            settingsStore.createIndex('key', 'key', { unique: true });
+          }
         };
       } catch (error) {
-        console.error('Fatal database initialization error:', error);
-        initFallbackStorage();
-        resolve(); // Resolve with fallback
+        console.error('Error initializing database:', error);
+        reject(error);
       }
     });
   }
 
   /**
-   * Fallback to localStorage if IndexedDB is not supported or fails
-   * @returns {boolean} True if localStorage is initialized
+   * Handle database errors
+   * @param {Error} error - The error object
    */
-  function initFallbackStorage() {
-    console.log('Initializing localStorage fallback');
+  function handleDbError(error) {
+    console.error('Database Error:', error);
     
-    // Check if localStorage is supported
-    if (!window.localStorage) {
-      console.error('Neither IndexedDB nor localStorage is supported!');
-      return false;
+    // Create an error banner
+    const errorBanner = document.createElement('div');
+    errorBanner.className = 'notification-banner error-banner';
+    errorBanner.innerHTML = `
+      <div class="notification-content">
+        <h3 class="notification-title">Database Error</h3>
+        <p>There was a problem loading your subscription data.</p>
+        <div class="error-details">
+          ${error.message || 'Unknown error occurred'}
+        </div>
+        <div class="error-actions">
+          <button class="btn secondary-btn" id="retryDbBtn">Retry</button>
+          <button class="btn danger-btn" id="resetDbBtn">Reset Database</button>
+        </div>
+      </div>
+      <button class="close-btn" id="closeErrorBtn"><i class="fas fa-times"></i></button>
+    `;
+    
+    // Insert at the top of the container
+    const container = document.querySelector('.container');
+    if (container) {
+      container.insertBefore(errorBanner, container.firstChild);
+      
+      // Add event listeners
+      document.getElementById('retryDbBtn').addEventListener('click', () => {
+        errorBanner.remove();
+        window.location.reload();
+      });
+      
+      document.getElementById('resetDbBtn').addEventListener('click', () => {
+        if (confirm('This will delete all your subscription data. Continue?')) {
+          resetDatabase()
+            .then(() => {
+              errorBanner.remove();
+              showToast('Database has been reset', 'warning');
+              window.location.reload();
+            })
+            .catch(error => {
+              console.error('Error resetting database:', error);
+              showToast('Error resetting database', 'error');
+            });
+        }
+      });
+      
+      document.getElementById('closeErrorBtn').addEventListener('click', () => {
+        errorBanner.remove();
+      });
     }
-    
-    // Load existing data from localStorage if available
-    try {
-      const storedData = localStorage.getItem('subscriptions');
-      if (storedData) {
-        subscriptionCache.data = JSON.parse(storedData);
-      } else {
-        // Initialize with empty array if no data exists
-        subscriptionCache.data = [];
+  }
+
+  /**
+   * Reset the database
+   * @returns {Promise} Promise that resolves when the database is reset
+   */
+  async function resetDatabase() {
+    return new Promise((resolve, reject) => {
+      try {
+        const request = indexedDB.deleteDatabase(DB_NAME);
+        
+        request.onerror = (event) => {
+          console.error('Error deleting database:', event.target.error);
+          reject(new Error('Failed to delete database'));
+        };
+        
+        request.onsuccess = () => {
+          console.log('Database deleted successfully');
+          resolve();
+        };
+      } catch (error) {
+        console.error('Error resetting database:', error);
+        reject(error);
       }
-      return true;
-    } catch (error) {
-      console.error('Error initializing localStorage fallback:', error);
-      // Initialize with empty array on error
-      subscriptionCache.data = [];
-      return false;
-    }
+    });
   }
 
   /**
@@ -186,9 +201,7 @@ window.SubscriptionDB = (function() {
   // Return the public API
   return {
     // Initialize the database
-    init: function() {
-      return initDB();
-    },
+    init: init,
     
     // Check if IndexedDB is supported
     isSupported: function() {
@@ -492,6 +505,12 @@ window.SubscriptionDB = (function() {
           reject(event.target.error);
         };
       });
-    }
+    },
+    
+    // Reset the database
+    resetDatabase: resetDatabase,
+    
+    // Handle database errors
+    handleDbError: handleDbError
   };
 })(); 

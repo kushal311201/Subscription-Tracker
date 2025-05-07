@@ -1852,6 +1852,27 @@ function setupFormListener() {
     const form = document.getElementById('subscriptionForm');
     if (!form) return;
 
+    // Setup reminder toggle visibility
+    const enableReminderToggle = document.getElementById('enableReminder');
+    const enableEmailReminderToggle = document.getElementById('enableEmailReminder');
+    const reminderDaysContainer = document.getElementById('reminderDaysContainer');
+    const emailAddressGroup = document.getElementById('emailAddressGroupAdd');
+
+    if (enableReminderToggle && reminderDaysContainer) {
+        enableReminderToggle.addEventListener('change', () => {
+            reminderDaysContainer.style.display = (enableReminderToggle.checked || enableEmailReminderToggle.checked) ? 'flex' : 'none';
+            if (navigator.vibrate) navigator.vibrate(30);
+        });
+    }
+
+    if (enableEmailReminderToggle && emailAddressGroup) {
+        enableEmailReminderToggle.addEventListener('change', () => {
+            emailAddressGroup.style.display = enableEmailReminderToggle.checked ? 'block' : 'none';
+            reminderDaysContainer.style.display = (enableReminderToggle.checked || enableEmailReminderToggle.checked) ? 'flex' : 'none';
+            if (navigator.vibrate) navigator.vibrate(30);
+        });
+    }
+
     form.addEventListener('submit', function(e) {
         e.preventDefault();
 
@@ -1860,10 +1881,21 @@ function setupFormListener() {
         const amount = parseFloat(document.getElementById('subscriptionAmount').value);
         const billingCycle = document.getElementById('billingCycle').value;
         const dueDate = document.getElementById('dueDate').value;
+        const category = document.getElementById('category').value;
+        const enableReminder = document.getElementById('enableReminder').checked;
+        const enableEmailReminder = document.getElementById('enableEmailReminder').checked;
+        const reminderDays = document.getElementById('reminderDays').value;
+        const reminderEmail = document.getElementById('reminderEmailAdd').value;
 
         // Validate required fields
         if (!name || !amount || !billingCycle || !dueDate) {
             showToast('Please fill in all required fields');
+            return;
+        }
+
+        // Validate email if email reminder is enabled
+        if (enableEmailReminder && (!reminderEmail || !isValidEmail(reminderEmail))) {
+            showToast('Please enter a valid email address for reminders');
             return;
         }
 
@@ -1873,7 +1905,11 @@ function setupFormListener() {
             amount: amount,
             billingCycle: billingCycle,
             dueDate: dueDate,
-            category: 'other', // Default category
+            category: category,
+            reminderEnabled: enableReminder,
+            reminderEmailEnabled: enableEmailReminder,
+            reminderDays: enableReminder || enableEmailReminder ? reminderDays : null,
+            reminderEmail: enableEmailReminder ? reminderEmail : null,
             createdAt: new Date().toISOString()
         };
 
@@ -1892,6 +1928,115 @@ function setupCategoryFilter() {
         appState.currentFilter = selectedCategory;
         appState.applyFilters();
         loadSubscriptions();
+        
+        // Haptic feedback
+        if (navigator.vibrate) navigator.vibrate(30);
+    });
+}
+
+// Initialize theme
+function initializeTheme() {
+    const darkModeToggle = document.getElementById('darkMode');
+    const systemThemeToggle = document.getElementById('systemTheme');
+    const topDarkModeToggle = document.getElementById('topDarkMode');
+    
+    // Load saved preferences
+    const savedDarkMode = localStorage.getItem('darkMode') === 'true';
+    const savedSystemTheme = localStorage.getItem('systemTheme') !== 'false';
+    
+    // Set initial states
+    if (darkModeToggle) darkModeToggle.checked = savedDarkMode;
+    if (systemThemeToggle) systemThemeToggle.checked = savedSystemTheme;
+    if (topDarkModeToggle) topDarkModeToggle.checked = savedDarkMode;
+    
+    // Apply theme
+    applyTheme(savedDarkMode, savedSystemTheme);
+    
+    // Add event listeners
+    if (darkModeToggle) {
+        darkModeToggle.addEventListener('change', () => {
+            const isDarkMode = darkModeToggle.checked;
+            localStorage.setItem('darkMode', isDarkMode);
+            if (topDarkModeToggle) topDarkModeToggle.checked = isDarkMode;
+            applyTheme(isDarkMode, systemThemeToggle.checked);
+        });
+    }
+    
+    if (systemThemeToggle) {
+        systemThemeToggle.addEventListener('change', () => {
+            const useSystemTheme = systemThemeToggle.checked;
+            localStorage.setItem('systemTheme', useSystemTheme);
+            applyTheme(darkModeToggle.checked, useSystemTheme);
+        });
+    }
+    
+    if (topDarkModeToggle) {
+        topDarkModeToggle.addEventListener('change', () => {
+            const isDarkMode = topDarkModeToggle.checked;
+            localStorage.setItem('darkMode', isDarkMode);
+            if (darkModeToggle) darkModeToggle.checked = isDarkMode;
+            applyTheme(isDarkMode, systemThemeToggle.checked);
+        });
+    }
+    
+    // Listen for system theme changes
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+        if (systemThemeToggle && systemThemeToggle.checked) {
+            applyTheme(e.matches, true);
+        }
+    });
+}
+
+// Apply theme based on preferences
+function applyTheme(isDarkMode, useSystemTheme) {
+    if (useSystemTheme) {
+        const systemDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.body.classList.toggle('dark-mode', systemDarkMode);
+    } else {
+        document.body.classList.toggle('dark-mode', isDarkMode);
+    }
+}
+
+// Setup top dark mode toggle
+function setupTopDarkModeToggle() {
+    const topDarkModeToggle = document.getElementById('topDarkMode');
+    if (!topDarkModeToggle) return;
+    
+    // Set initial state
+    topDarkModeToggle.checked = localStorage.getItem('darkMode') === 'true';
+    
+    // Add event listener
+    topDarkModeToggle.addEventListener('change', () => {
+        const isDarkMode = topDarkModeToggle.checked;
+        localStorage.setItem('darkMode', isDarkMode);
+        
+        // Update main dark mode toggle if it exists
+        const mainDarkModeToggle = document.getElementById('darkMode');
+        if (mainDarkModeToggle) {
+            mainDarkModeToggle.checked = isDarkMode;
+        }
+        
+        // Apply theme
+        const systemThemeToggle = document.getElementById('systemTheme');
+        applyTheme(isDarkMode, systemThemeToggle ? systemThemeToggle.checked : false);
+    });
+}
+
+// Setup search functionality
+function setupSearch() {
+    const searchInput = document.getElementById('searchInput');
+    if (!searchInput) return;
+
+    // Debounce search to improve performance
+    const debouncedSearch = debounce((query) => {
+        appState.searchQuery = query.toLowerCase();
+        appState.applyFilters();
+        loadSubscriptions();
+    }, 300);
+
+    searchInput.addEventListener('input', (e) => {
+        const query = e.target.value.trim();
+        debouncedSearch(query);
         
         // Haptic feedback
         if (navigator.vibrate) navigator.vibrate(30);
