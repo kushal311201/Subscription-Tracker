@@ -1800,3 +1800,91 @@ function initApp() {
 
 // Initialize the app when DOM is fully loaded
 document.addEventListener('DOMContentLoaded', initApp);
+
+// Setup form listener for adding new subscriptions
+function setupFormListener() {
+    const form = document.getElementById('subscriptionForm');
+    if (!form) {
+        console.error('Subscription form not found');
+        return;
+    }
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        try {
+            // Get form values
+            const name = document.getElementById('subscriptionName').value;
+            const amount = parseFloat(document.getElementById('subscriptionAmount').value);
+            const billingCycle = document.getElementById('billingCycle').value;
+            const dueDate = document.getElementById('dueDate').value;
+            const category = document.getElementById('category').value;
+            const reminderEnabled = document.getElementById('enableReminder').checked;
+            const reminderEmailEnabled = document.getElementById('enableEmailReminder').checked;
+            const reminderDays = document.getElementById('reminderDays').value;
+            const reminderEmail = document.getElementById('reminderEmail').value;
+
+            // Validate required fields
+            if (!name || !amount || !billingCycle || !dueDate || !category) {
+                showToast('Please fill in all required fields', 3000, 'error');
+                return;
+            }
+
+            // Create subscription object
+            const subscription = {
+                id: Date.now().toString(), // Generate unique ID
+                name,
+                amount,
+                billingCycle,
+                dueDate,
+                category,
+                reminderEnabled,
+                reminderEmailEnabled,
+                reminderDays: reminderEnabled ? reminderDays : null,
+                reminderEmail: reminderEmailEnabled ? reminderEmail : null,
+                createdAt: new Date().toISOString()
+            };
+
+            // Save to database
+            await SubscriptionDB.add(subscription);
+
+            // Clear form
+            form.reset();
+
+            // Reload subscriptions
+            await loadSubscriptions();
+
+            // Show success message
+            showToast('Subscription added successfully!');
+
+            // Haptic feedback
+            if (navigator.vibrate) {
+                navigator.vibrate(50);
+            }
+        } catch (error) {
+            console.error('Error adding subscription:', error);
+            showToast('Error adding subscription. Please try again.', 3000, 'error');
+        }
+    });
+
+    // Setup reminder toggle visibility
+    const enableReminderToggle = document.getElementById('enableReminder');
+    const enableEmailReminderToggle = document.getElementById('enableEmailReminder');
+    const reminderDaysContainer = document.getElementById('reminderDaysContainer');
+    const emailAddressGroup = document.getElementById('emailAddressGroup');
+
+    if (enableReminderToggle && reminderDaysContainer) {
+        enableReminderToggle.addEventListener('change', () => {
+            reminderDaysContainer.style.display = 
+                (enableReminderToggle.checked || enableEmailReminderToggle.checked) ? 'flex' : 'none';
+            if (navigator.vibrate) navigator.vibrate(30);
+        });
+    }
+
+    if (enableEmailReminderToggle && emailAddressGroup) {
+        enableEmailReminderToggle.addEventListener('change', () => {
+            emailAddressGroup.style.display = enableEmailReminderToggle.checked ? 'block' : 'none';
+            if (navigator.vibrate) navigator.vibrate(30);
+        });
+    }
+}
