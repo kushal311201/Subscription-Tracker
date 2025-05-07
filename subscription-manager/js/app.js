@@ -302,29 +302,33 @@ let tempIdCounter = 1;
 let isOnline = navigator.onLine;
 let syncInProgress = false;
 
-// Initialize the app
-(function initApp() {
-  // Wait for DOM to be loaded before initializing
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-      if (typeof SubscriptionDB === 'undefined') {
-        console.error('SubscriptionDB is not defined. Check if db.js is loaded properly.');
-        showDatabaseError('Database module not found. Please refresh the page.');
-        return;
-      }
-      initializeApp();
+// Setup search functionality
+function setupSearch() {
+    const searchInput = document.getElementById('searchInput');
+    if (!searchInput) return;
+
+    searchInput.addEventListener('input', (e) => {
+        appState.searchQuery = e.target.value.toLowerCase();
+        appState.applyFilters();
+        loadSubscriptions();
     });
-  } else {
-    // DOM already loaded
-    if (typeof SubscriptionDB === 'undefined') {
-      console.error('SubscriptionDB is not defined. Check if db.js is loaded properly.');
-      showDatabaseError('Database module not found. Please refresh the page.');
-      return;
-    }
-    initializeApp();
-  }
-  
-  function initializeApp() {
+}
+
+// Setup category filter
+function setupCategoryFilter() {
+    const filterSelect = document.getElementById('filterCategory');
+    if (!filterSelect) return;
+
+    filterSelect.addEventListener('change', () => {
+        const selectedCategory = filterSelect.value;
+        appState.currentFilter = selectedCategory;
+        appState.applyFilters();
+        loadSubscriptions();
+    });
+}
+
+// Initialize app
+function initApp() {
     // Show app loader while initializing
     showAppLoader();
     
@@ -384,8 +388,26 @@ let syncInProgress = false;
         setupLimitedMode();
         hideAppLoader();
     }
-  }
-})();
+}
+
+// Wait for DOM to be ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        if (typeof SubscriptionDB === 'undefined') {
+            console.error('SubscriptionDB is not defined. Check if db.js is loaded properly.');
+            showDatabaseError('Database module not found. Please refresh the page.');
+            return;
+        }
+        initApp();
+    });
+} else {
+    if (typeof SubscriptionDB === 'undefined') {
+        console.error('SubscriptionDB is not defined. Check if db.js is loaded properly.');
+        showDatabaseError('Database module not found. Please refresh the page.');
+        return;
+    }
+    initApp();
+}
 
 // Setup all event listeners - extracted for better organization
 function setupEventListeners() {
@@ -1825,35 +1847,6 @@ function initializeTheme() {
     });
 }
 
-// Initialize app
-function initApp() {
-    // Initialize theme first
-    initializeTheme();
-    
-    // Initialize settings
-    setupSettingsPanel();
-    
-    // Initialize other components
-    setupFormListener();
-    setupReminderToggles();
-    setupCategoryFilter();
-    setupSearch();
-    setupSorting();
-    setupExport();
-    setupImport();
-    setupNotifications();
-    setupPWA();
-    setupOfflineSupport();
-    setupPerformanceMonitoring();
-}
-
-// Wait for DOM to be ready
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initApp);
-} else {
-    initApp();
-}
-
 // Setup form listener for adding new subscriptions
 function setupFormListener() {
     const form = document.getElementById('subscriptionForm');
@@ -1924,18 +1917,5 @@ function setupFormListener() {
             console.error('Error adding subscription:', error);
             showToast('Error adding subscription. Please try again.');
         }
-    });
-}
-
-// Setup category filter
-function setupCategoryFilter() {
-    const filterSelect = document.getElementById('filterCategory');
-    if (!filterSelect) return;
-
-    filterSelect.addEventListener('change', () => {
-        const selectedCategory = filterSelect.value;
-        appState.currentFilter = selectedCategory;
-        appState.applyFilters();
-        loadSubscriptions();
     });
 }
