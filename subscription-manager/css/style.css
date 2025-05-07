@@ -1357,12 +1357,12 @@ input, select, button {
 /* Settings panel positioning */
 .settings-panel {
     position: fixed;
-    /* Top and right positions will be set dynamically via JavaScript */
-    bottom: auto;
+    top: 70px;
+    right: 20px;
     width: 300px;
     background-color: var(--bg-card);
     z-index: 200;
-    transform: translateX(100%);
+    transform: translateX(120%);
     transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
     box-shadow: 0 5px 25px rgba(0, 0, 0, 0.15);
     display: flex;
@@ -1373,11 +1373,13 @@ input, select, button {
     border-radius: var(--radius-md);
     max-height: 85vh;
     opacity: 0;
+    visibility: hidden;
 }
 
 .settings-panel.open {
     transform: translateX(0);
     opacity: 1;
+    visibility: visible;
 }
 
 .settings-header {
@@ -1433,7 +1435,7 @@ input, select, button {
     z-index: 199;
     opacity: 0;
     visibility: hidden;
-    transition: opacity 0.3s ease;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
 .settings-backdrop.visible {
@@ -1441,14 +1443,21 @@ input, select, button {
     visibility: visible;
 }
 
-/* Media queries for mobile */
-@media (max-width: 767px) {
+/* Mobile-specific adjustments */
+@media (max-width: 768px) {
     .settings-panel {
-        top: 70px;
-        right: 10px;
-        width: calc(100% - 20px);
-        max-width: 300px;
-        max-height: 80vh;
+        top: 50% !important;
+        left: 50% !important;
+        right: auto !important;
+        transform: translate(-50%, -50%) scale(0.95);
+        width: 90%;
+        max-width: 350px;
+        border-radius: 16px;
+        max-height: 80%;
+    }
+    
+    .settings-panel.open {
+        transform: translate(-50%, -50%) scale(1);
     }
 }
 
