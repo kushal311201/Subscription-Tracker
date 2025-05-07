@@ -403,23 +403,23 @@ async function initApp() {
 
         // Initialize database with retry mechanism
         let dbInitialized = false;
-        let attempts = 0;
-        const maxAttempts = 3;
-
-        while (!dbInitialized && attempts < maxAttempts) {
-            attempts++;
-            console.log(`Attempting database initialization (attempt ${attempts}/${maxAttempts})`);
+        for (let attempt = 1; attempt <= 3; attempt++) {
             try {
+                console.log(`Attempting database initialization (attempt ${attempt}/3)`);
                 await SubscriptionDB.init();
                 dbInitialized = true;
                 console.log('Database initialized successfully');
+                break;
             } catch (error) {
-                console.error(`Database initialization attempt ${attempts} failed:`, error);
-                if (attempts === maxAttempts) {
-                    throw error;
+                console.error(`Database initialization attempt ${attempt} failed:`, error);
+                if (attempt < 3) {
+                    await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
                 }
-                await new Promise(resolve => setTimeout(resolve, 1000 * attempts));
             }
+        }
+        
+        if (!dbInitialized) {
+            throw new Error('Failed to initialize database after 3 attempts');
         }
 
         // Initialize theme and settings
