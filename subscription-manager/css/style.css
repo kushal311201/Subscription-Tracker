@@ -1445,246 +1445,11 @@ input, select, button {
 
 /* Mobile-specific adjustments */
 @media (max-width: 768px) {
-    .settings-panel {
-        top: 50% !important;
-        left: 50% !important;
-        right: auto !important;
-        transform: translate(-50%, -50%) scale(0.95);
-        width: 90%;
-        max-width: 350px;
-        border-radius: 16px;
-        max-height: 80%;
-    }
-    
-    .settings-panel.open {
-        transform: translate(-50%, -50%) scale(1);
-    }
-}
-
-/* Top dark mode toggle improvements */
-.top-dark-mode-toggle {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background-color: var(--bg-light);
-    border-radius: 20px;
-    padding: 7px 12px;
-    box-shadow: var(--shadow-sm);
-    margin-left: 10px;
-    transition: all var(--transition-normal);
-    gap: 10px; /* Added space between text and toggle */
-}
-
-.top-dark-mode-toggle .toggle-label {
-    margin-right: 12px;
-    font-size: 0.9rem;
-    white-space: nowrap;
-}
-
-/* Header actions container */
-.header-actions {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    position: relative;
-}
-
-/* Settings button styling */
-.settings-button {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 42px;
-    min-height: 42px;
-    background-color: var(--bg-card);
-    border: 1px solid var(--border-color);
-    border-radius: 50%;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    position: relative;
-}
-
-.settings-button:hover {
-    background-color: var(--bg-light);
-}
-
-.settings-button:active {
-    transform: scale(0.95);
-}
-
-.settings-button i {
-    font-size: 18px;
-    color: var(--primary-color);
-}
-
-/* Upcoming Reminders Section */
-.upcoming-reminders {
-    margin-top: 30px;
-    background-color: var(--bg-card);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-md);
-    padding: var(--spacing-xl);
-    width: 100%;
-    margin-bottom: 0; /* Remove bottom margin */
-    border: 1px solid var(--border-light);
-}
-
-.settings-section {
-    margin-bottom: 8px;
-    border-bottom: 1px solid var(--border-light);
-    padding-bottom: 8px;
-}
-
-.settings-section-title {
-    padding: 10px 16px;
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: var(--text-light);
-    font-weight: var(--font-medium);
-    margin: 0;
-}
-
-.settings-group {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 12px 16px;
-    transition: background-color 0.2s ease;
-}
-
-.settings-group .switch {
-    margin-left: 12px;
-}
-
-.settings-group:hover {
-    background-color: var(--bg-light);
-}
-
-.settings-group span {
-    font-size: 14px;
-    color: var(--text-primary);
-}
-
-.settings-group select {
-    background-color: var(--bg-light);
-    border: 1px solid var(--border-light);
-    border-radius: var(--radius-md);
-    padding: 4px 8px;
-    font-size: 13px;
-    max-width: 140px;
-}
-
-.settings-group .share-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    transition: all 0.2s ease;
-}
-
-.settings-group .share-btn:hover {
-    background-color: var(--bg-light);
-}
-
-.settings-group .btn {
-    padding: 4px 10px;
-    font-size: 13px;
-    height: 28px;
-}
-
-/* User profile section */
-.user-profile-section {
-    padding: 16px;
-    border-bottom: 1px solid var(--border-light);
-}
-
-.profile-header {
-    display: flex;
-    align-items: center;
-    margin-bottom: 12px;
-}
-
-.profile-avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background-color: var(--primary-color);
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-right: 12px;
-}
-
-.profile-info {
-    flex: 1;
-}
-
-.profile-name {
-    font-weight: var(--font-medium);
-    font-size: 15px;
-    margin-bottom: 2px;
-}
-
-.profile-email {
-    font-size: 12px;
-    color: var(--text-light);
-}
-
-.notification-channels {
-    margin: 0;
-    padding: 0;
-}
-
-.app-info {
-    padding: 12px 16px;
-    text-align: center;
-    font-size: 11px;
-    color: var(--text-light);
-    border-top: 1px solid var(--border-light);
-}
-
-.app-info p {
-    margin: 2px 0;
-}
-
-/* Dark mode styles for settings */
-body.dark-mode .settings-panel {
-    background-color: var(--bg-card);
-    border-left: 1px solid var(--border-color);
-}
-
-body.dark-mode .settings-header {
-    border-bottom: 1px solid var(--border-color);
-}
-
-body.dark-mode .settings-section {
-    border-bottom: 1px solid var(--border-color);
-}
-
-body.dark-mode .settings-group:hover {
-    background-color: var(--bg-light);
-}
-
-body.dark-mode .settings-group .share-btn:hover {
-    background-color: var(--bg-light);
-}
-
-body.dark-mode .user-profile-section,
-body.dark-mode .app-info {
-    border-color: var(--border-color);
-}
-
-/* Mobile-specific adjustments */
-@media (max-width: 768px) {
     /* Container adjustments */
     .container {
         padding: 10px;
         padding-bottom: 0;
-        overflow: hidden; /* Prevent scrolling past content */
+        overflow: visible; /* Allow scrolling */
     }
     
     /* Make everything more compact */
@@ -1697,14 +1462,9 @@ body.dark-mode .app-info {
         border-radius: 12px;
     }
     
-    /* Ensure reminders are the final visible element */
+    /* Ensure reminders have proper spacing */
     .upcoming-reminders {
         margin-bottom: 60px; /* Space for bottom nav */
-    }
-    
-    /* Hide anything that might appear after reminders */
-    .upcoming-reminders ~ * {
-        display: none !important; 
     }
     
     /* Improve touch targets for mobile */
@@ -1741,11 +1501,13 @@ body.dark-mode .app-info {
         transform: translate(-50%, -50%) scale(0.95);
         opacity: 0;
         border: 1px solid var(--border-color);
+        z-index: 1000; /* Ensure it's above other elements */
     }
     
     .settings-panel.open {
         transform: translate(-50%, -50%) scale(1);
         opacity: 1;
+        visibility: visible;
     }
 }
 
