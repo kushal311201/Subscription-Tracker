@@ -1880,3 +1880,57 @@ body.dark-mode .app-info {
         }
     }
 }
+
+/* Modal base styles */
+.modal {
+    display: none; /* Hide by default */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: var(--z-modal);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.modal.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-content {
+    position: relative;
+    background-color: var(--bg-card);
+    margin: 20px auto;
+    padding: 20px;
+    width: 90%;
+    max-width: 500px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-20px);
+    transition: transform 0.3s ease;
+}
+
+.modal.show .modal-content {
+    transform: translateY(0);
+}
+
+/* Hide anything after reminders section */
+.upcoming-reminders ~ * {
+    display: none !important;
+}
+
+/* Ensure modals are properly hidden by default */
+#editModal,
+#signInModal {
+    display: none !important;
+}
+
+/* Only show modals when they have the 'show' class */
+#editModal.show,
+#signInModal.show {
+    display: block !important;
+}
