@@ -409,6 +409,36 @@ if (document.readyState === 'loading') {
     initApp();
 }
 
+// Show database error
+function showDatabaseError(message) {
+    const errorBanner = document.createElement('div');
+    errorBanner.className = 'error-banner';
+    errorBanner.innerHTML = `
+        <div class="error-content">
+            <i class="fas fa-exclamation-circle"></i>
+            <span>${message}</span>
+        </div>
+        <button onclick="window.location.reload()" class="retry-btn">Retry</button>
+    `;
+    document.body.appendChild(errorBanner);
+    hideAppLoader();
+}
+
+// Setup limited mode when database is not available
+function setupLimitedMode() {
+    console.log('Setting up limited mode...');
+    const errorBanner = document.createElement('div');
+    errorBanner.className = 'error-banner';
+    errorBanner.innerHTML = `
+        <div class="error-content">
+            <i class="fas fa-exclamation-circle"></i>
+            <span>Database is not available. Running in limited mode.</span>
+        </div>
+        <button onclick="window.location.reload()" class="retry-btn">Retry</button>
+    `;
+    document.body.appendChild(errorBanner);
+}
+
 // Setup all event listeners - extracted for better organization
 function setupEventListeners() {
     // Setup in order of importance
