@@ -378,8 +378,56 @@ async function initApp() {
         // Load subscriptions
         await loadSubscriptions();
 
-        // Initialize chart
-        initializeChart();
+        // Initialize chart if Chart.js is available
+        if (typeof Chart !== 'undefined') {
+            try {
+                const ctx = document.getElementById('categoryChart');
+                if (ctx) {
+                    const subscriptions = appState.subscriptions;
+                    const categoryTotals = {};
+                    subscriptions.forEach(sub => {
+                        const amount = parseFloat(sub.amount);
+                        const category = sub.category;
+                        categoryTotals[category] = (categoryTotals[category] || 0) + amount;
+                    });
+
+                    new Chart(ctx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: Object.keys(categoryTotals).map(cat => capitalizeFirstLetter(cat)),
+                            datasets: [{
+                                data: Object.values(categoryTotals),
+                                backgroundColor: [
+                                    '#4361ee',
+                                    '#3f37c9',
+                                    '#4895ef',
+                                    '#4cc9f0',
+                                    '#f72585',
+                                    '#b5179e'
+                                ],
+                                borderWidth: 0
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'bottom',
+                                    labels: {
+                                        padding: 20,
+                                        usePointStyle: true
+                                    }
+                                }
+                            },
+                            cutout: '70%'
+                        }
+                    });
+                }
+            } catch (error) {
+                console.warn('Failed to initialize chart:', error);
+            }
+        }
 
         // Setup event listeners
         setupEventListeners();
