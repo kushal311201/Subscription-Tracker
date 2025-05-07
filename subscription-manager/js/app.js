@@ -307,41 +307,40 @@ async function initApp() {
     const loader = document.querySelector('.app-loader');
     
     try {
-        // Show loader
+        // Show loader and remove any existing error banners
         if (loader) {
             loader.classList.remove('hidden');
         }
-        
-        // Remove any existing error banners
         const existingError = document.querySelector('.error-banner');
         if (existingError) {
             existingError.remove();
         }
-        
+
         // Validate required DOM elements
         const requiredElements = [
-            'subscriptionForm',
             'subscriptionList',
-            'filterCategory',
-            'searchInput',
-            'categoryChart'
+            'subscriptionForm',
+            'categoryChart',
+            'totalSubscriptions',
+            'monthlyCost',
+            'upcomingPayments'
         ];
-        
+
         const missingElements = requiredElements.filter(id => !document.getElementById(id));
         if (missingElements.length > 0) {
-            throw new Error(`Missing required elements: ${missingElements.join(', ')}`);
+            throw new Error(`Missing required DOM elements: ${missingElements.join(', ')}`);
         }
-        
+
         // Initialize database with retry mechanism
         let dbInitialized = false;
         let attempts = 0;
         const maxAttempts = 3;
-        
+
         while (!dbInitialized && attempts < maxAttempts) {
             attempts++;
-            console.log(`Attempting database initialization (attempt ${attempts}/${maxAttempts})...`);
+            console.log(`Attempting database initialization (attempt ${attempts}/${maxAttempts})`);
             try {
-                await initializeDatabase();
+                await initDB();
                 dbInitialized = true;
                 console.log('Database initialized successfully');
             } catch (error) {
@@ -349,29 +348,19 @@ async function initApp() {
                 if (attempts === maxAttempts) {
                     throw error;
                 }
-                // Wait before retrying
-                await new Promise(resolve => setTimeout(resolve, 1000));
+                await new Promise(resolve => setTimeout(resolve, 1000 * attempts));
             }
         }
-        
-        // Initialize theme
-        console.log('Initializing theme...');
+
+        // Initialize theme and settings
         initializeTheme();
-        
-        // Setup settings panel
-        console.log('Setting up settings panel...');
         setupSettingsPanel();
-        
-        // Initialize settings content
-        console.log('Initializing settings content...');
         initializeSettingsContent();
-        
-        // Load subscriptions
+
+        // Load subscriptions and setup event listeners
         await loadSubscriptions();
-        
-        // Setup event listeners
         setupEventListeners();
-        
+
         // Initialize chart if Chart.js is available
         if (typeof Chart !== 'undefined') {
             try {
@@ -2043,4 +2032,5 @@ document.addEventListener('DOMContentLoaded', function() {
             toggleSettingsPanel();
         }
     });
+});
 });
